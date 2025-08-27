@@ -21,12 +21,11 @@ const fontSans = FontSans({
   variable: '--font-sans'
 })
 
-const title = 'Morphic'
-const description =
-  'A fully open-source AI-powered answer engine with a generative UI.'
+const title = 'WorldPolitics.AI'
+const description = 'The Truth Starts Here'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://morphic.sh'),
+  metadataBase: new URL('https://worldpolitics.ai'),
   title,
   description,
   openGraph: {
