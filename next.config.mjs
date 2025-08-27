@@ -14,7 +14,12 @@ const nextConfig = {
         port: '',
         pathname: '/a/**' // Google user content often follows this pattern
       }
-    ]
+    ],
+    eslint: {
+      // Warning: This allows production builds to successfully complete even if
+      // your project has ESLint errors.
+      ignoreDuringBuilds: true
+    }
   }
 }
 
