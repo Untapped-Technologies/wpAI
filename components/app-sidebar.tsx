@@ -1,7 +1,7 @@
-import { Suspense } from 'react'
 import Link from 'next/link'
+import { Suspense } from 'react'
 
-import { Plus } from 'lucide-react'
+import { ChevronRight, Plus } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -16,6 +16,8 @@ import {
   SidebarTrigger
 } from '@/components/ui/sidebar'
 
+import { homePage } from '@/components/_constants/staticData'
+import { menuItems } from './_constants/pageData/pageData'
 import { ChatHistorySection } from './sidebar/chat-history-section'
 import { ChatHistorySkeleton } from './sidebar/chat-history-skeleton'
 import { IconLogo } from './ui/icons'
@@ -26,7 +28,7 @@ export default function AppSidebar() {
       <SidebarHeader className="flex flex-row justify-between items-center">
         <Link href="/" className="flex items-center gap-2 px-2 py-3">
           <IconLogo className={cn('size-5')} />
-          <span className="font-semibold text-sm">Morphic</span>
+          <span className="font-semibold text-sm">{homePage.title}</span>
         </Link>
         <SidebarTrigger />
       </SidebarHeader>
@@ -40,12 +42,25 @@ export default function AppSidebar() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          {menuItems.map(item => (
+            <SidebarMenuItem key={item.id}>
+              <SidebarMenuButton asChild>
+                <Link href={item.href} className="flex items-center gap-2">
+                  {item.icon}
+                  <span>{item.title}</span>
+                  {item.expandIcon && (
+                    <div className="ml-auto">
+                      <ChevronRight size={24} />
+                    </div>
+                  )}
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
         </SidebarMenu>
-        <div className="flex-1 overflow-y-auto">
-          <Suspense fallback={<ChatHistorySkeleton />}>
-            <ChatHistorySection />
-          </Suspense>
-        </div>
+        <Suspense fallback={<ChatHistorySkeleton />}>
+          <ChatHistorySection />
+        </Suspense>
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

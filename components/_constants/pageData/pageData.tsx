@@ -1,3 +1,5 @@
+import { Bell, Cog, Fingerprint, Home } from 'lucide-react'
+
 export const faqData = [
   {
     id: 1,
@@ -230,5 +232,34 @@ export const cardImages = [
     id: 3,
     image: 'master.webp',
     alt: 'Mastercard Logo'
+  }
+]
+
+export const menuItems = [
+  {
+    id: 1,
+    title: 'Your Feed',
+    href: '/',
+    icon: <Home size={24} />
+  },
+  {
+    id: 2,
+    title: 'Account Info',
+    href: '/user/profile',
+    icon: <Fingerprint size={24} />
+  },
+  {
+    id: 3,
+    title: 'Manage Account',
+    href: '/',
+    icon: <Cog size={24} />,
+    expandIcon: true
+  },
+  {
+    id: 4,
+    title: 'Notifications',
+    href: '/',
+    icon: <Bell size={24} />,
+    expandIcon: true
   }
 ]

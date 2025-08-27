@@ -7,11 +7,25 @@ import { toast } from 'sonner'
 import { Chat } from '@/lib/types'
 
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu
 } from '@/components/ui/sidebar'
 
+import { Handshake, LogIn } from 'lucide-react'
+import Link from 'next/link'
+import { CompanyLinkItems } from '../company-menu-items'
+import { Button } from '../ui'
 import { ChatHistorySkeleton } from './chat-history-skeleton'
 import { ChatMenuItem } from './chat-menu-item'
 import { ClearHistoryAction } from './clear-history-action'
@@ -116,32 +130,62 @@ export function ChatHistoryClient() {
   const isHistoryEmpty = !isLoading && !chats.length && nextOffset === null
 
   return (
-    <div className="flex flex-col flex-1 h-full">
-      <SidebarGroup>
-        <div className="flex items-center justify-between w-full">
-          <SidebarGroupLabel className="p-0">History</SidebarGroupLabel>
-          <ClearHistoryAction empty={isHistoryEmpty} />
+    <div className="flex flex-col flex-1 max-h-screen justify-between">
+      <div>
+        <SidebarGroup>
+          <div className="flex items-center justify-between w-full">
+            <SidebarGroupLabel className="p-0">History</SidebarGroupLabel>
+            <ClearHistoryAction empty={isHistoryEmpty} />
+          </div>
+        </SidebarGroup>
+        <div className="flex-1 overflow-y-auto mb-2 relative max-h-80 overflow-scroll">
+          {isHistoryEmpty && !isPending ? (
+            <div className="px-2 text-foreground/30 text-sm text-center py-4">
+              No search history
+            </div>
+          ) : (
+            <SidebarMenu>
+              {chats.map(
+                (chat: Chat) =>
+                  chat && <ChatMenuItem key={chat.id} chat={chat} />
+              )}
+            </SidebarMenu>
+          )}
+          <div ref={loadMoreRef} style={{ height: '1px' }} />
+          {(isLoading || isPending) && (
+            <div className="py-2">
+              <ChatHistorySkeleton />
+            </div>
+          )}
         </div>
-      </SidebarGroup>
-      <div className="flex-1 overflow-y-auto mb-2 relative">
-        {isHistoryEmpty && !isPending ? (
-          <div className="px-2 text-foreground/30 text-sm text-center py-4">
-            No search history
-          </div>
-        ) : (
-          <SidebarMenu>
-            {chats.map(
-              (chat: Chat) => chat && <ChatMenuItem key={chat.id} chat={chat} />
-            )}
-          </SidebarMenu>
-        )}
-        <div ref={loadMoreRef} style={{ height: '1px' }} />
-        {(isLoading || isPending) && (
-          <div className="py-2">
-            <ChatHistorySkeleton />
-          </div>
-        )}
       </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button className="w-full border-2 text-[#1F574C] border-[#1F574C] bg-transparent hover:bg-[#274743] text-sm hover:text-white">
+            Company Information
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuItem asChild>
+            <Link href="/auth/login">
+              <LogIn className="mr-2 h-4 w-4" />
+              <span>Sign In</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Handshake className="mr-2 h-4 w-4" />
+              <span>Company</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <CompanyLinkItems />
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   )
 }
