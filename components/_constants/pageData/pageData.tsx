@@ -214,3 +214,21 @@ export const termsData = [
     )
   }
 ]
+
+export const cardImages = [
+  {
+    id: 1,
+    image: 'visa.webp',
+    alt: 'Visa Logo'
+  },
+  {
+    id: 2,
+    image: 'american-express.webp',
+    alt: 'American Express Logo'
+  },
+  {
+    id: 3,
+    image: 'master.webp',
+    alt: 'Mastercard Logo'
+  }
+]

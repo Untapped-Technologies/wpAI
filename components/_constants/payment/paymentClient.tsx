@@ -3,6 +3,7 @@
 import { Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { cardImages } from '../pageData/pageData'
 import { pricingData } from '../pricing/pricingData'
 
 type ProductFeature = {
@@ -94,21 +95,15 @@ export default function PaymentClient({ id }: { id: string }) {
                     htmlFor="card"
                     className="ml-4 flex gap-2 cursor-pointer"
                   >
-                    <img
-                      src="https://readymadeui.com/images/visa.webp"
-                      className="w-12"
-                      alt="card1"
-                    />
-                    <img
-                      src="https://readymadeui.com/images/american-express.webp"
-                      className="w-12"
-                      alt="card2"
-                    />
-                    <img
-                      src="https://readymadeui.com/images/master.webp"
-                      className="w-12"
-                      alt="card3"
-                    />
+                    {cardImages.map(card => (
+                      <img
+                        key={card.id}
+                        src={`/images/${card.image}`}
+                        alt={card.alt}
+                        height={48}
+                        width={48}
+                      />
+                    ))}
                   </label>
                 </div>
                 <div className="flex items-center">
@@ -122,9 +117,11 @@ export default function PaymentClient({ id }: { id: string }) {
                     className="ml-4 flex gap-2 cursor-pointer"
                   >
                     <img
-                      src="https://readymadeui.com/images/paypal.webp"
+                      src="/images/paypal.webp"
                       className="w-20"
                       alt="paypalCard"
+                      height={48}
+                      width={48}
                     />
                   </label>
                 </div>
