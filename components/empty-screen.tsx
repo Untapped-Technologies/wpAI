@@ -4,22 +4,32 @@ import { Button } from '@/components/ui/button'
 
 const exampleMessages = [
   {
-    heading: 'What is DeepSeek R1?',
-    message: 'What is DeepSeek R1?'
+    heading: 'Biden vs Trump on Climate Policy',
+    message:
+      "Compare Biden and Trump's positions on climate change and clean energy."
   },
   {
-    heading: 'Why is Nvidia growing rapidly?',
-    message: 'Why is Nvidia growing rapidly?'
+    heading: 'What is the Green New Deal?',
+    message:
+      'What is the Green New Deal and which politicians supported or opposed it?'
   },
   {
-    heading: 'Tesla vs Rivian',
-    message: 'Tesla vs Rivian'
+    heading: 'Gun Control: Who Supports What?',
+    message:
+      'Which politicians support stronger gun control laws and how have they voted?'
   },
   {
-    heading: 'Summary: https://arxiv.org/pdf/2501.05707',
-    message: 'Summary: https://arxiv.org/pdf/2501.05707'
+    heading: 'Roe v. Wade Aftermath',
+    message:
+      'How have different states and politicians responded since the overturning of Roe v. Wade?'
+  },
+  {
+    heading: 'Student Loan Forgiveness Debate',
+    message:
+      'What are the key political arguments for and against student loan forgiveness?'
   }
 ]
+
 export function EmptyScreen({
   submitMessage,
   className

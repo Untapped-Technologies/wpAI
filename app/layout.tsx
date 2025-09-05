@@ -11,7 +11,6 @@ import { Toaster } from '@/components/ui/sonner'
 
 import AppSidebar from '@/components/app-sidebar'
 import ArtifactRoot from '@/components/artifact/artifact-root'
-import Header from '@/components/header'
 import { ThemeProvider } from '@/components/theme-provider'
 
 import './globals.css'
@@ -81,7 +80,7 @@ export default async function RootLayout({
           <SidebarProvider defaultOpen>
             <AppSidebar />
             <div className="flex flex-col flex-1">
-              <Header user={user} />
+              {/* <Header user={user} /> */}
               <main className="flex flex-1 min-h-0">
                 <ArtifactRoot>{children}</ArtifactRoot>
               </main>

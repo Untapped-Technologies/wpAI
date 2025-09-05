@@ -13,6 +13,15 @@ import { cn } from '@/lib/utils'
 
 import { ChatMessages } from './chat-messages'
 import { ChatPanel } from './chat-panel'
+import { Button } from './ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from './ui/dialog'
 
 // Define section structure
 interface ChatSection {
@@ -34,6 +43,7 @@ export function Chat({
 }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [isAtBottom, setIsAtBottom] = useState(true)
+  const [open, setOpen] = useState(false)
 
   const {
     messages,
@@ -59,7 +69,7 @@ export function Chat({
       window.dispatchEvent(new CustomEvent('chat-history-updated'))
     },
     onError: error => {
-      toast.error(`Error in chat: ${error.message}`)
+      setOpen(true)
     },
     sendExtraMessageFields: false, // Disable extra message fields,
     experimental_throttle: 100
@@ -196,7 +206,7 @@ export function Chat({
     return await reload(options)
   }
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setData(undefined)
     handleSubmit(e)
@@ -235,6 +245,27 @@ export function Chat({
         showScrollToBottomButton={!isAtBottom}
         scrollContainerRef={scrollContainerRef}
       />
+      <Dialog
+        open={open}
+        onOpenChange={open => setOpen(open)}
+        aria-labelledby="share-dialog-title"
+        aria-describedby="share-dialog-description"
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Error: Incorrect Prompt</DialogTitle>
+            <DialogDescription>
+              This assistant only responds to political topics. Try asking about
+              elections, lawmakers, or public policy.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="items-center">
+            <Button size="sm" onClick={() => setOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
