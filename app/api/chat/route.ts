@@ -4,8 +4,6 @@ import { getCurrentUserId } from '@/lib/auth/get-current-user'
 import { createManualToolStreamResponse } from '@/lib/streaming/create-manual-tool-stream'
 import { createToolCallingStreamResponse } from '@/lib/streaming/create-tool-calling-stream'
 import { Model } from '@/lib/types/models'
-import { checkPromptWithGPT } from '@/lib/utils/checkPromptWithGPT'
-import { isLikelyPolitical } from '@/lib/utils/isPoliticalPrompt'
 import { isProviderEnabled } from '@/lib/utils/registry'
 
 export const maxDuration = 30
@@ -32,11 +30,13 @@ export async function POST(req: Request) {
       ?.reverse()
       ?.find((msg: any) => msg.role === 'user')?.content
 
-    let valid = isLikelyPolitical(latestMessage)
+    // let valid = isLikelyPolitical(latestMessage)
+    let valid = true
+    console.log('🚀 ~ POST ~ valid:', valid)
     if (!valid) {
       const error = {
         error:
-          '🛑 This assistant only responds to political topics. Try asking about elections, lawmakers, or public policy.'
+          '🛑 This assistant only responds to political topics authorized. Try asking about elections, lawmakers, or public policy.'
       }
       const status = {
         status: 403,
@@ -45,9 +45,9 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify(error), status)
     }
 
-    if (!valid) {
-      valid = await checkPromptWithGPT(latestMessage)
-    }
+    // if (!valid) {
+    //   valid = await checkPromptWithGPT(latestMessage)
+    // }
 
     if (!valid) {
       return new Response(

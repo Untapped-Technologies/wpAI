@@ -4,7 +4,7 @@ import PageLayout from '@/components/_constants/pages/pageLayout'
 export default function TermsPage() {
   return (
     <PageLayout title="Terms of Use">
-      <div className="text-left space-y-4">
+      <div className="text-left space-y-4 text-[#203c39]">
         {termsData.map(item => (
           <div key={item.id}>
             <h2 className="text-lg font-semibold mb-2">{item.title}</h2>

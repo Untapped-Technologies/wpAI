@@ -3,10 +3,10 @@ import PageLayout from '@/components/_constants/pages/pageLayout'
 export default function AboutPage() {
   return (
     <PageLayout title="About World Politics AI">
-      <div className="text-2xl text-left">
+      <div className="text-2xl text-left text-[#203c39]">
         Empowering Political Understanding, Worldwide
       </div>
-      <div className="text-left space-y-4">
+      <div className="text-left space-y-4 text-[#203c39]">
         <p>
           <span className="font-bold">WorldPolitics.ai</span> is a technology
           platform designed to change the way people connect with

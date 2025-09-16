@@ -69,7 +69,7 @@ export function Chat({
       window.dispatchEvent(new CustomEvent('chat-history-updated'))
     },
     onError: error => {
-      setOpen(true)
+      // setOpen(true)
     },
     sendExtraMessageFields: false, // Disable extra message fields,
     experimental_throttle: 100
