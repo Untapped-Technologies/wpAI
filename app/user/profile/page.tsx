@@ -59,7 +59,7 @@ export default function UserProfilePage() {
     {
       label: 'Notifications',
       icon: <BellIcon size={16} />,
-      content: <NotificationsTab />
+      content: <NotificationsTab user={profile?.preferences} />
     },
     {
       label: 'Bio',
@@ -69,10 +69,9 @@ export default function UserProfilePage() {
     {
       label: 'Preferences',
       icon: <SettingsIcon size={16} />,
-      content: <PreferencesTab />
+      content: <PreferencesTab user={profile?.preferences} />
     }
   ]
-
   return (
     <PageLayout title="User Profile">
       <Tabs tabs={tabs} />

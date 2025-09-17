@@ -1,6 +1,13 @@
 'use client'
 
-export default function NotificationsTab() {
+type UserType = {
+  user: {
+    smsNotifs: boolean
+    emailNotifs: boolean
+  }
+}
+
+export default function NotificationsTab({ user }: UserType) {
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-[#254541] text-left">
@@ -8,12 +15,12 @@ export default function NotificationsTab() {
       </h2>
 
       <div className="flex items-center gap-3 text-[#254541]">
-        <input type="checkbox" id="emailNotifs" />
+        <input type="checkbox" id="emailNotifs" checked={user.emailNotifs} />
         <label htmlFor="emailNotifs">Email Notifications</label>
       </div>
 
       <div className="flex items-center gap-3 text-[#254541]">
-        <input type="checkbox" id="smsNotifs" />
+        <input type="checkbox" id="smsNotifs" checked={user.smsNotifs} />
         <label htmlFor="smsNotifs text-[#254541]">SMS Notifications</label>
       </div>
 

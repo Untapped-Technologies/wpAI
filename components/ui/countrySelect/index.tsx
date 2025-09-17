@@ -68,7 +68,7 @@ export default function CountrySelect({
         className="flex w-full items-center justify-between rounded border px-4 py-2"
       >
         {selected ? (
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2 text-[#254541]">
             <img
               src={`https://flagsapi.com/${selected.iso}/flat/24.png`}
               alt={selected.name}
