@@ -17,7 +17,7 @@ export default function NotificationsTab() {
         <label htmlFor="smsNotifs text-[#254541]">SMS Notifications</label>
       </div>
 
-      <button className="rounded border border-[#254541] bg-[#254541] px-4 py-2 text-white hover:text-[#254541] hover:border-[#254541] hover:bg-white">
+      <button className="flex justify-start rounded border border-[#254541] bg-[#254541] px-4 py-2 text-white hover:text-[#254541] hover:border-[#254541] hover:bg-white">
         Save
       </button>
     </div>

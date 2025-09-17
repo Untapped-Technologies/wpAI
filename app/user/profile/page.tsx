@@ -1,3 +1,9 @@
+'use client'
+
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+
 import PageLayout from '@/components/_constants/pages/pageLayout'
 import Tabs from '@/components/ui/tabs'
 import AccountTab from '@/components/ui/tabs/accountTab'
@@ -7,11 +13,48 @@ import PreferencesTab from '@/components/ui/tabs/preferenceTab'
 import { BellIcon, PencilIcon, SettingsIcon, UserIcon } from 'lucide-react'
 
 export default function UserProfilePage() {
+  const [profile, setProfile] = useState<any>(null)
+  const [userEmail, setUserEmail] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const supabase = createClient()
+
+      const {
+        data: { session }
+      } = await supabase.auth.getSession()
+
+      if (!session?.user) {
+        router.push('/auth/login')
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single()
+
+      if (error || !data) {
+        console.error('Profile fetch error:', error)
+        router.push('/auth/login')
+        return
+      }
+      setUserEmail(session.user.email)
+      setProfile(data)
+      setLoading(false)
+    }
+
+    fetchProfile()
+  }, [router])
+
   const tabs = [
     {
       label: 'Account',
       icon: <UserIcon size={16} />,
-      content: <AccountTab />
+      content: <AccountTab name={profile?.display_name} email={userEmail} />
     },
     {
       label: 'Notifications',
@@ -21,7 +64,7 @@ export default function UserProfilePage() {
     {
       label: 'Bio',
       icon: <PencilIcon size={16} />,
-      content: <BioTab />
+      content: <BioTab bio={profile?.bio} />
     },
     {
       label: 'Preferences',

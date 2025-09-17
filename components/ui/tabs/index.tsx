@@ -16,7 +16,7 @@ export default function Tabs({ tabs }: TabsProps) {
   const [activeIndex, setActiveIndex] = useState(0)
 
   return (
-    <div className="w-[800px] h-96">
+    <div className="w-[800px]">
       <div className="flex gap-4 border-b">
         {tabs.map((tab, index) => (
           <button
