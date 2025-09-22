@@ -1,50 +1,70 @@
 'use client'
 
+import { LocationConfirmModal } from '@/components/_constants/pages/signUp/prefModal'
 import { createClient } from '@/lib/supabase/client'
-import { createOrUpdateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
+import {
+  createOrUpdateUserProfile,
+  fetchPreferencesFromIP
+} from '@/lib/utils/createOrUpdateUserProfile'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function OAuthCallbackPage() {
   const router = useRouter()
   const supabase = createClient()
-  const [error, setError] = useState<string | null>(null)
+
+  const [user, setUser] = useState(null)
+  const [preferences, setPreferences] = useState(null)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
-    const handleOAuth = async () => {
+    const load = async () => {
       const {
         data: { user },
-        error: userError
+        error
       } = await supabase.auth.getUser()
+      if (error || !user) return
+      setUser(user)
 
-      if (userError || !user) {
-        setError('Failed to retrieve user')
-        return
-      }
-
-      const { success, error: profileError } = await createOrUpdateUserProfile(
-        supabase,
-        user
-      )
-
-      if (!success) {
-        setError(profileError || 'Failed to create user profile')
-        return
-      }
-
-      router.push('/user/profile')
+      const prefs = await fetchPreferencesFromIP()
+      setPreferences(prefs)
+      setShowModal(true)
     }
 
-    handleOAuth()
+    load()
   }, [])
 
+  interface Preferences {
+    country: string | null
+    region: string | null
+    email: string | null
+    city: string | null
+    latitude: number | null
+    longitude: number | null
+  }
+
+  const handleConfirm = async (prefs: Preferences) => {
+    console.log('🚀 ~ handleConfirm ~ user:', user)
+    if (user) {
+      await createOrUpdateUserProfile(supabase, user, prefs)
+      setShowModal(false)
+      router.push('/user/profile')
+    }
+  }
+
   return (
-    <div className="p-6 text-center">
-      {error ? (
-        <p className="text-red-500 font-medium">Error: {error}</p>
-      ) : (
-        <p className="text-gray-500">Finishing login…</p>
+    <>
+      {showModal && preferences && user && (
+        <LocationConfirmModal
+          preferences={preferences}
+          onConfirm={handleConfirm}
+          onEdit={handleConfirm}
+          onRetry={async () => {
+            const newPrefs = await fetchPreferencesFromIP()
+            setPreferences(newPrefs)
+          }}
+        />
       )}
-    </div>
+    </>
   )
 }

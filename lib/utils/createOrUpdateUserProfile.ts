@@ -1,20 +1,72 @@
-// lib/utils/createOrUpdateUserProfile.ts
 import { SupabaseClient, User } from '@supabase/supabase-js'
 
 export async function createOrUpdateUserProfile(
   supabase: SupabaseClient,
-  user: User
+  user: User,
+  preferences?: Record<string, any>
 ): Promise<{ success: boolean; error?: string }> {
   const { id, email } = user
 
-  const { data, error } = await supabase.from('profiles').upsert(
+  const { error } = await supabase.from('profiles').upsert(
     {
       user_id: id,
-      updated_at: new Date().toISOString()
+      // email: email ?? '',
+      updated_at: new Date().toISOString(),
+      preferences: preferences ?? {}
     },
     { onConflict: 'user_id' }
   )
+
   if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function fetchPreferencesFromIP(): Promise<Record<string, any>> {
+  const response = await fetch(
+    `https://ipinfo.io/json?token=${process.env.NEXT_PUBLIC_IPINFO_TOKEN}`
+  )
+  const json = await response.json()
+
+  const [city, state, postal, country] = [
+    json.city,
+    json.region,
+    json.postal,
+    json.country
+  ]
+
+  return {
+    city,
+    state,
+    postalCode: postal,
+    country,
+    smsNotifs: true,
+    emailNotifs: true
+  }
+}
+
+export async function updateUserProfile(
+  supabase: SupabaseClient,
+  userId: string,
+  payload: Partial<{
+    display_name: string
+    // avatar_url: string
+    bio: string
+    preferences: Record<string, any> // For jsonb column
+  }>
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      ...payload,
+      updated_at: new Date().toISOString()
+    })
+    .eq('user_id', userId)
+
+  if (error) {
+    console.error('⚠️ updateUserProfile error:', error.message)
     return { success: false, error: error.message }
   }
 

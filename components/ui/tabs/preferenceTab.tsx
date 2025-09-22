@@ -1,7 +1,5 @@
 'use client'
 
-import CountrySelect from '../countrySelect'
-
 type UserType = {
   user: {
     city: string
@@ -46,14 +44,15 @@ export default function PreferencesTab({ user }: UserType) {
       </div>
 
       <div className="flex flex-col gap-2">
-        <CountrySelect
+        <input
+          type="text"
+          className="rounded border p-2 focus:outline-none focus:ring-[#254541] focus:ring-1 bg-white text-[#254541]"
           onChange={() => console.log('you go')}
           value={user.country}
-          className={'text-[#254541]'}
         />
       </div>
 
-      <button className="flex justify-start rounded border border-[#254541] bg-[#254541] px-4 py-2 text-white hover:text-[#254541] hover:border-[#254541] hover:bg-white text-[#254541]">
+      <button className="flex justify-start rounded border border-[#254541] bg-[#254541] px-4 py-2 text-white hover:text-[#254541] hover:border-[#254541] hover:bg-white">
         Save
       </button>
     </div>
