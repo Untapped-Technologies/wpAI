@@ -51,12 +51,9 @@ export default function AccountTab({
 
       <div className="flex flex-col gap-2 text-left">
         <label className="text-sm text-[#254541]">Email Address</label>
-        <input
-          type="email"
-          className="disabled rounded border p-2 focus:outline-none focus:ring-[#254541] focus:ring-1 bg-white text-[#254541]"
-          placeholder="john@example.com"
-          value={email}
-        />
+        <div className="disabled rounded border p-2 bg-white text-[#254541]">
+          {email}
+        </div>
       </div>
 
       <button
