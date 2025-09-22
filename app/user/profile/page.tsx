@@ -21,6 +21,15 @@ export default function UserProfilePage() {
   const [userID, setUserID] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
+  const [prefs, setPrefs] = useState({
+    city: '',
+    state: '',
+    country: '',
+    postalCode: '',
+    timezone: '',
+    smsNotifs: true,
+    emailNotifs: true
+  })
 
   const router = useRouter()
 
@@ -52,6 +61,7 @@ export default function UserProfilePage() {
       setUserID(session.user.id)
       setUserName(data.display_name)
       setBio(data.bio)
+      setPrefs(data.preferences)
       setProfile(data)
       setLoading(false)
     }
@@ -76,7 +86,14 @@ export default function UserProfilePage() {
     {
       label: 'Notifications',
       icon: <BellIcon size={16} />,
-      content: <NotificationsTab user={profile?.preferences} />
+      content: (
+        <NotificationsTab
+          prefs={prefs}
+          id={userID}
+          setOpen={setOpen}
+          setPrefs={setPrefs}
+        />
+      )
     },
     {
       label: 'Bio',
@@ -88,7 +105,14 @@ export default function UserProfilePage() {
     {
       label: 'Preferences',
       icon: <SettingsIcon size={16} />,
-      content: <PreferencesTab user={profile?.preferences} />
+      content: (
+        <PreferencesTab
+          prefs={prefs}
+          id={userID}
+          setOpen={setOpen}
+          setPrefs={setPrefs}
+        />
+      )
     }
   ]
   return (

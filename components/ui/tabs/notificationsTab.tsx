@@ -1,13 +1,56 @@
 'use client'
+import { createClient } from '@/lib/supabase/client'
+import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
 
-type UserType = {
-  user: {
-    smsNotifs: boolean
-    emailNotifs: boolean
-  }
+type PrefType = {
+  city: string
+  state: string
+  country: string
+  postalCode: string
+  timezone: string
+  smsNotifs: boolean
+  emailNotifs: boolean
 }
 
-export default function NotificationsTab({ user }: UserType) {
+type UserType = {
+  id: string
+  setOpen: (val: boolean) => void
+  setPrefs: (val: PrefType) => void
+  prefs: PrefType
+}
+
+export default function NotificationsTab({
+  id,
+  prefs,
+  setOpen,
+  setPrefs
+}: UserType) {
+  const supabase = createClient()
+
+  interface ChangeEvent {
+    preventDefault: () => void
+    target: {
+      name: string
+      value: string
+    }
+  }
+  const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, type, value, checked } = evt.target
+
+    setPrefs(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }))
+  }
+
+  const handleSave = async () => {
+    setOpen(true)
+    await updateUserProfile(supabase, id, {
+      preferences: prefs
+    })
+    setOpen(false)
+  }
+
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-[#254541] text-left">
@@ -15,16 +58,31 @@ export default function NotificationsTab({ user }: UserType) {
       </h2>
 
       <div className="flex items-center gap-3 text-[#254541]">
-        <input type="checkbox" id="emailNotifs" checked={user.emailNotifs} />
+        <input
+          type="checkbox"
+          id="emailNotifs"
+          name="emailNotifs"
+          checked={prefs.emailNotifs}
+          onChange={handleChange}
+        />
         <label htmlFor="emailNotifs">Email Notifications</label>
       </div>
 
       <div className="flex items-center gap-3 text-[#254541]">
-        <input type="checkbox" id="smsNotifs" checked={user.smsNotifs} />
+        <input
+          type="checkbox"
+          id="smsNotifs"
+          name="smsNotifs"
+          checked={prefs.smsNotifs}
+          onChange={handleChange}
+        />
         <label htmlFor="smsNotifs text-[#254541]">SMS Notifications</label>
       </div>
 
-      <button className="flex justify-start rounded border border-[#254541] bg-[#254541] px-4 py-2 text-white hover:text-[#254541] hover:border-[#254541] hover:bg-white">
+      <button
+        className="flex justify-start rounded border border-[#254541] bg-[#254541] px-4 py-2 text-white hover:text-[#254541] hover:border-[#254541] hover:bg-white"
+        onClick={handleSave}
+      >
         Save
       </button>
     </div>
