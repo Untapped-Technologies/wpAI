@@ -8,9 +8,16 @@ import PageLayout from '@/components/_constants/pages/pageLayout'
 import Tabs from '@/components/ui/tabs'
 import AccountTab from '@/components/ui/tabs/accountTab'
 import BioTab from '@/components/ui/tabs/bioTab'
+import CandidatesTab from '@/components/ui/tabs/candidatesTab'
 import NotificationsTab from '@/components/ui/tabs/notificationsTab'
 import PreferencesTab from '@/components/ui/tabs/preferenceTab'
-import { BellIcon, PencilIcon, SettingsIcon, UserIcon } from 'lucide-react'
+import {
+  BellIcon,
+  Landmark,
+  PencilIcon,
+  SettingsIcon,
+  UserIcon
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function UserProfilePage() {
@@ -111,6 +118,18 @@ export default function UserProfilePage() {
           id={userID}
           setOpen={setOpen}
           setPrefs={setPrefs}
+        />
+      )
+    },
+    {
+      label: 'Candidates',
+      icon: <Landmark size={16} />,
+      content: (
+        <CandidatesTab
+          id={userID}
+          setOpen={setOpen}
+          setPrefs={setPrefs}
+          prefs={prefs}
         />
       )
     }
