@@ -10,4 +10,5 @@ export interface TextareaTypes extends React.ComponentPropsWithoutRef<'div'> {
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   classes?: string
   maxLength?: number
+  name: string
 }

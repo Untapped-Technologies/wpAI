@@ -52,7 +52,7 @@ export async function updateUserProfile(
   userId: string,
   payload: Partial<{
     display_name: string
-    // avatar_url: string
+    user_type_id: string
     bio: string
     preferences: Record<string, any> // For jsonb column
   }>
@@ -71,4 +71,40 @@ export async function updateUserProfile(
   }
 
   return { success: true }
+}
+
+export async function savePoliticianProfile(
+  supabase: SupabaseClient,
+  profileId: number,
+  formValues: any
+) {
+  const {
+    office,
+    jurisdiction,
+    district,
+    website,
+    affiliation,
+    bio,
+    photo,
+    socialMedia
+  } = formValues
+
+  const { data, error } = await supabase.from('politicians').upsert({
+    id: profileId, // must be bigint from `profiles.id`
+    office,
+    jurisdiction,
+    district,
+    website,
+    affiliation,
+    bio,
+    photo,
+    social_media: socialMedia
+  })
+
+  if (error) {
+    console.error('🔴 Error saving politician profile:', error)
+    return { success: false, error: error.message }
+  }
+
+  return { success: true, data }
 }

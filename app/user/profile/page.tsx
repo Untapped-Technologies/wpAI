@@ -24,10 +24,16 @@ export default function UserProfilePage() {
   const [profile, setProfile] = useState<any>(null)
   const [userEmail, setUserEmail] = useState<any>(null)
   const [userName, setUserName] = useState<any>(null)
+  const [userType, setUserType] = useState<any>(null)
   const [userBio, setBio] = useState<any>(null)
   const [userID, setUserID] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
+  const [formValues, setFormValues] = useState({
+    display_name: '',
+    email: '',
+    user_type_id: ''
+  })
   const [prefs, setPrefs] = useState({
     city: '',
     state: '',
@@ -64,9 +70,15 @@ export default function UserProfilePage() {
         router.push('/auth/login')
         return
       }
-      setUserEmail(session.user.email)
+
+      setFormValues({ ...formValues, ...data })
+      setFormValues({
+        ...formValues,
+        email: session.user.email,
+        display_name: data.display_name,
+        user_type_id: data.user_type_id
+      })
       setUserID(session.user.id)
-      setUserName(data.display_name)
       setBio(data.bio)
       setPrefs(data.preferences)
       setProfile(data)
@@ -82,11 +94,10 @@ export default function UserProfilePage() {
       icon: <UserIcon size={16} />,
       content: (
         <AccountTab
-          name={userName}
-          email={userEmail}
+          formValues={formValues}
           id={userID}
-          setUserName={setUserName}
           setOpen={setOpen}
+          setFormValues={setFormValues}
         />
       )
     },
