@@ -141,13 +141,14 @@ export default function UserProfilePage() {
           setOpen={setOpen}
           setPrefs={setPrefs}
           prefs={prefs}
+          userType="Pol"
         />
       )
     }
   ]
   return (
     <PageLayout title="User Profile">
-      <Tabs tabs={tabs} />
+      <Tabs tabs={tabs} userType={formValues.user_type_id} />
       {open ? toast('Updates Saved') : null}
     </PageLayout>
   )

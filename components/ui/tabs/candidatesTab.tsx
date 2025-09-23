@@ -22,13 +22,15 @@ type UserType = {
   setOpen: (val: boolean) => void
   setPrefs: (val: PrefType) => void
   prefs: PrefType
+  userType: string
 }
 
 export default function CandidatesTab({
   id,
   prefs,
   setOpen,
-  setPrefs
+  setPrefs,
+  userType
 }: UserType) {
   const supabase = createClient()
   const [currentStep, setCurrentStep] = useState(0)
