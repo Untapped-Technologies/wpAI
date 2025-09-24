@@ -149,6 +149,7 @@ const Step1Candidate = ({
           <SimpleTextarea
             label="Short Bio (150 words max)"
             value={bio}
+            name="bio"
             handleChange={e => setBio(e.target.value)}
             maxLength={150}
           />

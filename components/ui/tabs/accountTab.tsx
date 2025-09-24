@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
+import { Dispatch, SetStateAction } from 'react'
 
 const accountTypes = [
   {
@@ -30,7 +31,13 @@ type profileType = {
   id: string
   value: string
   setOpen: (val: boolean) => void
-  setFormValues: (val: string) => void
+  setFormValues: Dispatch<
+    SetStateAction<{
+      display_name: string
+      email: string
+      user_type_id: string
+    }>
+  >
 }
 
 export default function AccountTab({

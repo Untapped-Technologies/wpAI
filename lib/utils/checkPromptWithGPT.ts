@@ -15,5 +15,8 @@ export async function checkPromptWithGPT(prompt: string): Promise<boolean> {
     ]
   })
 
-  return response?.choices[0]?.message?.content.toLowerCase().includes('true')
+  return (
+    response?.choices[0]?.message?.content?.toLowerCase().includes('true') ??
+    false
+  )
 }

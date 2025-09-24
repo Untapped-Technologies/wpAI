@@ -2,7 +2,24 @@ import SimpleInput from '@/components/ui/inputs/simpleInput'
 import SimpleTextarea from '@/components/ui/inputs/simpleTextarea'
 
 const jurisdiction = ['Local', 'State', 'Federal']
-const General = ({ formValues, handleChange }) => {
+interface GeneralProps {
+  formValues: {
+    affiliation: string
+    bio: string
+    district: string
+    fullname: string
+    jurisdiction: string[]
+    office: string
+    photo: string
+    socialMedia: {}
+    user_type: string
+    website: string
+  }
+  handleChange: (
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) => void
+}
+const General = ({ formValues, handleChange }: GeneralProps) => {
   return (
     <div>
       <SimpleInput
@@ -60,6 +77,7 @@ const General = ({ formValues, handleChange }) => {
           value={formValues.bio}
           handleChange={handleChange}
           maxLength={150}
+          name="bio"
           classes="bg-white"
         />
       </div>

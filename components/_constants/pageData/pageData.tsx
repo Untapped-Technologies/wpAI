@@ -1,4 +1,4 @@
-import { Bell, Cog, Fingerprint, Home } from 'lucide-react'
+import { Fingerprint, Home, LogOut } from 'lucide-react'
 
 export const faqData = [
   {
@@ -249,17 +249,23 @@ export const menuItems = [
     icon: <Fingerprint size={24} />
   },
   {
-    id: 3,
-    title: 'Manage Account',
-    href: '/',
-    icon: <Cog size={24} />,
-    expandIcon: true
-  },
-  {
-    id: 4,
-    title: 'Notifications',
-    href: '/',
-    icon: <Bell size={24} />,
-    expandIcon: true
+    id: 500,
+    title: 'Logout',
+    href: '/auth/logout',
+    icon: <LogOut size={24} />
   }
+  // {
+  //   id: 3,
+  //   title: 'Manage Account',
+  //   href: '/',
+  //   icon: <Cog size={24} />,
+  //   expandIcon: true
+  // }
+  // {
+  //   id: 4,
+  //   title: 'Notifications',
+  //   href: '/',
+  //   icon: <Bell size={24} />,
+  //   expandIcon: true
+  // }
 ]

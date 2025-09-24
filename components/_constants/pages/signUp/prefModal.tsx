@@ -1,5 +1,3 @@
-// 📄 /components/modals/LocationConfirmModal.tsx
-
 'use client'
 
 import { Button } from '@/components/ui'
@@ -13,11 +11,26 @@ import {
 } from '@/components/ui/dialog'
 import { useState } from 'react'
 
+interface LocationPreferences {
+  city: string | null
+  state: string | null
+  postalCode: string | null
+  country: string | null
+  latitude: number | null
+  longitude: number | null
+  email: string | null
+}
+
 export function LocationConfirmModal({
   preferences,
   onConfirm,
-  onEdit,
+  // onEdit,
   onRetry
+}: {
+  preferences: LocationPreferences
+  onConfirm: (prefs: LocationPreferences) => void
+  // onEdit: (prefs: LocationPreferences) => void
+  onRetry: (prefs: LocationPreferences) => void
 }) {
   const [localPrefs, setLocalPrefs] = useState(preferences)
   const [open, setOpen] = useState(false)
@@ -47,7 +60,10 @@ export function LocationConfirmModal({
                   </label>
                   <input
                     type="text"
-                    value={localPrefs[field]}
+                    value={
+                      (localPrefs[field as keyof LocationPreferences] ||
+                        '') as string
+                    }
                     onChange={e => handleChange(field, e.target.value)}
                     className="w-full bg-white border px-2 py-1 rounded border-gray-300 text-gray-600"
                   />
@@ -64,13 +80,13 @@ export function LocationConfirmModal({
           >
             Retry
           </Button>
-          <Button
+          {/* <Button
             size="sm"
             className="border rounded-md border-gray-600 bg-red hover:bg-gray-800 hover:text-white"
             onClick={() => onEdit(localPrefs)}
           >
             Save Manually
-          </Button>
+          </Button> */}
           <Button
             size="sm"
             className="border rounded-md border-gray-600 bg-red hover:bg-gray-800 hover:text-white"

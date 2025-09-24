@@ -74,7 +74,7 @@ export default function UserProfilePage() {
       setFormValues({ ...formValues, ...data })
       setFormValues({
         ...formValues,
-        email: session.user.email,
+        email: session.user.email || '',
         display_name: data.display_name,
         user_type_id: data.user_type_id
       })
@@ -98,6 +98,7 @@ export default function UserProfilePage() {
           id={userID}
           setOpen={setOpen}
           setFormValues={setFormValues}
+          value={profile}
         />
       )
     },

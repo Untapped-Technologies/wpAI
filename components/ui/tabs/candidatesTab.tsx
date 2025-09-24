@@ -55,12 +55,19 @@ export default function CandidatesTab({
     }
   }
 
-  const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, type, value, checked } = evt.target
+  const handleChange = (
+    evt: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, type, value } = evt.target
+
+    const checked =
+      evt.target instanceof HTMLInputElement && type === 'checkbox'
+        ? evt.target.checked
+        : undefined
 
     setFormValues(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: checked !== undefined ? checked : value
     }))
   }
 

@@ -12,7 +12,14 @@ type BioType = {
 export default function BioTab({ bio, setOpen, id, setBio }: BioType) {
   const supabase = createClient()
 
-  const handleChange = evt => {
+  interface ChangeEvent {
+    preventDefault: () => void
+    target: {
+      value: string
+    }
+  }
+
+  const handleChange = (evt: ChangeEvent) => {
     evt.preventDefault()
     setBio(evt.target.value)
   }

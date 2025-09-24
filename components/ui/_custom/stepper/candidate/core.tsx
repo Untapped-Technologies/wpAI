@@ -61,7 +61,12 @@ const coreInputs = [
   }
 ]
 
-const CoreCandidate = ({ formValues, handleChange }) => {
+interface CoreCandidateProps {
+  formValues: { [key: string]: any }
+  handleChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+}
+
+const CoreCandidate = ({ formValues, handleChange }: CoreCandidateProps) => {
   return (
     <div>
       <div className="flex flex-col justify-start ml-[-3px]">

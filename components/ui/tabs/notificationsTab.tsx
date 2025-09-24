@@ -37,10 +37,14 @@ export default function NotificationsTab({
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     const { name, type, value, checked } = evt.target
 
-    setPrefs(prev => ({
-      ...prev,
+    interface SetPrefs {
+      (prev: PrefType): PrefType
+    }
+
+    setPrefs({
+      ...prefs,
       [name]: type === 'checkbox' ? checked : value
-    }))
+    })
   }
 
   const handleSave = async () => {

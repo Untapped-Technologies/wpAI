@@ -13,7 +13,7 @@ const StepperButtons = ({
 }: StepperButtonType) => {
   const handleNext = () => {
     handleSave
-    setCurrentStep(prev => Math.min(prev + 1, arrLen - 1))
+    setCurrentStep(Math.min(currentStep + 1, arrLen - 1))
   }
   return (
     <div className="mt-4 flex gap-4 justify-end">
@@ -21,7 +21,7 @@ const StepperButtons = ({
         onClick={() =>
           currentStep === 0
             ? null
-            : setCurrentStep(prev => Math.max(prev - 1, 0))
+            : setCurrentStep(Math.max(currentStep - 1, 0))
         }
         disabled={currentStep === 0}
         className={`px-4 py-2 rounded ${currentStep > 0 ? 'bg-[#254541] hover:cursor-pointer' : 'disabled:opacity-50'}`}

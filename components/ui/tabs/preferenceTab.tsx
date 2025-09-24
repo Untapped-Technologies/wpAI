@@ -38,10 +38,10 @@ export default function PreferencesTab({
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     const { name, type, value, checked } = evt.target
 
-    setPrefs(prev => ({
-      ...prev,
+    setPrefs({
+      ...prefs,
       [name]: type === 'checkbox' ? checked : value
-    }))
+    })
   }
 
   const handleSave = async () => {

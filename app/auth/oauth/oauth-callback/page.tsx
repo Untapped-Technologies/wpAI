@@ -6,6 +6,7 @@ import {
   createOrUpdateUserProfile,
   fetchPreferencesFromIP
 } from '@/lib/utils/createOrUpdateUserProfile'
+import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -13,8 +14,10 @@ export default function OAuthCallbackPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  const [user, setUser] = useState(null)
-  const [preferences, setPreferences] = useState(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [preferences, setPreferences] = useState<Record<string, any> | null>(
+    null
+  )
   const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
@@ -44,7 +47,6 @@ export default function OAuthCallbackPage() {
   }
 
   const handleConfirm = async (prefs: Preferences) => {
-    console.log('🚀 ~ handleConfirm ~ user:', user)
     if (user) {
       await createOrUpdateUserProfile(supabase, user, prefs)
       setShowModal(false)
@@ -56,9 +58,25 @@ export default function OAuthCallbackPage() {
     <>
       {showModal && preferences && user && (
         <LocationConfirmModal
-          preferences={preferences}
-          onConfirm={handleConfirm}
-          onEdit={handleConfirm}
+          preferences={{
+            city: preferences.city,
+            state: preferences.region,
+            postalCode: '',
+            country: preferences.country,
+            latitude: preferences.latitude,
+            longitude: preferences.longitude,
+            email: preferences.email
+          }}
+          onConfirm={prefs =>
+            handleConfirm({
+              country: prefs.country,
+              region: prefs.state,
+              email: prefs.email,
+              city: prefs.city,
+              latitude: prefs.latitude,
+              longitude: prefs.longitude
+            })
+          }
           onRetry={async () => {
             const newPrefs = await fetchPreferencesFromIP()
             setPreferences(newPrefs)

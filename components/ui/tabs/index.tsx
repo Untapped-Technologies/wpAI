@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useState } from 'react'
+import { Fragment, ReactNode, useState } from 'react'
 
 type TabItem = {
   label: string
@@ -20,7 +20,7 @@ export default function Tabs({ tabs, userType }: TabsProps) {
     <div className="w-[800px]">
       <div className="flex gap-4 border-b">
         {tabs.map((tab, index) => (
-          <>
+          <Fragment key={index}>
             {tab.label === 'Candidates' &&
               userType === '3dad0f25-2b3b-491b-9e82-9f9e71adad6f' && (
                 <button
@@ -50,7 +50,7 @@ export default function Tabs({ tabs, userType }: TabsProps) {
                 {tab.label}
               </button>
             )}
-          </>
+          </Fragment>
         ))}
       </div>
 

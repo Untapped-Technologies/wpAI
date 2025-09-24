@@ -5,7 +5,9 @@ import { pricingData } from '@/components/_constants/pricing/pricingData'
 const Pricing = () => {
   return (
     <PageLayout title="Pricing">
-      <PricingCard data={pricingData} />
+      {pricingData.map(data => (
+        <PricingCard key={data.id} data={data} />
+      ))}
     </PageLayout>
   )
 }

@@ -5,7 +5,7 @@ type StepType = {
   id: number
   title: string
   status: string
-  constent: any
+  content: any
 }
 
 type DataType = {
@@ -77,7 +77,7 @@ const Stepper = ({
         setCurrentStep={setCurrentStep}
         currentStep={currentStep}
         arrLen={data.length}
-        handleSave={handleSave}
+        handleSave={() => handleSave(currentStep)}
       />
     </>
   )
