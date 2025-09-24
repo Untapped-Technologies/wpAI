@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils/index'
@@ -15,9 +15,9 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { IconLogo } from '@/components/ui/icons'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import Image from 'next/image'
 
 export function LoginForm({
   className,
@@ -78,20 +78,27 @@ export function LoginForm({
       className={cn('flex flex-col items-center gap-6', className)}
       {...props}
     >
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm bg-gray-200">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl flex flex-col items-center justify-center gap-4">
-            <IconLogo className="size-12" />
+          <CardTitle className="text-2xl flex flex-col items-center justify-center gap-4 text-[#203c39]">
+            <Image
+              src="/images/logos/icononly_transparent_nobuffer.png"
+              alt="World Politics Logo"
+              width={112}
+              height={112}
+            />
             Welcome back
           </CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardDescription className="text-[#203c39]">
+            Sign in to your account
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">
             <Button
               variant="outline"
               type="button"
-              className="w-full"
+              className="w-full bg-[#203c39] text-white hover:text-[#203c39] hover:bg-white border-0"
               onClick={handleSocialLogin}
               disabled={isLoading}
             >
@@ -103,13 +110,15 @@ export function LoginForm({
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-muted px-2 text-muted-foreground">Or</span>
+                {/* <span className="bg-muted px-2 text-muted-foreground">Or</span> */}
               </div>
             </div>
 
             <form onSubmit={handleLogin} className="flex flex-col gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-[#203c39]">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -117,14 +126,17 @@ export function LoginForm({
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
+                  className="bg-gray-100"
                 />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-[#203c39]">
+                    Password
+                  </Label>
                   <Link
                     href="/auth/forgot-password"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline text-[#203c39]"
                   >
                     Forgot password?
                   </Link>
@@ -136,27 +148,32 @@ export function LoginForm({
                   required
                   value={password}
                   onChange={e => setPassword(e.target.value)}
+                  className="bg-gray-100"
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full hover:bg-[#203c39] hover:text-white text-[#203c39]"
+                disabled={isLoading}
+              >
                 {isLoading ? 'Logging in...' : 'Sign In'}
               </Button>
             </form>
           </div>
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-6 text-center text-sm text-[#203c39]">
             Don&apos;t have an account?{' '}
             <Link href="/auth/sign-up" className="underline underline-offset-4">
               Sign Up
             </Link>
           </div>
+          <div className="mt-10 text-center text-xs text-[#203c39]">
+            <Link href="/" className="hover:underline">
+              &larr; Back to Home
+            </Link>
+          </div>
         </CardContent>
       </Card>
-      <div className="text-center text-xs text-muted-foreground">
-        <Link href="/" className="hover:underline">
-          &larr; Back to Home
-        </Link>
-      </div>
     </div>
   )
 }
