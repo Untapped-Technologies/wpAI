@@ -1,13 +1,7 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
 
-import {
-  ChevronRight,
-  KeyIcon,
-  LogOut,
-  Plus,
-  UserRoundPlus
-} from 'lucide-react'
+import { KeyIcon, LogOut, Plus, UserRoundPlus } from 'lucide-react'
 
 import {
   Sidebar,
@@ -60,11 +54,11 @@ export default async function AppSidebar() {
                 <Link href={item.href} className="flex items-center gap-2">
                   {item.icon}
                   <span>{item.title}</span>
-                  {item.expandIcon && (
+                  {/* {item.expandIcon && (
                     <div className="ml-auto">
                       <ChevronRight size={24} />
                     </div>
-                  )}
+                  )} */}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
