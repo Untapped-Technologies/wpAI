@@ -29,8 +29,8 @@ export function LocationConfirmModal({
 }: {
   preferences: LocationPreferences
   onConfirm: (prefs: LocationPreferences) => void
-  // onEdit: (prefs: LocationPreferences) => void
   onRetry: (prefs: LocationPreferences) => void
+  // onEdit: (prefs: LocationPreferences) => void
 }) {
   const [localPrefs, setLocalPrefs] = useState(preferences)
   const [open, setOpen] = useState(false)

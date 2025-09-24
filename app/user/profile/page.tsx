@@ -11,20 +11,11 @@ import BioTab from '@/components/ui/tabs/bioTab'
 import CandidatesTab from '@/components/ui/tabs/candidatesTab'
 import NotificationsTab from '@/components/ui/tabs/notificationsTab'
 import PreferencesTab from '@/components/ui/tabs/preferenceTab'
-import {
-  BellIcon,
-  Landmark,
-  PencilIcon,
-  SettingsIcon,
-  UserIcon
-} from 'lucide-react'
+import { BellIcon, Landmark, MapPin, PencilIcon, UserIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function UserProfilePage() {
   const [profile, setProfile] = useState<any>(null)
-  const [userEmail, setUserEmail] = useState<any>(null)
-  const [userName, setUserName] = useState<any>(null)
-  const [userType, setUserType] = useState<any>(null)
   const [userBio, setBio] = useState<any>(null)
   const [userID, setUserID] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -122,8 +113,8 @@ export default function UserProfilePage() {
       )
     },
     {
-      label: 'Preferences',
-      icon: <SettingsIcon size={16} />,
+      label: 'Location',
+      icon: <MapPin size={16} />,
       content: (
         <PreferencesTab
           prefs={prefs}

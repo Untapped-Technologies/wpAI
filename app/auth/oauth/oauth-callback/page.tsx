@@ -39,11 +39,14 @@ export default function OAuthCallbackPage() {
 
   interface Preferences {
     country: string | null
-    region: string | null
+    state: string | null
+    postalCode: string | null
     email: string | null
     city: string | null
     latitude: number | null
     longitude: number | null
+    emailNotifs: boolean | true
+    smsNotifs: boolean | true
   }
 
   const handleConfirm = async (prefs: Preferences) => {
@@ -60,8 +63,8 @@ export default function OAuthCallbackPage() {
         <LocationConfirmModal
           preferences={{
             city: preferences.city,
-            state: preferences.region,
-            postalCode: '',
+            state: preferences.state,
+            postalCode: preferences.postalCode,
             country: preferences.country,
             latitude: preferences.latitude,
             longitude: preferences.longitude,
@@ -70,11 +73,14 @@ export default function OAuthCallbackPage() {
           onConfirm={prefs =>
             handleConfirm({
               country: prefs.country,
-              region: prefs.state,
+              state: prefs.state,
+              postalCode: prefs.postalCode,
               email: prefs.email,
               city: prefs.city,
               latitude: prefs.latitude,
-              longitude: prefs.longitude
+              longitude: prefs.longitude,
+              emailNotifs: true,
+              smsNotifs: true
             })
           }
           onRetry={async () => {

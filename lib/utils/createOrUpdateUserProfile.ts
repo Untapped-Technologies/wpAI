@@ -30,11 +30,12 @@ export async function fetchPreferencesFromIP(): Promise<Record<string, any>> {
   )
   const json = await response.json()
 
-  const [city, state, postal, country] = [
+  const [city, state, postal, country, loc] = [
     json.city,
     json.region,
     json.postal,
-    json.country
+    json.country,
+    json.loc
   ]
 
   return {
@@ -43,7 +44,9 @@ export async function fetchPreferencesFromIP(): Promise<Record<string, any>> {
     postalCode: postal,
     country,
     smsNotifs: true,
-    emailNotifs: true
+    emailNotifs: true,
+    latitude: loc.split(',')[0],
+    longitude: loc.split(',')[1]
   }
 }
 

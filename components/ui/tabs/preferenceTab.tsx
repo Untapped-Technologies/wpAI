@@ -55,7 +55,7 @@ export default function PreferencesTab({
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-[#254541] text-left">
-        Preferences
+        Location
       </h2>
 
       <div className="flex flex-col gap-2">

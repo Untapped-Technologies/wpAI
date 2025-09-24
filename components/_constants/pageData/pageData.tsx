@@ -1,4 +1,4 @@
-import { Fingerprint, Home, LogOut } from 'lucide-react'
+import { Fingerprint, Home } from 'lucide-react'
 
 export const faqData = [
   {
@@ -247,12 +247,6 @@ export const menuItems = [
     title: 'Account Info',
     href: '/user/profile',
     icon: <Fingerprint size={24} />
-  },
-  {
-    id: 500,
-    title: 'Logout',
-    href: '/auth/logout',
-    icon: <LogOut size={24} />
   }
   // {
   //   id: 3,
