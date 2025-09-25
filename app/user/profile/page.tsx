@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 import PageLayout from '@/components/_constants/pages/pageLayout'
+import { UserTypes } from '@/components/_constants/pages/signUp/signupTypes'
 import Tabs from '@/components/ui/tabs'
 import AccountTab from '@/components/ui/tabs/accountTab'
 import BioTab from '@/components/ui/tabs/bioTab'
@@ -25,6 +26,7 @@ export default function UserProfilePage() {
     email: '',
     user_type_id: ''
   })
+  const [userTypes, setUserTypes] = useState<UserTypes[]>([])
   const [prefs, setPrefs] = useState({
     city: '',
     state: '',
@@ -75,7 +77,14 @@ export default function UserProfilePage() {
       setProfile(data)
       setLoading(false)
     }
+    const fetchUserTypes = async () => {
+      const userTypesData = await fetch('/api/usertypes')
+      if (!userTypesData.ok) return
+      const userTypesJson = await userTypesData.json()
+      setUserTypes(userTypesJson)
+    }
 
+    fetchUserTypes()
     fetchProfile()
   }, [router])
 
@@ -90,6 +99,7 @@ export default function UserProfilePage() {
           setOpen={setOpen}
           setFormValues={setFormValues}
           value={profile}
+          userTypes={userTypes}
         />
       )
     },

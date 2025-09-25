@@ -1,6 +1,10 @@
 'use client'
 
 import { LocationConfirmModal } from '@/components/_constants/pages/signUp/prefModal'
+import {
+  Preferences,
+  UserTypes
+} from '@/components/_constants/pages/signUp/signupTypes'
 import { createClient } from '@/lib/supabase/client'
 import {
   createOrUpdateUserProfile,
@@ -19,6 +23,8 @@ export default function OAuthCallbackPage() {
     null
   )
   const [showModal, setShowModal] = useState(false)
+  const [userTypes, setUserTypes] = useState<UserTypes[]>([])
+  const [userType, setUserType] = useState<string>('')
 
   useEffect(() => {
     const load = async () => {
@@ -26,8 +32,14 @@ export default function OAuthCallbackPage() {
         data: { user },
         error
       } = await supabase.auth.getUser()
+
       if (error || !user) return
       setUser(user)
+
+      const userTypesData = await fetch('/api/usertypes')
+      if (!userTypesData.ok) return
+      const userTypesJson = await userTypesData.json()
+      setUserTypes(userTypesJson)
 
       const prefs = await fetchPreferencesFromIP()
       setPreferences(prefs)
@@ -37,21 +49,14 @@ export default function OAuthCallbackPage() {
     load()
   }, [])
 
-  interface Preferences {
-    country: string | null
-    state: string | null
-    postalCode: string | null
-    email: string | null
-    city: string | null
-    latitude: number | null
-    longitude: number | null
-    emailNotifs: boolean | true
-    smsNotifs: boolean | true
-  }
+  const handleConfirm = async (prefs: Preferences, userType: string) => {
+    if (!userType) {
+      alert('Please select an account type.')
+      return
+    }
 
-  const handleConfirm = async (prefs: Preferences) => {
     if (user) {
-      await createOrUpdateUserProfile(supabase, user, prefs)
+      await createOrUpdateUserProfile(supabase, user, prefs, userType)
       setShowModal(false)
       router.push('/user/profile')
     }
@@ -68,20 +73,28 @@ export default function OAuthCallbackPage() {
             country: preferences.country,
             latitude: preferences.latitude,
             longitude: preferences.longitude,
-            email: preferences.email
+            email: preferences.email,
+            emailNotifs: true,
+            smsNotifs: true
           }}
-          onConfirm={prefs =>
-            handleConfirm({
-              country: prefs.country,
-              state: prefs.state,
-              postalCode: prefs.postalCode,
-              email: prefs.email,
-              city: prefs.city,
-              latitude: prefs.latitude,
-              longitude: prefs.longitude,
-              emailNotifs: true,
-              smsNotifs: true
-            })
+          setUserType={setUserType}
+          userType={userType}
+          userTypes={userTypes}
+          onConfirm={(prefs, userType) =>
+            handleConfirm(
+              {
+                country: prefs.country,
+                state: prefs.state,
+                postalCode: prefs.postalCode,
+                email: prefs.email,
+                city: prefs.city,
+                latitude: prefs.latitude,
+                longitude: prefs.longitude,
+                emailNotifs: true,
+                smsNotifs: true
+              },
+              userType
+            )
           }
           onRetry={async () => {
             const newPrefs = await fetchPreferencesFromIP()

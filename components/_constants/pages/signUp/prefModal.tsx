@@ -1,4 +1,8 @@
 'use client'
+import {
+  Preferences,
+  UserTypes
+} from '@/components/_constants/pages/signUp/signupTypes'
 
 import { Button } from '@/components/ui'
 import {
@@ -11,32 +15,32 @@ import {
 } from '@/components/ui/dialog'
 import { useState } from 'react'
 
-interface LocationPreferences {
-  city: string | null
-  state: string | null
-  postalCode: string | null
-  country: string | null
-  latitude: number | null
-  longitude: number | null
-  email: string | null
-}
-
 export function LocationConfirmModal({
   preferences,
   onConfirm,
+  onRetry,
+  userTypes,
+  userType,
+  setUserType
   // onEdit,
-  onRetry
 }: {
-  preferences: LocationPreferences
-  onConfirm: (prefs: LocationPreferences) => void
-  onRetry: (prefs: LocationPreferences) => void
-  // onEdit: (prefs: LocationPreferences) => void
+  userTypes: UserTypes[]
+  preferences: Preferences
+  userType: string
+  setUserType: (val: string) => void
+  onConfirm: (prefs: Preferences, userType: string) => void
+  onRetry: (prefs: Preferences, userType: string) => void
+  // onEdit: (prefs: Preferences) => void
 }) {
   const [localPrefs, setLocalPrefs] = useState(preferences)
   const [open, setOpen] = useState(false)
 
   const handleChange = (key: string, value: string) => {
     setLocalPrefs(prev => ({ ...prev, [key]: value }))
+  }
+
+  const handleSelectChange = (val: string) => {
+    setUserType(val)
   }
 
   return (
@@ -48,10 +52,30 @@ export function LocationConfirmModal({
     >
       <DialogContent className="bg-white">
         <DialogHeader>
-          <DialogTitle className="text-gray-600">
-            Confirm Your Location
-          </DialogTitle>
+          <DialogTitle className="text-gray-600">Confirm Your Data</DialogTitle>
           <DialogDescription>
+            <div className="space-y-2 mb-4">
+              <label className="block mb-1 text-sm font-medium">
+                Account Type
+              </label>
+              <select
+                value={userType}
+                required
+                name="user_type_id"
+                onChange={e => handleSelectChange(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md bg-gray-100"
+              >
+                <option value="" disabled>
+                  Select user type
+                </option>
+                {userTypes.map(type => (
+                  <option key={type.id} value={type.id || ''}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="space-y-2 mt-4">
               {['city', 'state', 'postalCode', 'country'].map(field => (
                 <div key={field}>
@@ -61,8 +85,7 @@ export function LocationConfirmModal({
                   <input
                     type="text"
                     value={
-                      (localPrefs[field as keyof LocationPreferences] ||
-                        '') as string
+                      (localPrefs[field as keyof Preferences] || '') as string
                     }
                     onChange={e => handleChange(field, e.target.value)}
                     className="w-full bg-white border px-2 py-1 rounded border-gray-300 text-gray-600"
@@ -76,7 +99,7 @@ export function LocationConfirmModal({
           <Button
             size="sm"
             className="border rounded-md border-gray-600 hover:bg-gray-800 hover:text-white"
-            onClick={() => onRetry(localPrefs)}
+            onClick={() => onRetry(localPrefs, userType)}
           >
             Retry
           </Button>
@@ -90,7 +113,7 @@ export function LocationConfirmModal({
           <Button
             size="sm"
             className="border rounded-md border-gray-600 bg-red hover:bg-gray-800 hover:text-white"
-            onClick={() => onConfirm(localPrefs)}
+            onClick={() => onConfirm(localPrefs, userType)}
           >
             Confirm & Save
           </Button>

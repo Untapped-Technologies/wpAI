@@ -1,50 +1,15 @@
 'use client'
 
+import { profileType } from '@/components/_constants/pages/signUp/signupTypes'
 import { createClient } from '@/lib/supabase/client'
 import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
-import { Dispatch, SetStateAction } from 'react'
-
-const accountTypes = [
-  {
-    id: 1,
-    value: '77503f6f-c160-4cca-9d13-70f08e09fcc4',
-    label: 'Citizen'
-  },
-  {
-    id: 2,
-    value: '3dad0f25-2b3b-491b-9e82-9f9e71adad6f',
-    label: 'Politician'
-  },
-  {
-    id: 3,
-    value: 'e20f639b-e615-480c-8c84-abe3d8f8e512',
-    label: 'Student'
-  }
-]
-
-type profileType = {
-  formValues: {
-    display_name: string
-    email: string
-    user_type_id: string
-  }
-  id: string
-  value: string
-  setOpen: (val: boolean) => void
-  setFormValues: Dispatch<
-    SetStateAction<{
-      display_name: string
-      email: string
-      user_type_id: string
-    }>
-  >
-}
 
 export default function AccountTab({
   id,
   setOpen,
   formValues,
-  setFormValues
+  setFormValues,
+  userTypes
 }: profileType) {
   const supabase = createClient()
 
@@ -105,8 +70,8 @@ export default function AccountTab({
             <option value="" disabled>
               Select account type
             </option>
-            {accountTypes.map(type => (
-              <option key={type.id} value={type.value}>
+            {userTypes.map(type => (
+              <option key={type.id} value={type.id}>
                 {type.label}
               </option>
             ))}

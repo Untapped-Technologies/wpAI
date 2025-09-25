@@ -3,18 +3,17 @@ import { SupabaseClient, User } from '@supabase/supabase-js'
 export async function createOrUpdateUserProfile(
   supabase: SupabaseClient,
   user: User,
-  user_type: string,
-  preferences?: Record<string, any>
+  preferences?: Record<string, any>,
+  userType?: string
 ): Promise<{ success: boolean; error?: string }> {
   const { id, email } = user
 
   const { error } = await supabase.from('profiles').upsert(
     {
       user_id: id,
-      // email: email ?? '',
       updated_at: new Date().toISOString(),
       preferences: preferences ?? {},
-      user_type_id: user_type
+      user_type_id: userType
     },
     { onConflict: 'user_id' }
   )
