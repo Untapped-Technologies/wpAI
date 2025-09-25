@@ -3,6 +3,7 @@ import { SupabaseClient, User } from '@supabase/supabase-js'
 export async function createOrUpdateUserProfile(
   supabase: SupabaseClient,
   user: User,
+  user_type: string,
   preferences?: Record<string, any>
 ): Promise<{ success: boolean; error?: string }> {
   const { id, email } = user
@@ -12,7 +13,8 @@ export async function createOrUpdateUserProfile(
       user_id: id,
       // email: email ?? '',
       updated_at: new Date().toISOString(),
-      preferences: preferences ?? {}
+      preferences: preferences ?? {},
+      user_type_id: user_type
     },
     { onConflict: 'user_id' }
   )
