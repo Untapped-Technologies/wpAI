@@ -76,15 +76,15 @@ export default function UserProfilePage() {
       setPrefs(data.preferences)
       setProfile(data)
       setLoading(false)
-    }
-    const fetchUserTypes = async () => {
-      const userTypesData = await fetch('/api/usertypes')
+
+      const userTypesData = await fetch(
+        `/api/usertypes/${data.preferences.country}`
+      )
       if (!userTypesData.ok) return
       const userTypesJson = await userTypesData.json()
       setUserTypes(userTypesJson)
     }
 
-    fetchUserTypes()
     fetchProfile()
   }, [router])
 

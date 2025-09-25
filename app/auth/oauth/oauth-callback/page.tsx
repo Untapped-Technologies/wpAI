@@ -36,13 +36,16 @@ export default function OAuthCallbackPage() {
       if (error || !user) return
       setUser(user)
 
-      const userTypesData = await fetch('/api/usertypes')
+      const prefs = await fetchPreferencesFromIP()
+      setPreferences(prefs)
+
+      const userTypesData = await fetch(
+        `/api/usertypes/${prefs.country || 'US'}`
+      )
       if (!userTypesData.ok) return
       const userTypesJson = await userTypesData.json()
       setUserTypes(userTypesJson)
 
-      const prefs = await fetchPreferencesFromIP()
-      setPreferences(prefs)
       setShowModal(true)
     }
 
