@@ -71,7 +71,7 @@ export default function AccountTab({
               Select account type
             </option>
             {userTypes.map(type => (
-              <option key={type.id} value={type.id}>
+              <option key={type.id} value={type.id || ''}>
                 {type.label}
               </option>
             ))}

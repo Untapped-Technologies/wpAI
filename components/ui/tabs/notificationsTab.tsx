@@ -1,29 +1,14 @@
 'use client'
+import { PrefType, UserType } from '@/components/_constants/pageData/pageTypes'
 import { createClient } from '@/lib/supabase/client'
 import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
-
-type PrefType = {
-  city: string
-  state: string
-  country: string
-  postalCode: string
-  timezone: string
-  smsNotifs: boolean
-  emailNotifs: boolean
-}
-
-type UserType = {
-  id: string
-  setOpen: (val: boolean) => void
-  setPrefs: (val: PrefType) => void
-  prefs: PrefType
-}
 
 export default function NotificationsTab({
   id,
   prefs,
   setOpen,
-  setPrefs
+  setPrefs,
+  userType
 }: UserType) {
   const supabase = createClient()
 

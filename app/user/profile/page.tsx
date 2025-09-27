@@ -30,11 +30,12 @@ export default function UserProfilePage() {
   const [prefs, setPrefs] = useState({
     city: '',
     state: '',
-    country: '',
+    country: 'US',
     postalCode: '',
     timezone: '',
     smsNotifs: true,
-    emailNotifs: true
+    emailNotifs: true,
+    avatar: ''
   })
 
   const router = useRouter()
@@ -57,12 +58,6 @@ export default function UserProfilePage() {
         .select('*')
         .eq('user_id', session.user.id)
         .single()
-
-      if (error || !data) {
-        console.error('Profile fetch error:', error)
-        router.push('/auth/login')
-        return
-      }
 
       setFormValues({ ...formValues, ...data })
       setFormValues({
@@ -112,6 +107,7 @@ export default function UserProfilePage() {
           id={userID}
           setOpen={setOpen}
           setPrefs={setPrefs}
+          userType=""
         />
       )
     },
@@ -131,6 +127,7 @@ export default function UserProfilePage() {
           id={userID}
           setOpen={setOpen}
           setPrefs={setPrefs}
+          userType=""
         />
       )
     },

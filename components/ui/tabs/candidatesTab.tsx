@@ -1,4 +1,5 @@
 'use client'
+import { UserType } from '@/components/_constants/pageData/pageTypes'
 import { createClient } from '@/lib/supabase/client'
 import { savePoliticianProfile } from '@/lib/utils/createOrUpdateUserProfile'
 import { useState } from 'react'
@@ -6,24 +7,6 @@ import { toast } from 'sonner'
 import CoreCandidate from '../_custom/stepper/candidate/core'
 import General from '../_custom/stepper/candidate/general'
 import Stepper from '../stepper'
-
-type PrefType = {
-  city: string
-  state: string
-  country: string
-  postalCode: string
-  timezone: string
-  smsNotifs: boolean
-  emailNotifs: boolean
-}
-
-type UserType = {
-  id: string
-  setOpen: (val: boolean) => void
-  setPrefs: (val: PrefType) => void
-  prefs: PrefType
-  userType: string
-}
 
 export default function CandidatesTab({
   id,

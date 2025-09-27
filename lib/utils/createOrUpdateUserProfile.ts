@@ -3,7 +3,8 @@ import { SupabaseClient, User } from '@supabase/supabase-js'
 export async function createOrUpdateUserProfile(
   supabase: SupabaseClient,
   user: User,
-  preferences?: Record<string, any>,
+  location?: Record<string, any>,
+  userData?: Record<string, any>,
   userType?: string
 ): Promise<{ success: boolean; error?: string }> {
   const { id, email } = user
@@ -12,8 +13,10 @@ export async function createOrUpdateUserProfile(
     {
       user_id: id,
       updated_at: new Date().toISOString(),
-      preferences: preferences ?? {},
-      user_type_id: userType
+      preferences: location ?? {},
+      display_name: userData?.name,
+      user_type_id: userType,
+      profile_picture: userData?.avatar
     },
     { onConflict: 'user_id' }
   )
@@ -25,7 +28,7 @@ export async function createOrUpdateUserProfile(
   return { success: true }
 }
 
-export async function fetchPreferencesFromIP(): Promise<Record<string, any>> {
+export async function fetchLocationFromIP(): Promise<Record<string, any>> {
   const response = await fetch(
     `https://ipinfo.io/json?token=${process.env.NEXT_PUBLIC_IPINFO_TOKEN}`
   )

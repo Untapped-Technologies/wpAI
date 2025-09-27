@@ -1,29 +1,15 @@
 'use client'
+import { countries } from '@/components/_constants/pageData/countries'
+import { UserType } from '@/components/_constants/pageData/pageTypes'
 import { createClient } from '@/lib/supabase/client'
 import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
-
-type PrefType = {
-  city: string
-  state: string
-  country: string
-  postalCode: string
-  timezone: string
-  smsNotifs: boolean
-  emailNotifs: boolean
-}
-
-type UserType = {
-  id: string
-  setOpen: (val: boolean) => void
-  setPrefs: (val: PrefType) => void
-  prefs: PrefType
-}
 
 export default function PreferencesTab({
   id,
   prefs,
   setOpen,
-  setPrefs
+  setPrefs,
+  userType
 }: UserType) {
   const supabase = createClient()
 
@@ -44,6 +30,11 @@ export default function PreferencesTab({
     })
   }
 
+  const handleCountryChange = (evt: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = evt.target
+    setPrefs({ ...prefs, [name]: value })
+  }
+
   const handleSave = async () => {
     setOpen(true)
     await updateUserProfile(supabase, id, {
@@ -58,7 +49,8 @@ export default function PreferencesTab({
         Location
       </h2>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 text-left">
+        <label className="text-sm text-[#254541]">City</label>
         <input
           type="text"
           className="rounded border p-2 focus:outline-none focus:ring-[#254541] focus:ring-1 bg-white text-[#254541]"
@@ -69,7 +61,8 @@ export default function PreferencesTab({
         />
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 text-left">
+        <label className="text-sm text-[#254541]">State</label>
         <input
           type="text"
           className="rounded border p-2 focus:outline-none focus:ring-[#254541] focus:ring-1 bg-white text-[#254541]"
@@ -80,7 +73,8 @@ export default function PreferencesTab({
         />
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 text-left">
+        <label className="text-sm text-[#254541]">Postal Code</label>
         <input
           type="text"
           className="rounded border p-2 focus:outline-none focus:ring-[#254541] focus:ring-1 bg-white text-[#254541]"
@@ -91,14 +85,25 @@ export default function PreferencesTab({
         />
       </div>
 
-      <div className="flex flex-col gap-2">
-        <input
-          type="text"
-          className="rounded border p-2 focus:outline-none focus:ring-[#254541] focus:ring-1 bg-white text-[#254541]"
-          value={prefs.country}
-          name="country"
-          onChange={handleChange}
-        />
+      <div className="flex flex-col gap-2 text-left">
+        <label className="text-sm text-[#254541]">Country</label>
+        <div className="bg-white text-[#254541]">
+          <select
+            name="country"
+            value={prefs.country || ''}
+            onChange={handleCountryChange}
+            className="w-full rounded border p-2 bg-white text-[#254541] focus:outline-none focus:ring-2 focus:ring-[#254541]"
+          >
+            <option value="" disabled>
+              Select Country
+            </option>
+            {countries.map(type => (
+              <option key={type.code} value={type.code}>
+                {type.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <button

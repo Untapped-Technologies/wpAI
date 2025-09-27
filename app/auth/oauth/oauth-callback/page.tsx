@@ -1,14 +1,10 @@
 'use client'
 
-import { LocationConfirmModal } from '@/components/_constants/pages/signUp/prefModal'
-import {
-  Preferences,
-  UserTypes
-} from '@/components/_constants/pages/signUp/signupTypes'
+import { UserTypes } from '@/components/_constants/pages/signUp/signupTypes'
 import { createClient } from '@/lib/supabase/client'
 import {
   createOrUpdateUserProfile,
-  fetchPreferencesFromIP
+  fetchLocationFromIP
 } from '@/lib/utils/createOrUpdateUserProfile'
 import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
@@ -19,9 +15,7 @@ export default function OAuthCallbackPage() {
   const supabase = createClient()
 
   const [user, setUser] = useState<User | null>(null)
-  const [preferences, setPreferences] = useState<Record<string, any> | null>(
-    null
-  )
+  const [location, setLocation] = useState<Record<string, any> | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [userTypes, setUserTypes] = useState<UserTypes[]>([])
   const [userType, setUserType] = useState<string>('')
@@ -36,75 +30,37 @@ export default function OAuthCallbackPage() {
       if (error || !user) return
       setUser(user)
 
-      const prefs = await fetchPreferencesFromIP()
-      setPreferences(prefs)
+      const prefs = await fetchLocationFromIP()
 
-      const userTypesData = await fetch(
-        `/api/usertypes/${prefs.country || 'US'}`
-      )
-      if (!userTypesData.ok) return
-      const userTypesJson = await userTypesData.json()
-      setUserTypes(userTypesJson)
-
-      setShowModal(true)
+      setLocation(prefs)
     }
 
     load()
-  }, [])
+  }, [supabase.auth])
 
-  const handleConfirm = async (prefs: Preferences, userType: string) => {
-    if (!userType) {
-      alert('Please select an account type.')
-      return
+  if (user && location) {
+    const locationData = {
+      city: location?.city,
+      state: location?.state,
+      postalCode: location?.postalCode,
+      country: location?.country,
+      latitude: location?.latitude,
+      longitude: location?.longitude,
+      emailNotifs: true,
+      smsNotifs: true
     }
+    const userData = {
+      name: user.user_metadata.name,
+      avatar: user.user_metadata.avatar_url
+    }
+    createOrUpdateUserProfile(
+      supabase,
+      user,
+      locationData,
+      userData,
+      '77503f6f-c160-4cca-9d13-70f08e09fcc4'
+    )
 
-    if (user) {
-      await createOrUpdateUserProfile(supabase, user, prefs, userType)
-      setShowModal(false)
-      router.push('/user/profile')
-    }
+    router.push('/user/profile')
   }
-
-  return (
-    <>
-      {showModal && preferences && user && (
-        <LocationConfirmModal
-          preferences={{
-            city: preferences.city,
-            state: preferences.state,
-            postalCode: preferences.postalCode,
-            country: preferences.country,
-            latitude: preferences.latitude,
-            longitude: preferences.longitude,
-            email: preferences.email,
-            emailNotifs: true,
-            smsNotifs: true
-          }}
-          setUserType={setUserType}
-          userType={userType}
-          userTypes={userTypes}
-          onConfirm={(prefs, userType) =>
-            handleConfirm(
-              {
-                country: prefs.country,
-                state: prefs.state,
-                postalCode: prefs.postalCode,
-                email: prefs.email,
-                city: prefs.city,
-                latitude: prefs.latitude,
-                longitude: prefs.longitude,
-                emailNotifs: true,
-                smsNotifs: true
-              },
-              userType
-            )
-          }
-          onRetry={async () => {
-            const newPrefs = await fetchPreferencesFromIP()
-            setPreferences(newPrefs)
-          }}
-        />
-      )}
-    </>
-  )
 }
