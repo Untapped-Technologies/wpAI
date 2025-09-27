@@ -4,8 +4,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
+import { userTypes } from '@/components/_constants/pageData/userTypes'
 import PageLayout from '@/components/_constants/pages/pageLayout'
-import { UserTypes } from '@/components/_constants/pages/signUp/signupTypes'
 import Tabs from '@/components/ui/tabs'
 import AccountTab from '@/components/ui/tabs/accountTab'
 import BioTab from '@/components/ui/tabs/bioTab'
@@ -26,7 +26,6 @@ export default function UserProfilePage() {
     email: '',
     user_type_id: ''
   })
-  const [userTypes, setUserTypes] = useState<UserTypes[]>([])
   const [prefs, setPrefs] = useState({
     city: '',
     state: '',
@@ -71,13 +70,6 @@ export default function UserProfilePage() {
       setPrefs(data.preferences)
       setProfile(data)
       setLoading(false)
-
-      const userTypesData = await fetch(
-        `/api/usertypes/${data.preferences.country}`
-      )
-      if (!userTypesData.ok) return
-      const userTypesJson = await userTypesData.json()
-      setUserTypes(userTypesJson)
     }
 
     fetchProfile()

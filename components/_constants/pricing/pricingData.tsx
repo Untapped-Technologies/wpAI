@@ -1,202 +1,142 @@
 export const pricingData = [
   {
     id: 1,
-    title: 'Ad-Free Basic User',
-    subtitle:
-      'Clean interface with no ads, access to general summaries and topic trends, monthly usage report',
-    price: '$200',
-    timeframe: 'annual',
-    url: '#',
+    title: 'Free Tier',
+    subtitle: '',
+    price: '$0',
+    timeframe: '',
+    url: '/auth/sign-up',
+    trial: true,
+    trialButton: false,
     features: [
       {
         fid: 1,
-        feature: 'Single user profile',
+        feature: 'Access to limited daily queries (e.g., 20 prompts/day).',
         description: ''
       },
       {
         fid: 2,
-        feature: 'Receive 1M tokens',
-        description: 'Start with one project, easily add more as you need'
+        feature: 'Core political analysis, summaries, and news breakdowns.',
+        description: ''
       },
       {
         fid: 3,
-        feature: '50gb of free data storage',
-        description: 'Advanced filtering ensures high-converting prospects'
-      },
-      {
-        fid: 4,
-        feature: '400+ Top Subreddits Monitored',
-        description: 'Growing database of the most valuable communities'
-      },
-      {
-        fid: 5,
-        feature: 'Instant Notification Alerts',
-        description: 'Real-time alerts via email and Slack integration'
-      },
-      {
-        fid: 6,
-        feature: 'Dedicated Email Support',
-        description: 'Priority support to help you succeed'
+        feature:
+          'Basic personalization (topics of interest, regions followed).',
+        description: ''
       }
     ]
   },
   {
     id: 2,
-    title: 'Federal Politician',
-    subtitle: 'Compleate information generation solution',
-    price: '$3,000',
-    timeframe: 'annual',
+    title: 'Plus Tier',
+    subtitle: '(aligned with ChatGPT Plus / Copilot Pro)',
+    price: '$20',
+    timeframe: 'month',
     url: '#',
+    trial: true,
+    trialButton: true,
     features: [
       {
         fid: 1,
-        feature: '1 Politician profile build',
-        description: 'Build your detailed political profile'
+        feature: 'Unlimited daily queries with priority access.',
+        description: ''
       },
       {
         fid: 2,
-        feature: 'Receive 1M tokens',
-        description: 'Start with one project, easily add more as you need'
+        feature:
+          'Access to advanced model (e.g., GPT-4o equivalent for deeper reasoning).',
+        description: ''
       },
       {
         fid: 3,
-        feature: '50gb of free data storage',
-        description: 'Advanced filtering ensures high-converting prospects'
+        feature: 'Real-time political event monitoring & summaries.',
+        description: ''
       },
       {
         fid: 4,
-        feature: '400+ Top Subreddits Monitored',
-        description: 'Growing database of the most valuable communities'
+        feature:
+          'Enhanced personalization (saved dashboards, regions, or themes like “Elections,” “Diplomacy,” “Conflict Monitoring”).',
+        description: ''
       },
       {
         fid: 5,
-        feature: 'Instant Notification Alerts',
-        description: 'Real-time alerts via email and Slack integration'
-      },
-      {
-        fid: 6,
-        feature: 'Dedicated Email Support',
-        description: 'Priority support to help you succeed'
+        feature: 'Access to interactive maps and timelines.',
+        description: ''
       }
     ]
   },
   {
     id: 3,
-    title: 'State Politician',
-    subtitle: 'Compleate information generation solution',
-    price: '$2,000',
-    timeframe: 'annual',
+    title: 'Pro Tier',
+    subtitle: '(similar to GitHub Copilot for Business tiers)',
+    price: '$50',
+    timeframe: 'monthly',
     url: '#',
+    trial: true,
+    trialButton: true,
     features: [
       {
         fid: 1,
-        feature: '1 Politician profile build',
-        description: 'Build your detailed political profile'
+        feature: 'Everything in Plus.',
+        description: ''
       },
       {
         fid: 2,
-        feature: 'Receive 1M tokens',
-        description: 'Start with one project, easily add more as you need'
+        feature:
+          'Priority processing for complex analysis (e.g., historical comparisons, long-form reports).',
+        description: ''
       },
       {
         fid: 3,
-        feature: '50gb of free data storage',
-        description: 'Advanced filtering ensures high-converting prospects'
+        feature: 'Collaboration tools: shareable analysis boards with teams.',
+        description: ''
       },
       {
         fid: 4,
-        feature: '400+ Top Subreddits Monitored',
-        description: 'Growing database of the most valuable communities'
+        feature: 'Data export (CSV, PDF, API-lite access).',
+        description: ''
       },
       {
         fid: 5,
-        feature: 'Instant Notification Alerts',
-        description: 'Real-time alerts via email and Slack integration'
-      },
-      {
-        fid: 6,
-        feature: 'Dedicated Email Support',
-        description: 'Priority support to help you succeed'
+        feature:
+          'Advanced visualization: scenario forecasting, trend graphs, influence mapping.',
+        description: ''
       }
     ]
   },
   {
     id: 4,
-    title: 'Local Politician',
-    subtitle: 'Compleate information generation solution',
-    price: '$1,000',
-    timeframe: 'annual',
+    title: 'Enterprise / API Tier',
+    subtitle:
+      'Custom (usage-based, starting at ~$0.01 per 1k tokens, similar to OpenAI API).',
+    price: 'Contact for pricing',
+    timeframe: '',
     url: '#',
+    trial: false,
+    trialButton: false,
     features: [
       {
         fid: 1,
-        feature: '1 Politician profile build',
-        description: 'Build your detailed political profile'
+        feature:
+          'Full API access for integration into research pipelines, dashboards, or custom apps.',
+        description: ''
       },
       {
         fid: 2,
-        feature: 'Receive 1M tokens',
-        description: 'Start with one project, easily add more as you need'
+        feature: 'Unlimited seats with admin & compliance controls.',
+        description: ''
       },
       {
         fid: 3,
-        feature: '50gb of free data storage',
-        description: 'Advanced filtering ensures high-converting prospects'
+        feature:
+          'Fine-tuned political analysis models (e.g., tailored to regions or topics).',
+        description: ''
       },
       {
         fid: 4,
-        feature: '400+ Top Subreddits Monitored',
-        description: 'Growing database of the most valuable communities'
-      },
-      {
-        fid: 5,
-        feature: 'Instant Notification Alerts',
-        description: 'Real-time alerts via email and Slack integration'
-      },
-      {
-        fid: 6,
-        feature: 'Dedicated Email Support',
-        description: 'Priority support to help you succeed'
-      }
-    ]
-  },
-  {
-    id: 5,
-    title: 'Organization/Institution',
-    subtitle: 'Compleate information generation solution',
-    price: '$5,000',
-    timeframe: 'annual +per seat',
-    url: '#',
-    features: [
-      {
-        fid: 1,
-        feature: '1 Politician profile build',
-        description: 'Build your detailed political profile'
-      },
-      {
-        fid: 2,
-        feature: 'Receive 1M tokens',
-        description: 'Start with one project, easily add more as you need'
-      },
-      {
-        fid: 3,
-        feature: '50gb of free data storage',
-        description: 'Advanced filtering ensures high-converting prospects'
-      },
-      {
-        fid: 4,
-        feature: '400+ Top Subreddits Monitored',
-        description: 'Growing database of the most valuable communities'
-      },
-      {
-        fid: 5,
-        feature: 'Instant Notification Alerts',
-        description: 'Real-time alerts via email and Slack integration'
-      },
-      {
-        fid: 6,
-        feature: 'Dedicated Email Support',
-        description: 'Priority support to help you succeed'
+        feature: 'Dedicated account manager & SLAs.',
+        description: ''
       }
     ]
   }

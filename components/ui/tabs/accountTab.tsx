@@ -1,5 +1,6 @@
 'use client'
 
+import { userTypes } from '@/components/_constants/pageData/userTypes'
 import { profileType } from '@/components/_constants/pages/signUp/signupTypes'
 import { createClient } from '@/lib/supabase/client'
 import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
@@ -8,8 +9,7 @@ export default function AccountTab({
   id,
   setOpen,
   formValues,
-  setFormValues,
-  userTypes
+  setFormValues
 }: profileType) {
   const supabase = createClient()
 

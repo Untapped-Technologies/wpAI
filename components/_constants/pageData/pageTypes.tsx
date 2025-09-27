@@ -16,3 +16,23 @@ export type UserType = {
   prefs: PrefType
   userType: string
 }
+
+export type Feature = {
+  fid: number
+  feature: string
+  description: string
+}
+
+export type DataType = {
+  data: {
+    id: number
+    title: string
+    subtitle: string
+    price: string
+    timeframe: string
+    features: Feature[]
+    url: string
+    trial: boolean
+    trialButton: boolean
+  }
+}
