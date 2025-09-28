@@ -1,8 +1,9 @@
 'use client'
 
+import HCaptcha from '@hcaptcha/react-hcaptcha'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils/index'
@@ -27,7 +28,9 @@ export function LoginForm({
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const router = useRouter()
+  const captchaRef = useRef<HCaptcha>(null)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,10 +38,25 @@ export function LoginForm({
     setIsLoading(true)
     setError(null)
 
+    // Only require CAPTCHA if it's configured
+    if (process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY && !captchaToken) {
+      setError('Please complete the CAPTCHA verification')
+      setIsLoading(false)
+      return
+    }
+
     try {
+      const loginOptions: any = {}
+
+      // Only add captchaToken if we have one
+      if (captchaToken) {
+        loginOptions.captchaToken = captchaToken
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
+        options: loginOptions
       })
       if (error) throw error
       // Redirect to root and refresh to ensure server components get updated session
@@ -46,9 +64,18 @@ export function LoginForm({
       router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
+      // Reset CAPTCHA on error
+      if (captchaRef.current) {
+        captchaRef.current.resetCaptcha()
+      }
+      setCaptchaToken(null)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const onCaptchaChange = (token: string | null) => {
+    setCaptchaToken(token)
   }
 
   const handleSocialLogin = async () => {
@@ -151,11 +178,32 @@ export function LoginForm({
                   className="bg-gray-100"
                 />
               </div>
+              <div className="flex justify-center">
+                {process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY ? (
+                  <HCaptcha
+                    ref={captchaRef}
+                    sitekey={process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY}
+                    onVerify={onCaptchaChange}
+                    onExpire={() => setCaptchaToken(null)}
+                    onError={() => setCaptchaToken(null)}
+                  />
+                ) : (
+                  <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-lg text-center">
+                    <p className="text-sm text-yellow-800">
+                      ⚠️ hCaptcha not configured. Please add
+                      NEXT_PUBLIC_HCAPTCHA_SITE_KEY to your .env.local file.
+                    </p>
+                  </div>
+                )}
+              </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button
                 type="submit"
                 className="w-full hover:bg-[#203c39] hover:text-white text-[#203c39]"
-                disabled={isLoading}
+                disabled={
+                  isLoading ||
+                  (process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY && !captchaToken)
+                }
               >
                 {isLoading ? 'Logging in...' : 'Sign In'}
               </Button>

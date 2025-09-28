@@ -61,6 +61,6 @@ export default function OAuthCallbackPage() {
       '77503f6f-c160-4cca-9d13-70f08e09fcc4'
     )
 
-    router.push('/user/profile')
+    // router.push('/user/profile')
   }
 }
