@@ -38,12 +38,17 @@ export default function TrendingTabs() {
     }
   })()
 
+  // Filter out undefined values to match Record<string, string>
+  const cleanFilters = Object.fromEntries(
+    Object.entries(filters).filter(([_, value]) => value !== undefined)
+  ) as Record<string, string>
+
   const {
     trending: activeTrending,
     totalPages: activeTotalPages,
     isLoading: activeLoading,
     error: activeError
-  } = useTrending(activeTab, pageMap[activeTab], 10, filters)
+  } = useTrending(activeTab, pageMap[activeTab], 10, cleanFilters)
 
   const [cachedTrending, setCachedTrending] = useState<Record<string, any[]>>({
     local: [],

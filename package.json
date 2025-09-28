@@ -23,7 +23,6 @@
     "@ai-sdk/xai": "^1.1.10",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
-    "@hcaptcha/react-hcaptcha": "^1.12.1",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-avatar": "^1.1.9",
     "@radix-ui/react-checkbox": "^1.0.4",

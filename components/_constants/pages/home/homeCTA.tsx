@@ -29,7 +29,7 @@ const HomeCTA = () => {
             asChild
             size="lg"
             variant="outline"
-            className="border-white text-white hover:bg-white hover:text-[#203c39] px-8 py-4 text-lg"
+            className="bg-white text-[#203c39] hover:bg-slate-100 px-8 py-4 text-lg"
           >
             <Link href="/trending-topics" className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
