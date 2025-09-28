@@ -1,22 +1,22 @@
 import HomeCTA from '@/components/_constants/pages/home/homeCTA'
-import HomeFooter from '@/components/_constants/pages/home/homeFooter'
 import HomeHeader from '@/components/_constants/pages/home/homeHeader'
-import HomeNavigation from '@/components/_constants/pages/home/homeNavigation'
 import HomePlatform from '@/components/_constants/pages/home/homePlatform'
 import HomePricing from '@/components/_constants/pages/home/homePricing'
 import HomeTrending from '@/components/_constants/pages/home/homeTrending'
+import AuthAwareFooter from '@/components/auth-aware-footer'
+import AuthAwareNavigation from '@/components/auth-aware-navigation'
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full">
-      <HomeNavigation />
+      <AuthAwareNavigation />
       <div className="mx-auto">
         <HomeHeader />
         <HomePlatform />
         <HomeTrending />
         <HomePricing />
         <HomeCTA />
-        <HomeFooter />
+        <AuthAwareFooter />
       </div>
     </div>
   )

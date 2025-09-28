@@ -1,9 +1,104 @@
+'use client'
+
+import { createClient } from '@/lib/supabase/client'
+import { User } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
-const HomeFooter = () => {
+interface AuthAwareFooterProps {
+  className?: string
+}
+
+const AuthAwareFooter = ({ className = '' }: AuthAwareFooterProps) => {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
+
+  useEffect(() => {
+    // Get initial user
+    const getUser = async () => {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser()
+      setUser(user)
+      setLoading(false)
+    }
+
+    getUser()
+
+    // Listen for auth changes
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
+
+  const renderAccountLinks = () => {
+    if (loading) {
+      return (
+        <>
+          <li>
+            <div className="h-4 w-16 bg-slate-600 animate-pulse rounded"></div>
+          </li>
+          <li>
+            <div className="h-4 w-12 bg-slate-600 animate-pulse rounded"></div>
+          </li>
+        </>
+      )
+    }
+
+    if (!user) {
+      return (
+        <>
+          <li>
+            <Link
+              href="/auth/sign-up"
+              className="hover:text-white transition-colors"
+            >
+              Sign Up
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/auth/login"
+              className="hover:text-white transition-colors"
+            >
+              Login
+            </Link>
+          </li>
+        </>
+      )
+    }
+
+    return (
+      <>
+        <li>
+          <Link
+            href="/user/profile"
+            className="hover:text-white transition-colors"
+          >
+            Profile
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/auth/logout"
+            className="hover:text-white transition-colors"
+          >
+            Logout
+          </Link>
+        </li>
+      </>
+    )
+  }
+
   return (
-    <footer className="bg-slate-900 text-white py-12">
+    <footer className={`bg-slate-900 text-white py-12 ${className}`}>
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-4 gap-8">
           <div>
@@ -55,30 +150,7 @@ const HomeFooter = () => {
           <div>
             <h3 className="font-semibold mb-4">Account</h3>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li>
-                <Link
-                  href="/auth/sign-up"
-                  className="hover:text-white transition-colors"
-                >
-                  Sign Up
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/auth/login"
-                  className="hover:text-white transition-colors"
-                >
-                  Login
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/user/profile"
-                  className="hover:text-white transition-colors"
-                >
-                  Profile
-                </Link>
-              </li>
+              {renderAccountLinks()}
             </ul>
           </div>
 
@@ -121,4 +193,4 @@ const HomeFooter = () => {
   )
 }
 
-export default HomeFooter
+export default AuthAwareFooter

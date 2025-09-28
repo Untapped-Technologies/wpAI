@@ -1,11 +1,11 @@
-import HomeFooter from '@/components/_constants/pages/home/homeFooter'
-import HomeNavigation from '@/components/_constants/pages/home/homeNavigation'
 import MainHeader from '@/components/_constants/pages/mainHeader'
+import AuthAwareFooter from '@/components/auth-aware-footer'
+import AuthAwareNavigation from '@/components/auth-aware-navigation'
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full">
-      <HomeNavigation />
+      <AuthAwareNavigation />
       <div className="max-w-4xl mx-auto mb-8">
         <MainHeader title="About Us" />
         <div className="text-2xl text-left text-[#203c39] mb-2">
@@ -64,7 +64,7 @@ export default function AboutPage() {
           </div>
         </div>
       </div>
-      <HomeFooter />
+      <AuthAwareFooter />
     </div>
   )
 }

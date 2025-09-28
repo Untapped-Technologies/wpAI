@@ -1,5 +1,7 @@
 'use client'
 
+import { createClient } from '@/lib/supabase/client'
+import { User } from '@supabase/supabase-js'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import AppSidebar from './app-sidebar'
@@ -12,9 +14,35 @@ interface LayoutWrapperProps {
 export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const pathname = usePathname()
   const [hideSidebar, setHideSidebar] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClient()
 
   useEffect(() => {
-    // Hide sidebar on marketing/static pages
+    // Get initial user
+    const getUser = async () => {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser()
+      setUser(user)
+      setLoading(false)
+    }
+
+    getUser()
+
+    // Listen for auth changes
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
+
+  useEffect(() => {
+    // Hide sidebar on marketing/static pages OR when user is not authenticated
     const marketingPages = [
       '/',
       '/about',
@@ -25,13 +53,16 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       '/auth/login',
       '/pricing'
     ]
-    setHideSidebar(marketingPages.includes(pathname))
-  }, [pathname])
+    const shouldHideSidebar = marketingPages.includes(pathname) || !user
+    setHideSidebar(shouldHideSidebar)
+  }, [pathname, user])
 
   if (hideSidebar) {
     return (
       <div className="flex flex-col flex-1 min-h-screen">
-        <main className="flex flex-1 min-h-0 overflow-auto">{children}</main>
+        <main className="flex flex-1 min-h-0 overflow-auto">
+          <ArtifactRoot>{children}</ArtifactRoot>
+        </main>
       </div>
     )
   }

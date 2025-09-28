@@ -1,7 +1,7 @@
 import HomeCTA from '@/components/_constants/pages/home/homeCTA'
-import HomeFooter from '@/components/_constants/pages/home/homeFooter'
-import HomeNavigation from '@/components/_constants/pages/home/homeNavigation'
 import { pricingData } from '@/components/_constants/pricing/pricingData'
+import AuthAwareFooter from '@/components/auth-aware-footer'
+import AuthAwareNavigation from '@/components/auth-aware-navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,7 +17,7 @@ import Link from 'next/link'
 const Pricing = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full">
-      <HomeNavigation />
+      <AuthAwareNavigation />
       {/* Header Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
@@ -171,7 +171,7 @@ const Pricing = () => {
 
       {/* CTA Section */}
       <HomeCTA />
-      <HomeFooter />
+      <AuthAwareFooter />
     </div>
   )
 }

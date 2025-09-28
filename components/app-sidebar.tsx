@@ -40,7 +40,7 @@ export default function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/" className="flex items-center gap-2">
+              <Link href="/my-search" className="flex items-center gap-2">
                 <Plus className="size-4" />
                 <span>New</span>
               </Link>

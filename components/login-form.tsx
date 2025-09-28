@@ -44,8 +44,8 @@ export function LoginForm({
         options: loginOptions
       })
       if (error) throw error
-      // Redirect to root and refresh to ensure server components get updated session
-      router.push('/')
+      // Redirect to user profile and refresh to ensure server components get updated session
+      router.push('/user/profile')
       router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
