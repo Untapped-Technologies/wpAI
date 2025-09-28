@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getChatsPage } from '@/lib/actions/chat'
+import { clearChats, getChatsPage } from '@/lib/actions/chat'
 import { getCurrentUserId } from '@/lib/auth/get-current-user'
 import { type Chat } from '@/lib/types'
 
@@ -28,6 +28,34 @@ export async function GET(request: NextRequest) {
     console.error('API route error fetching chats:', error)
     return NextResponse.json<ChatPageResponse>(
       { chats: [], nextOffset: null },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const enableSaveChatHistory = process.env.ENABLE_SAVE_CHAT_HISTORY === 'true'
+  if (!enableSaveChatHistory) {
+    return NextResponse.json(
+      { error: 'Chat history saving is disabled.' },
+      { status: 403 }
+    )
+  }
+
+  const userId = await getCurrentUserId()
+
+  try {
+    const result = await clearChats(userId)
+
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    console.error('API route error clearing chats:', error)
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
       { status: 500 }
     )
   }

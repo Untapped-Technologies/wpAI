@@ -144,6 +144,18 @@ const SidebarProvider = React.forwardRef<
       return () => window.removeEventListener('keydown', handleKeyDown)
     }, [toggleSidebar])
 
+    // Listen for sidebar reset events (e.g., on logout)
+    React.useEffect(() => {
+      const handleSidebarReset = () => {
+        setOpen(defaultOpen)
+        setOpenMobile(false)
+      }
+
+      window.addEventListener('sidebar-reset', handleSidebarReset)
+      return () =>
+        window.removeEventListener('sidebar-reset', handleSidebarReset)
+    }, [defaultOpen, setOpen])
+
     // We add a state so that we can do data-state="expanded" or "collapsed".
     // This makes it easier to style the sidebar with Tailwind classes.
     const state = open ? 'expanded' : 'collapsed'

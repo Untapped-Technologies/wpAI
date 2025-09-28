@@ -20,9 +20,9 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 
-import { Button } from './ui/button'
 import { ExternalLinkItems } from './external-link-items'
 import { ThemeMenuItems } from './theme-menu-items'
+import { Button } from './ui/button'
 
 interface UserMenuProps {
   user: User
@@ -51,9 +51,29 @@ export default function UserMenu({ user }: UserMenuProps) {
 
   const handleLogout = async () => {
     const supabase = createClient()
+
+    // Clear chat history
+    try {
+      await fetch('/api/chats', { method: 'DELETE' })
+    } catch (error) {
+      console.error('Failed to clear chat history:', error)
+    }
+
+    // Clear sidebar cookie
+    if (typeof document !== 'undefined') {
+      document.cookie =
+        'sidebar:state=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    }
+
+    // Sign out from Supabase
     await supabase.auth.signOut()
-    router.push('/')
-    router.refresh()
+
+    // Dispatch events to reset sidebar components
+    window.dispatchEvent(new CustomEvent('chat-history-updated'))
+    window.dispatchEvent(new CustomEvent('sidebar-reset'))
+
+    // Force a full page reload to ensure sidebar updates
+    window.location.href = '/'
   }
 
   return (

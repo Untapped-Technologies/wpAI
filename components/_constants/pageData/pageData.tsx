@@ -239,7 +239,7 @@ export const menuItems = [
   {
     id: 1,
     title: 'Your Feed',
-    href: '/',
+    href: '/trending-topics',
     icon: <Home size={24} />
   },
   {
