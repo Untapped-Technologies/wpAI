@@ -35,7 +35,7 @@ export function ChatArtifactContainer({
   }, [state.isOpen])
 
   return (
-    <div className="flex-1 min-h-0 h-screen flex">
+    <div className="flex-1 min-h-0 flex flex-col">
       <div className="absolute p-4 z-50 transition-opacity duration-1000">
         {(!open || isMobileSidebar) && (
           <SidebarTrigger className="animate-fade-in" />
@@ -45,7 +45,7 @@ export function ChatArtifactContainer({
       {!isMobile && (
         <ResizablePanelGroup
           direction="horizontal"
-          className="flex flex-1 min-w-0 h-full" // Responsive classes removed
+          className="flex flex-1 min-w-0 min-h-0" // Allow content to expand
         >
           <ResizablePanel
             className={cn(
@@ -76,9 +76,7 @@ export function ChatArtifactContainer({
 
       {/* Mobile: full-width chat + drawer (Do not render on desktop) */}
       {isMobile && (
-        <div className="flex-1 h-full">
-          {' '}
-          {/* Responsive classes removed */}
+        <div className="flex-1 min-h-0 flex flex-col">
           {children}
           {/* ArtifactDrawer checks isMobile internally, no double check needed */}
           <InspectorDrawer />

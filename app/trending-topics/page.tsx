@@ -90,7 +90,7 @@ export default function TrendingTabs() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-8 max-w-6xl min-h-full">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight mb-2">
           Trending Topics
