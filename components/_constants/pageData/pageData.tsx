@@ -1,4 +1,4 @@
-import { Fingerprint, Home } from 'lucide-react'
+import { Fingerprint, Home, MessageSquareHeart } from 'lucide-react'
 
 export const faqData = [
   {
@@ -238,12 +238,18 @@ export const cardImages = [
 export const menuItems = [
   {
     id: 1,
-    title: 'Your Feed',
-    href: '/trending-topics',
+    title: 'Home',
+    href: '/',
     icon: <Home size={24} />
   },
   {
     id: 2,
+    title: 'Trending Topics',
+    href: '/trending-topics',
+    icon: <MessageSquareHeart size={24} />
+  },
+  {
+    id: 3,
     title: 'Account Info',
     href: '/user/profile',
     icon: <Fingerprint size={24} />
