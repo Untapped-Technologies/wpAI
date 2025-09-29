@@ -1,6 +1,9 @@
 'use client'
 
+import MainHeader from '@/components/_constants/pages/mainHeader'
 import { TrendingTabContent } from '@/components/_constants/pages/trending/trendingTabContent'
+import AuthAwareFooter from '@/components/auth-aware-footer'
+import AuthAwareNavigation from '@/components/auth-aware-navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useTrending } from '@/hooks/useTrending'
 import { Globe, MapPin, Users } from 'lucide-react'
@@ -95,65 +98,68 @@ export default function TrendingTabs() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl min-h-full">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">
-          Trending Topics
-        </h1>
-        <p className="text-muted-foreground">
-          Stay updated with the latest political discussions and news
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full">
+      <AuthAwareNavigation />
+      <div className="max-w-6xl mx-auto mb-8">
+        <MainHeader
+          title="Trending Topics"
+          // subTitle="Stay updated with the latest political discussions and news"
+        />
+        <div className="text-left space-y-4 text-[#203c39]">
+          <Tabs
+            value={activeTab}
+            onValueChange={handleTabChange}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              {scopes.map(scope => {
+                const Icon = scope.icon
+                return (
+                  <TabsTrigger
+                    key={scope.value}
+                    value={scope.value}
+                    className="flex items-center gap-2"
+                  >
+                    <Icon className="h-4 w-4" />
+                    {scope.label}
+                  </TabsTrigger>
+                )
+              })}
+            </TabsList>
 
-      <Tabs
-        value={activeTab}
-        onValueChange={handleTabChange}
-        className="w-full"
-      >
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          {scopes.map(scope => {
-            const Icon = scope.icon
-            return (
-              <TabsTrigger
+            {scopes.map(scope => (
+              <TabsContent
                 key={scope.value}
                 value={scope.value}
-                className="flex items-center gap-2"
+                className="space-y-4"
               >
-                <Icon className="h-4 w-4" />
-                {scope.label}
-              </TabsTrigger>
-            )
-          })}
-        </TabsList>
-
-        {scopes.map(scope => (
-          <TabsContent
-            key={scope.value}
-            value={scope.value}
-            className="space-y-4"
-          >
-            {loadedTabs[scope.value] && (
-              <TrendingTabContent
-                scope={scope.value}
-                page={pageMap[scope.value]}
-                onPageChange={handlePageChange}
-                trending={
-                  scope.value === activeTab
-                    ? activeTrending
-                    : cachedTrending[scope.value]
-                }
-                totalPages={
-                  scope.value === activeTab
-                    ? activeTotalPages
-                    : cachedPages[scope.value]
-                }
-                isLoading={scope.value === activeTab ? activeLoading : false}
-                error={scope.value === activeTab ? activeError : undefined}
-              />
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
+                {loadedTabs[scope.value] && (
+                  <TrendingTabContent
+                    scope={scope.value}
+                    page={pageMap[scope.value]}
+                    onPageChange={handlePageChange}
+                    trending={
+                      scope.value === activeTab
+                        ? activeTrending
+                        : cachedTrending[scope.value]
+                    }
+                    totalPages={
+                      scope.value === activeTab
+                        ? activeTotalPages
+                        : cachedPages[scope.value]
+                    }
+                    isLoading={
+                      scope.value === activeTab ? activeLoading : false
+                    }
+                    error={scope.value === activeTab ? activeError : undefined}
+                  />
+                )}
+              </TabsContent>
+            ))}
+          </Tabs>
+        </div>
+      </div>
+      <AuthAwareFooter />
     </div>
   )
 }
