@@ -31,7 +31,6 @@ export default function CandidatesTab({
         .single()
 
       if (error) {
-        console.log('🔴 Error loading profile:', error)
         return
       }
 
@@ -40,11 +39,8 @@ export default function CandidatesTab({
         profile?.candidate_profile || profile?.preferences?.candidate_profile
 
       if (!existingData) {
-        console.log('🔵 No existing candidate data found')
         return
       }
-
-      console.log('🔵 Loading existing candidate data:', existingData)
 
       // Update form values with existing data
       setFormValues(prev => ({

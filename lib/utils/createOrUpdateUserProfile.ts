@@ -109,7 +109,6 @@ export async function savePoliticianProfile(
   })
 
   if (error) {
-    console.error('🔴 Error saving politician profile:', error)
     return { success: false, error: error.message }
   }
 
@@ -121,9 +120,6 @@ export async function saveCandidateProfile(
   userId: string,
   candidateData: any
 ): Promise<{ success: boolean; error?: string; data?: any }> {
-  console.log('🔵 Attempting to save candidate profile for user:', userId)
-  console.log('🔵 Candidate data:', candidateData)
-
   // First, let's check if the profile exists and what columns are available
   const { data: existingProfile, error: checkError } = await supabase
     .from('profiles')
@@ -131,15 +127,11 @@ export async function saveCandidateProfile(
     .eq('user_id', userId)
     .single()
 
-  console.log('🔵 Profile check result:', { existingProfile, checkError })
-
   if (checkError) {
-    console.error('🔴 Error checking profile:', checkError)
     return { success: false, error: checkError.message }
   }
 
   if (!existingProfile) {
-    console.error('🔴 No profile found for user:', userId)
     return { success: false, error: 'No profile found for this user' }
   }
 
@@ -158,16 +150,10 @@ export async function saveCandidateProfile(
       .select()
 
     if (!error && data && data.length > 0) {
-      console.log(
-        '✅ Candidate profile saved to candidate_profile column:',
-        data[0]
-      )
       return { success: true, data: data[0] }
     }
   } catch (err) {
-    console.log(
-      '🟡 candidate_profile column not available, trying preferences column'
-    )
+    console.log(err)
   }
 
   // Fallback: store in preferences column
@@ -187,15 +173,12 @@ export async function saveCandidateProfile(
     .select()
 
   if (error) {
-    console.error('🔴 Error saving candidate profile to preferences:', error)
     return { success: false, error: error.message }
   }
 
   if (!data || data.length === 0) {
-    console.error('🔴 No rows updated - update failed')
     return { success: false, error: 'Update failed - no rows affected' }
   }
 
-  console.log('✅ Candidate profile saved to preferences column:', data[0])
   return { success: true, data: data[0] }
 }
