@@ -153,7 +153,7 @@ export async function saveCandidateProfile(
       return { success: true, data: data[0] }
     }
   } catch (err) {
-    console.log(err)
+    // Fallback to preferences column
   }
 
   // Fallback: store in preferences column

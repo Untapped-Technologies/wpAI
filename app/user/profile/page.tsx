@@ -14,7 +14,6 @@ import Tabs from '@/components/ui/tabs/index'
 import NotificationsTab from '@/components/ui/tabs/notificationsTab'
 import PreferencesTab from '@/components/ui/tabs/preferenceTab'
 import { BellIcon, Landmark, MapPin, PencilIcon, UserIcon } from 'lucide-react'
-import { toast } from 'sonner'
 
 export default function UserProfilePage() {
   const [profile, setProfile] = useState<any>(null)
@@ -144,7 +143,6 @@ export default function UserProfilePage() {
       <div className="max-w-4xl mx-auto mb-8">
         <MainHeader title="User Profile" />
         <Tabs tabs={tabs} userType={formValues.user_type_id} />
-        {open ? toast('Updates Saved') : null}
       </div>
     </div>
   )

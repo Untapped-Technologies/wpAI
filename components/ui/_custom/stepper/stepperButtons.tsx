@@ -18,6 +18,7 @@ const StepperButtons = ({
   return (
     <div className="mt-4 flex gap-4 justify-end">
       <button
+        type="button"
         onClick={() =>
           currentStep === 0
             ? null
@@ -31,6 +32,7 @@ const StepperButtons = ({
 
       {currentStep < arrLen - 1 ? (
         <button
+          type="button"
           onClick={handleNext}
           className="px-4 py-2 bg-[#254541] text-white rounded hover:cursor-pointer"
         >
@@ -38,7 +40,10 @@ const StepperButtons = ({
         </button>
       ) : (
         <button
-          onClick={() => console.log('Submit final confirmation')}
+          type="button"
+          onClick={() => {
+            /* Submit final confirmation */
+          }}
           className="px-4 py-2 bg-blue-600 text-white rounded"
         >
           Confirm & Finish

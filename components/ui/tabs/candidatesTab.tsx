@@ -189,7 +189,6 @@ export default function CandidatesTab({
       .single()
 
     if (fetchError) {
-      console.error('Error fetching current profile:', fetchError)
       return { success: false, error: fetchError.message }
     }
 
