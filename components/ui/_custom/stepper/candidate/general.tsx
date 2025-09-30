@@ -21,7 +21,7 @@ interface GeneralProps {
 }
 const General = ({ formValues, handleChange }: GeneralProps) => {
   return (
-    <div>
+    <div className="pb-4 pl-4 pr-4">
       <SimpleInput
         label="Full Name"
         name="fullname"
@@ -44,6 +44,7 @@ const General = ({ formValues, handleChange }: GeneralProps) => {
               <input
                 type="checkbox"
                 name="jurisdiction"
+                value={j}
                 checked={formValues.jurisdiction.includes(j)}
                 onChange={handleChange}
               />

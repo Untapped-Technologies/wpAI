@@ -17,7 +17,7 @@ const SimpleTextarea = ({
         value={value}
         rows={4}
         name={name}
-        onChange={() => handleChange}
+        onChange={handleChange}
       />
     </label>
   )

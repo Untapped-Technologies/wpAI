@@ -67,7 +67,7 @@ const Stepper = ({
       </div>
       <div className="mt-6 w-full">
         {data[currentStep]?.content && (
-          <div className="p-4 bg-white text-sm text-gray-700">
+          <div className="p-4 bg-gray-50 text-sm text-gray-700 rounded-lg border-gray-200 border">
             {data[currentStep].content}
           </div>
         )}

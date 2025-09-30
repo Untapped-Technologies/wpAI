@@ -1,3 +1,13 @@
+export const signUpUserTypes = [
+  {
+    value: '77503f6f-c160-4cca-9d13-70f08e09fcc4',
+    label: 'Citizen'
+  },
+  {
+    value: '3dad0f25-2b3b-491b-9e82-9f9e71adad6f',
+    label: 'Candidate'
+  }
+]
 export const userTypes = [
   {
     id: '77503f6f-c160-4cca-9d13-70f08e09fcc4',
@@ -8,7 +18,7 @@ export const userTypes = [
   {
     id: '3dad0f25-2b3b-491b-9e82-9f9e71adad6f',
     country_code: 'US',
-    label: 'Politician',
+    label: 'Candidate',
     description: 'Elected official or candidate'
   },
   {

@@ -54,7 +54,7 @@ export default function Tabs({ tabs, userType }: TabsProps) {
         ))}
       </div>
 
-      <div className="mt-4">{tabs[activeIndex].content}</div>
+      <div>{tabs[activeIndex].content}</div>
     </div>
   )
 }

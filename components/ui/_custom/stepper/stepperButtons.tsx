@@ -12,7 +12,7 @@ const StepperButtons = ({
   handleSave
 }: StepperButtonType) => {
   const handleNext = () => {
-    handleSave
+    handleSave() // Actually call the function
     setCurrentStep(Math.min(currentStep + 1, arrLen - 1))
   }
   return (
@@ -24,7 +24,7 @@ const StepperButtons = ({
             : setCurrentStep(Math.max(currentStep - 1, 0))
         }
         disabled={currentStep === 0}
-        className={`px-4 py-2 rounded ${currentStep > 0 ? 'bg-[#254541] hover:cursor-pointer' : 'disabled:opacity-50'}`}
+        className={`px-4 py-2 rounded ${currentStep > 0 ? 'bg-[#254541] text-white hover:cursor-pointer' : 'disabled:opacity-50'}`}
       >
         Previous
       </button>

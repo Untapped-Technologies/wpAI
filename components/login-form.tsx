@@ -157,7 +157,7 @@ export function LoginForm({
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button
                 type="submit"
-                className="w-full hover:bg-[#203c39] hover:text-white text-[#203c39]"
+                className="w-full hover:bg-[#203c39] text-white"
                 disabled={isLoading}
               >
                 {isLoading ? 'Logging in...' : 'Sign In'}

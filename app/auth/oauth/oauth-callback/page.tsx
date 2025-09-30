@@ -7,11 +7,12 @@ import {
   fetchLocationFromIP
 } from '@/lib/utils/createOrUpdateUserProfile'
 import { User } from '@supabase/supabase-js'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function OAuthCallbackPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
   const [user, setUser] = useState<User | null>(null)
@@ -53,14 +54,26 @@ export default function OAuthCallbackPage() {
       name: user.user_metadata.name,
       avatar: user.user_metadata.avatar_url
     }
+
+    // Get selected user type from URL parameter first, then localStorage as fallback
+    const urlUserType = searchParams.get('userType')
+    const localStorageUserType = localStorage.getItem('selectedUserType')
+    const selectedUserType =
+      urlUserType ||
+      localStorageUserType ||
+      '77503f6f-c160-4cca-9d13-70f08e09fcc4'
+
     createOrUpdateUserProfile(
       supabase,
       user,
       locationData,
       userData,
-      '77503f6f-c160-4cca-9d13-70f08e09fcc4'
+      selectedUserType
     )
 
-    // router.push('/user/profile')
+    // Clean up localStorage after profile creation
+    localStorage.removeItem('selectedUserType')
+
+    router.push('/user/profile')
   }
 }
