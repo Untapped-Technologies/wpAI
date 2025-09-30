@@ -101,7 +101,7 @@ export default function CandidatesTab({
     bio: '',
     district: '',
     fullname: '',
-    jurisdiction: [],
+    jurisdiction: [] as string[],
     office: '',
     photo: '',
     socialMedia: {},

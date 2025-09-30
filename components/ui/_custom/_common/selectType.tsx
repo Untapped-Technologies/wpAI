@@ -1,4 +1,14 @@
-const SelectType = ({ formValues, handleUserTypeChange, userTypes }) => {
+interface SelectTypeProps {
+  formValues: { user_type_id?: string | number }
+  handleUserTypeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
+  userTypes: Array<{ id: string | number; label: string }>
+}
+
+const SelectType = ({
+  formValues,
+  handleUserTypeChange,
+  userTypes
+}: SelectTypeProps) => {
   return (
     <div className="flex flex-col gap-2 text-left">
       <label className="text-sm text-[#254541]">Account Type</label>
