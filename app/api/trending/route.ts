@@ -23,9 +23,8 @@ export async function GET(req: NextRequest) {
   if (country_code) query = query.eq('country_code', country_code)
   if (postal_code) query = query.eq('postal_code', postal_code)
   if (region) query = query.eq('region', region)
-  console.log('🚀 ~ GET ~ query:', query)
+
   const { data, count, error } = await query
-  console.log('🚀 ~ GET ~ data:', data)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

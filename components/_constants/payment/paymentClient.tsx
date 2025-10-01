@@ -26,7 +26,7 @@ export default function PaymentClient({ id }: { id: string }) {
   useEffect(() => {
     async function fetchProduct() {
       const productInfo = pricingData.find(price => String(price.id) === id)
-      console.log('🚀 ~ fetchProduct ~ productInfo:', productInfo)
+
       // const { data, error } = await supabase
       //   .from('products')
       //   .select('*')

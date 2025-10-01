@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
     // let valid = isLikelyPolitical(latestMessage)
     let valid = true
-    console.log('🚀 ~ POST ~ valid:', valid)
+
     if (!valid) {
       const error = {
         error:

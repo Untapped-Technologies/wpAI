@@ -6,11 +6,11 @@ import AuthAwareFooter from '@/components/auth-aware-footer'
 import AuthAwareNavigation from '@/components/auth-aware-navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useTrending } from '@/hooks/useTrending'
-import { Globe, MapPin, Users } from 'lucide-react'
+import { Globe, LocateFixed, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 const scopes = [
-  { value: 'local', label: 'Local', icon: MapPin },
+  { value: 'local', label: 'Local', icon: LocateFixed },
   { value: 'national', label: 'National', icon: Users },
   { value: 'international', label: 'International', icon: Globe }
 ]

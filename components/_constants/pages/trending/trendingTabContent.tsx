@@ -1,6 +1,7 @@
 'use client'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Globe, MapPin, Users } from 'lucide-react'
+import Link from 'next/link'
 import { useEffect } from 'react'
 
 const scopes = [
@@ -74,7 +75,7 @@ export function TrendingTabContent({
           >
             <div className="flex items-start justify-between mb-3">
               <h3 className="font-semibold text-lg leading-tight pr-4">
-                {topic.title}
+                <Link href="/search/wlwbFf5U8gt6gIit">{topic.title}</Link>
               </h3>
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {new Date(topic.published_at).toLocaleDateString()}
