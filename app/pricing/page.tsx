@@ -1,5 +1,8 @@
 import HomeCTA from '@/components/_constants/pages/home/homeCTA'
-import { pricingData } from '@/components/_constants/pricing/pricingData'
+import {
+  pricingData,
+  pricingEnterprise
+} from '@/components/_constants/pricing/pricingData'
 import AuthAwareFooter from '@/components/auth-aware-footer'
 import AuthAwareNavigation from '@/components/auth-aware-navigation'
 import { Badge } from '@/components/ui/badge'
@@ -36,7 +39,7 @@ const Pricing = () => {
       {/* Pricing Cards */}
       <section className="py-20 bg-slate-50">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {pricingData.map((plan, index) => (
               <Card
                 key={plan.id}
@@ -68,7 +71,10 @@ const Pricing = () => {
                     </CardDescription>
                   )}
                   {plan.trialButton && (
-                    <Badge variant="outline" className="mt-2 text-xs">
+                    <Badge
+                      variant="outline"
+                      className="mt-2 text-xs flex justify-center p-2 bg-gray-200"
+                    >
                       10 Day Free Trial
                     </Badge>
                   )}
@@ -107,6 +113,75 @@ const Pricing = () => {
               </Card>
             ))}
           </div>
+          {
+            <Card
+              key={pricingEnterprise.id}
+              className={`m-auto p-4 border-2 transition-colors duration-300 max-w-2xl mt-6 justify-center items-center flex ${
+                pricingEnterprise.id === 2
+                  ? 'border-[#203c39] relative'
+                  : 'border-slate-200 hover:border-[#203c39]'
+              }`}
+            >
+              {pricingEnterprise.id === 2 && (
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#203c39] text-white">
+                  Most Popular
+                </Badge>
+              )}
+
+              {/* Enterprise Pricing */}
+              <CardHeader className="text-center">
+                <CardTitle className="text-xl">
+                  {pricingEnterprise.title}
+                </CardTitle>
+                <div className="text-3xl font-bold text-[#203c39] mb-2">
+                  {pricingEnterprise.price}
+                  {pricingEnterprise.timeframe && (
+                    <span className="text-lg font-normal">
+                      /{pricingEnterprise.timeframe}
+                    </span>
+                  )}
+                </div>
+                {pricingEnterprise.subtitle && (
+                  <CardDescription className="text-sm">
+                    {pricingEnterprise.subtitle}
+                  </CardDescription>
+                )}
+              </CardHeader>
+
+              <CardContent className="pt-4">
+                <ul className="space-y-3 mb-6">
+                  {pricingEnterprise.features.map(feature => (
+                    <li key={feature.fid} className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">{feature.feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  asChild
+                  className={`w-full ${
+                    pricingEnterprise.id === 2
+                      ? 'bg-[#203c39] hover:bg-[#203c39]/90 text-white'
+                      : 'variant-outline'
+                  }`}
+                  variant={pricingEnterprise.id === 2 ? 'default' : 'outline'}
+                >
+                  <Link
+                    href={
+                      pricingEnterprise.url === '#'
+                        ? '/contact'
+                        : pricingEnterprise.url
+                    }
+                  >
+                    {pricingEnterprise.trial
+                      ? 'Start Free Trial'
+                      : 'Contact Sales'}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          }
         </div>
       </section>
 
