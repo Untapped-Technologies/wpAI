@@ -384,7 +384,7 @@ export async function shareChat(id: string, userId: string = 'anonymous') {
       chatToShare = supabaseChat as any
     }
 
-    if (chatToShare.userId !== userId) {
+    if (chatToShare?.userId !== userId) {
       return null
     }
 

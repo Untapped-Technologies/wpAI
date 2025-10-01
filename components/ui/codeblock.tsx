@@ -4,8 +4,6 @@
 'use client'
 
 import { FC, memo } from 'react'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { coldarkDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 
 import { generateId } from 'ai'
 import { Check, Copy, Download } from 'lucide-react'
@@ -112,7 +110,7 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
           </Button>
         </div>
       </div>
-      <SyntaxHighlighter
+      {/* <SyntaxHighlighter
         language={language}
         style={coldarkDark}
         PreTag="div"
@@ -134,7 +132,7 @@ const CodeBlock: FC<Props> = memo(({ language, value }) => {
         }}
       >
         {value}
-      </SyntaxHighlighter>
+      </SyntaxHighlighter> */}
     </div>
   )
 })
