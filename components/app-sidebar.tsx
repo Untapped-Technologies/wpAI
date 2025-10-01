@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { Suspense } from 'react'
 
 import { Plus } from 'lucide-react'
 
@@ -19,7 +18,6 @@ import Image from 'next/image'
 import { menuItems } from './_constants/pageData/pageData'
 import { SidebarAuthSection } from './sidebar-auth-section'
 import { ChatHistorySection } from './sidebar/chat-history-section'
-import { ChatHistorySkeleton } from './sidebar/chat-history-skeleton'
 
 export default function AppSidebar() {
   return (
@@ -63,9 +61,7 @@ export default function AppSidebar() {
           ))}
         </SidebarMenu>
         <SidebarAuthSection />
-        <Suspense fallback={<ChatHistorySkeleton />}>
-          <ChatHistorySection />
-        </Suspense>
+        <ChatHistorySection />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

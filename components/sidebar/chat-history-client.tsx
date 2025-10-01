@@ -30,15 +30,12 @@ import { ChatHistorySkeleton } from './chat-history-skeleton'
 import { ChatMenuItem } from './chat-menu-item'
 import { ClearHistoryAction } from './clear-history-action'
 
-// interface ChatHistoryClientProps {} // Removed empty interface
-
 interface ChatPageResponse {
   chats: Chat[]
   nextOffset: number | null
 }
 
 export function ChatHistoryClient() {
-  // Removed props from function signature
   const [chats, setChats] = useState<Chat[]>([])
   const [nextOffset, setNextOffset] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
