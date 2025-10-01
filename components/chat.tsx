@@ -11,6 +11,7 @@ import { CHAT_ID } from '@/lib/constants'
 import { Model } from '@/lib/types/models'
 import { cn } from '@/lib/utils'
 
+import Image from 'next/image'
 import { ChatMessages } from './chat-messages'
 import { ChatPanel } from './chat-panel'
 import { Button } from './ui/button'
@@ -220,6 +221,13 @@ export function Chat({
       )}
       data-testid="full-chat"
     >
+      <Image
+        src="/images/logos/logo.png"
+        alt="World Politics logo"
+        className="m-auto mb-8 mt-10"
+        height={171}
+        width={350}
+      />
       <ChatMessages
         sections={sections}
         data={data}
