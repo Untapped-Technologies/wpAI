@@ -102,6 +102,14 @@ export class RedisWrapper {
     }
   }
 
+  async expire(key: string, seconds: number): Promise<boolean | number> {
+    if (this.client instanceof Redis) {
+      return this.client.expire(key, seconds)
+    } else {
+      return (this.client as RedisClientType).expire(key, seconds)
+    }
+  }
+
   async close(): Promise<void> {
     if (this.client instanceof Redis) {
       // Upstash Redis doesn't require explicit closing
@@ -142,6 +150,11 @@ class UpstashPipelineWrapper {
 
   zadd(key: string, score: number, member: string) {
     this.pipeline.zadd(key, { score, member })
+    return this
+  }
+
+  expire(key: string, seconds: number) {
+    this.pipeline.expire(key, seconds)
     return this
   }
 
@@ -188,6 +201,11 @@ class LocalPipelineWrapper {
 
   zadd(key: string, score: number, member: string) {
     this.pipeline.zAdd(key, { score, value: member })
+    return this
+  }
+
+  expire(key: string, seconds: number) {
+    this.pipeline.expire(key, seconds)
     return this
   }
 
