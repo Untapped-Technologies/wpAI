@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 import { userTypes } from '@/components/_constants/pageData/userTypes'
-import HomeNavigation from '@/components/_constants/pages/home/homeNavigation'
 import MainHeader from '@/components/_constants/pages/mainHeader'
 import AccountTab from '@/components/ui/tabs/accountTab'
 import BioTab from '@/components/ui/tabs/bioTab'
@@ -139,7 +138,6 @@ export default function UserProfilePage() {
   ]
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full">
-      <HomeNavigation />
       <div className="max-w-4xl mx-auto mb-8">
         <MainHeader title="User Profile" />
         <Tabs tabs={tabs} userType={formValues.user_type_id} />
