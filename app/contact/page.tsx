@@ -17,7 +17,7 @@ const Contact = () => {
     setFormValues(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleMessageChange = (evt: ChangeEvent) => {
+  const handleMessageChange = (evt: ChangeEvent<HTMLTextAreaElement>) => {
     evt.preventDefault()
     setFormValues(prev => ({ ...prev, message: evt.target.value }))
   }
@@ -117,7 +117,7 @@ const Contact = () => {
                     id="message"
                     name="message"
                     value={formValues.message}
-                    onChange={handleChange}
+                    onChange={handleMessageChange}
                     rows={6}
                     className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg shadow-sm border border-gray-300 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                     placeholder="Leave a comment..."
