@@ -3,6 +3,7 @@ import { countries } from '@/components/_constants/pageData/countries'
 import { UserType } from '@/components/_constants/pageData/pageTypes'
 import { createClient } from '@/lib/supabase/client'
 import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
+import TabHeaderTitle from '../_custom/_common/tabHeaderTitle'
 
 export default function PreferencesTab({
   id,
@@ -45,9 +46,7 @@ export default function PreferencesTab({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-[#254541] text-left">
-        Location
-      </h2>
+      <TabHeaderTitle title="Location" />
 
       <div className="flex flex-col gap-2 text-left">
         <label className="text-sm text-[#254541]">City</label>

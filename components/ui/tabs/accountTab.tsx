@@ -5,6 +5,7 @@ import { profileType } from '@/components/_constants/pages/signUp/signupTypes'
 import { createClient } from '@/lib/supabase/client'
 import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
 import SelectType from '../_custom/_common/selectType'
+import TabHeaderTitle from '../_custom/_common/tabHeaderTitle'
 
 export default function AccountTab({
   id,
@@ -36,9 +37,7 @@ export default function AccountTab({
   }
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-left text-[#254541]">
-        Account Information
-      </h2>
+      <TabHeaderTitle title="Account Information" />
 
       <div className="flex flex-col gap-2 text-left">
         <label className="text-sm text-[#254541]">Name</label>

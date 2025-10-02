@@ -2,6 +2,7 @@
 import { PrefType, UserType } from '@/components/_constants/pageData/pageTypes'
 import { createClient } from '@/lib/supabase/client'
 import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
+import TabHeaderTitle from '../_custom/_common/tabHeaderTitle'
 
 export default function NotificationsTab({
   id,
@@ -42,9 +43,7 @@ export default function NotificationsTab({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-[#254541] text-left">
-        Notification Settings
-      </h2>
+      <TabHeaderTitle title="Notification Settings" />
 
       <div className="flex items-center gap-3 text-[#254541]">
         <input

@@ -1,6 +1,7 @@
 'use client'
 import { createClient } from '@/lib/supabase/client'
 import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
+import TabHeaderTitle from '../_custom/_common/tabHeaderTitle'
 
 type BioType = {
   bio: string
@@ -33,14 +34,14 @@ export default function BioTab({ bio, setOpen, id, setBio }: BioType) {
   }
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold text-[#254541] text-left">Bio</h2>
+      <TabHeaderTitle title="Bio" />
 
       <div className="flex flex-col gap-2">
         <textarea
           className="rounded border p-2 bg-white text-[#254541]"
           rows={4}
           placeholder="Tell us a little about yourself..."
-          value={bio}
+          value={bio || ''}
           onChange={handleChange}
         ></textarea>
       </div>

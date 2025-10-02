@@ -7,6 +7,7 @@ import { ExtendedCoreMessage, SearchResults } from '@/lib/types' // Added Search
 import { convertToUIMessages } from '@/lib/utils'
 
 import { Chat } from '@/components/chat'
+import Image from 'next/image'
 
 export const maxDuration = 60
 
@@ -75,5 +76,16 @@ export default async function SearchPage(props: {
   }
 
   const models = await getModels()
-  return <Chat id={id} savedMessages={messages} models={models} />
+  return (
+    <>
+      <Image
+        src="/images/logos/logo.png"
+        alt="World Politics logo"
+        className="m-auto mb-8 mt-10"
+        height={171}
+        width={350}
+      />
+      <Chat id={id} savedMessages={messages} models={models} />
+    </>
+  )
 }

@@ -46,12 +46,13 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     const marketingPages = [
       '/',
       '/about',
+      '/auth/login',
+      '/auth/sign-up',
+      '/contact',
       '/faqs',
+      '/pricing',
       '/privacy',
       '/terms',
-      '/auth/sign-up',
-      '/auth/login',
-      '/pricing',
       '/trending-topics'
     ]
     const shouldHideSidebar = marketingPages.includes(pathname) || !user
