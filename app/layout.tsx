@@ -12,6 +12,8 @@ import { Toaster } from '@/components/ui/sonner'
 import LayoutWrapper from '@/components/layout-wrapper'
 import { ThemeProvider } from '@/components/theme-provider'
 
+import CookieBot from '@/components/_constants/CookieBot'
+import GA from '@/components/_constants/ga'
 import './globals.css'
 
 const fontSans = FontSans({
@@ -64,6 +66,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <CookieBot />
+      </head>
       <body
         className={cn(
           'min-h-screen flex flex-col font-sans antialiased',
@@ -81,6 +86,7 @@ export default async function RootLayout({
           </SidebarProvider>
           <Toaster />
           <Analytics />
+          <GA />
         </ThemeProvider>
       </body>
     </html>
