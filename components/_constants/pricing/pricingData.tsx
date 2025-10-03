@@ -1,6 +1,8 @@
 export const pricingData = [
   {
     id: 1,
+    priceId: 'price_1SE8N07DLFB5DirEgsgfdHfL',
+    paymentType: 'subscription',
     title: 'Free Tier',
     subtitle: '',
     price: '$0',
@@ -29,6 +31,8 @@ export const pricingData = [
   },
   {
     id: 2,
+    priceId: 'price_1SE8M77DLFB5DirE5wQLSvrZ',
+    paymentType: 'subscription',
     title: 'Plus Tier',
     subtitle: '(aligned with ChatGPT Plus / Copilot Pro)',
     price: '$20',
@@ -68,6 +72,8 @@ export const pricingData = [
   },
   {
     id: 3,
+    priceId: 'price_1SE8N07DLFB5DirEgsgfdHfL',
+    paymentType: 'subscription',
     title: 'Pro Tier',
     subtitle: '(similar to GitHub Copilot for Business tiers)',
     price: '$50',

@@ -1,3 +1,4 @@
+'use client'
 import HomeCTA from '@/components/_constants/pages/home/homeCTA'
 import {
   pricingData,
@@ -7,6 +8,7 @@ import AuthAwareFooter from '@/components/auth-aware-footer'
 import AuthAwareNavigation from '@/components/auth-aware-navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import SimpleButton from '@/components/ui/buttons/simpleButton'
 import {
   Card,
   CardContent,
@@ -16,8 +18,28 @@ import {
 } from '@/components/ui/card'
 import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 const Pricing = () => {
+  const [loading, setLoading] = useState<string | null>(null)
+
+  const handleCheckout = async (priceId: string, paymentType: string) => {
+    setLoading(priceId)
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priceId, paymentType })
+    })
+
+    const data = await res.json()
+    if (data.url) {
+      window.location.href = data.url // redirect to Stripe Checkout
+    } else {
+      alert('Checkout failed')
+      setLoading(null)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full">
       <AuthAwareNavigation />
@@ -40,7 +62,7 @@ const Pricing = () => {
       <section className="py-20 bg-slate-50">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {pricingData.map((plan, index) => (
+            {pricingData.map(plan => (
               <Card
                 key={plan.id}
                 className={`border-2 transition-colors duration-300 ${
@@ -90,19 +112,17 @@ const Pricing = () => {
                     ))}
                   </ul>
 
-                  <Button
-                    asChild
-                    className={`w-full ${
+                  <SimpleButton
+                    classes={`w-full ${
                       plan.id === 2
                         ? 'bg-[#203c39] hover:bg-[#203c39]/90 text-white'
                         : 'variant-outline'
                     }`}
-                    variant={plan.id === 2 ? 'default' : 'outline'}
-                  >
-                    <Link href={plan.url === '#' ? '/contact' : plan.url}>
-                      {plan.trial ? 'Start Free Trial' : 'Contact Sales'}
-                    </Link>
-                  </Button>
+                    handleClick={() =>
+                      handleCheckout(plan.priceId, plan.paymentType)
+                    }
+                    label="Start Free Trial"
+                  />
 
                   {plan.trial && (
                     <p className="mt-2 text-xs text-center text-slate-500">
@@ -116,18 +136,8 @@ const Pricing = () => {
           {
             <Card
               key={pricingEnterprise.id}
-              className={`m-auto p-4 border-2 transition-colors duration-300 max-w-2xl mt-6 justify-center items-center flex ${
-                pricingEnterprise.id === 2
-                  ? 'border-[#203c39] relative'
-                  : 'border-slate-200 hover:border-[#203c39]'
-              }`}
+              className={`m-auto p-4 border-2 transition-colors duration-300 max-w-2xl mt-6 justify-center items-center flex border-slate-200 hover:border-[#203c39]`}
             >
-              {pricingEnterprise.id === 2 && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#203c39] text-white">
-                  Most Popular
-                </Badge>
-              )}
-
               {/* Enterprise Pricing */}
               <CardHeader className="text-center">
                 <CardTitle className="text-xl">
