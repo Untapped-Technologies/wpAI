@@ -23,7 +23,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Image from 'next/image'
-import ButtonGroup from './ui/_custom/_common/buttonGroup'
+import ButtonGroup from '../ui/_custom/_common/buttonGroup'
 
 export function SignUpForm({
   className,
