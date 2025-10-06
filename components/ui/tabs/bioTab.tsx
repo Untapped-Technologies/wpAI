@@ -8,7 +8,7 @@ type BioType = {
   id: string
   setOpen: (val: boolean) => void
   setBio: (val: string) => void
-  showSaveToast: () => void
+  showSaveToast: (val: string) => void
 }
 
 export default function BioTab({
@@ -37,7 +37,7 @@ export default function BioTab({
     await updateUserProfile(supabase, id, {
       bio: bio
     })
-    showSaveToast
+    showSaveToast('Bio')
     setOpen(false)
   }
   return (

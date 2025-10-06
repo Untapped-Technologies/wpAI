@@ -24,7 +24,7 @@ export type profileType = {
     email: string
     user_type_id: string
   }
-  showSaveToast: () => void
+  showSaveToast: (val: string) => void
   id: string
   value: string
   setOpen: (val: boolean) => void

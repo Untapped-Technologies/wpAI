@@ -34,7 +34,7 @@ export default function AccountTab({
       display_name: formValues.display_name,
       user_type_id: formValues.user_type_id
     })
-    showSaveToast
+    showSaveToast('Account Info')
     setOpen(false)
   }
   return (

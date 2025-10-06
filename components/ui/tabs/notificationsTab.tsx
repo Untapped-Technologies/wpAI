@@ -39,7 +39,7 @@ export default function NotificationsTab({
     await updateUserProfile(supabase, id, {
       preferences: prefs
     })
-    showSaveToast
+    showSaveToast('Notifications')
     setOpen(false)
   }
 

@@ -75,8 +75,8 @@ export default function UserProfilePage() {
     fetchProfile()
   }, [router])
 
-  const showSaveToast = () => {
-    toast.success('Data Saved')
+  function showSaveToast(val: string) {
+    toast.success(`${val} Saved`)
   }
 
   const tabs = [
@@ -146,6 +146,7 @@ export default function UserProfilePage() {
           setPrefs={setPrefs}
           prefs={prefs}
           userType="Pol"
+          showSaveToast={showSaveToast}
         />
       )
     }

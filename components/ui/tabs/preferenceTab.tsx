@@ -42,7 +42,7 @@ export default function PreferencesTab({
     await updateUserProfile(supabase, id, {
       preferences: prefs
     })
-    showSaveToast
+    showSaveToast('Location')
     setOpen(false)
   }
 
