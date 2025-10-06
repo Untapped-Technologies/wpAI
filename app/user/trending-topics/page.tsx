@@ -2,8 +2,6 @@
 
 import MainHeader from '@/components/_constants/pages/mainHeader'
 import { TrendingTabContent } from '@/components/_constants/pages/trending/trendingTabContent'
-import AuthAwareFooter from '@/components/auth-aware-footer'
-import AuthAwareNavigation from '@/components/auth-aware-navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useTrending } from '@/hooks/useTrending'
 import { Globe, LocateFixed, Users } from 'lucide-react'
@@ -15,7 +13,7 @@ const scopes = [
   { value: 'international', label: 'International', icon: Globe }
 ]
 
-export default function TrendingTabs() {
+export default function UserTrendingTabs() {
   const [activeTab, setActiveTab] = useState('local')
   const [pageMap, setPageMap] = useState<Record<string, number>>({
     local: 1,
@@ -98,8 +96,7 @@ export default function TrendingTabs() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full">
-      <AuthAwareNavigation />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full pb-10">
       <div className="max-w-6xl mx-auto mb-8">
         <MainHeader
           title="Trending Topics"
@@ -159,7 +156,6 @@ export default function TrendingTabs() {
           </Tabs>
         </div>
       </div>
-      <AuthAwareFooter />
     </div>
   )
 }

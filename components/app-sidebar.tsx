@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 import { User } from '@supabase/supabase-js'
-import { MessageCircleMore } from 'lucide-react'
+import { MessageCircleMore, TrendingUp } from 'lucide-react'
 
 import {
   Sidebar,
@@ -74,6 +74,17 @@ export default function AppSidebar() {
                 <Link href="/newprompt" className="flex items-center gap-2">
                   <MessageCircleMore className="size-4" />
                   <span>Talk World Politics</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link
+                  href="/user/trending-topics"
+                  className="flex items-center gap-2"
+                >
+                  <TrendingUp className="size-4" />
+                  <span>Trending Topics</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
