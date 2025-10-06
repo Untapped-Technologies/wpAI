@@ -10,7 +10,8 @@ export default function PreferencesTab({
   prefs,
   setOpen,
   setPrefs,
-  userType
+  userType,
+  showSaveToast
 }: UserType) {
   const supabase = createClient()
 
@@ -41,6 +42,7 @@ export default function PreferencesTab({
     await updateUserProfile(supabase, id, {
       preferences: prefs
     })
+    showSaveToast
     setOpen(false)
   }
 

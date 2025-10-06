@@ -15,7 +15,8 @@ export default function CandidatesTab({
   prefs,
   setOpen,
   setPrefs,
-  userType
+  userType,
+  showSaveToast
 }: UserType) {
   const supabase = createClient()
   const [currentStep, setCurrentStep] = useState(0)

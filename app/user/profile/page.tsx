@@ -13,6 +13,7 @@ import Tabs from '@/components/ui/tabs/index'
 import NotificationsTab from '@/components/ui/tabs/notificationsTab'
 import PreferencesTab from '@/components/ui/tabs/preferenceTab'
 import { BellIcon, Landmark, MapPin, PencilIcon, UserIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function UserProfilePage() {
   const [profile, setProfile] = useState<any>(null)
@@ -74,6 +75,10 @@ export default function UserProfilePage() {
     fetchProfile()
   }, [router])
 
+  const showSaveToast = () => {
+    toast.success('Data Saved')
+  }
+
   const tabs = [
     {
       label: 'Account',
@@ -86,6 +91,7 @@ export default function UserProfilePage() {
           setFormValues={setFormValues}
           value={profile}
           userTypes={userTypes}
+          showSaveToast={showSaveToast}
         />
       )
     },
@@ -99,6 +105,7 @@ export default function UserProfilePage() {
           setOpen={setOpen}
           setPrefs={setPrefs}
           userType=""
+          showSaveToast={showSaveToast}
         />
       )
     },
@@ -106,7 +113,13 @@ export default function UserProfilePage() {
       label: 'Bio',
       icon: <PencilIcon size={16} />,
       content: (
-        <BioTab bio={userBio} id={userID} setOpen={setOpen} setBio={setBio} />
+        <BioTab
+          bio={userBio}
+          id={userID}
+          setOpen={setOpen}
+          setBio={setBio}
+          showSaveToast={showSaveToast}
+        />
       )
     },
     {
@@ -119,6 +132,7 @@ export default function UserProfilePage() {
           setOpen={setOpen}
           setPrefs={setPrefs}
           userType=""
+          showSaveToast={showSaveToast}
         />
       )
     },
@@ -136,6 +150,7 @@ export default function UserProfilePage() {
       )
     }
   ]
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full">
       <div className="max-w-4xl mx-auto mb-8">

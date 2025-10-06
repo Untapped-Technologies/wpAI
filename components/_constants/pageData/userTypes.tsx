@@ -22,12 +22,6 @@ export const userTypes = [
     description: 'Elected official or candidate'
   },
   {
-    id: 'fb414a34-8b4f-4dd3-a04d-53b39d96b594',
-    country_code: 'US',
-    label: 'Activist',
-    description: 'Social/political activist'
-  },
-  {
     id: 'ec870801-e748-4c62-ae44-041e47e4eca8',
     country_code: 'US',
     label: 'Civil Servant',
@@ -36,7 +30,7 @@ export const userTypes = [
   {
     id: 'bdb6f05e-374c-4f7c-b0ed-6ea8cd3c0520',
     country_code: 'US',
-    label: 'Immigrant',
+    label: 'Foreign National',
     description: 'Legal non-citizen resident'
   },
   {
@@ -48,7 +42,7 @@ export const userTypes = [
   {
     id: '1bcdb592-6346-4eae-9074-13d24c99cfc1',
     country_code: 'US',
-    label: 'NGO Worker',
+    label: 'NGO Staff',
     description: 'Non-profit sector with influence'
   },
   {

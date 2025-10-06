@@ -9,7 +9,8 @@ export default function NotificationsTab({
   prefs,
   setOpen,
   setPrefs,
-  userType
+  userType,
+  showSaveToast
 }: UserType) {
   const supabase = createClient()
 
@@ -38,6 +39,7 @@ export default function NotificationsTab({
     await updateUserProfile(supabase, id, {
       preferences: prefs
     })
+    showSaveToast
     setOpen(false)
   }
 

@@ -15,6 +15,7 @@ export type UserType = {
   setPrefs: (val: PrefType) => void
   prefs: PrefType
   userType: string
+  showSaveToast: () => void
 }
 
 export type Feature = {

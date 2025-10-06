@@ -8,9 +8,16 @@ type BioType = {
   id: string
   setOpen: (val: boolean) => void
   setBio: (val: string) => void
+  showSaveToast: () => void
 }
 
-export default function BioTab({ bio, setOpen, id, setBio }: BioType) {
+export default function BioTab({
+  bio,
+  setOpen,
+  id,
+  setBio,
+  showSaveToast
+}: BioType) {
   const supabase = createClient()
 
   interface ChangeEvent {
@@ -30,6 +37,7 @@ export default function BioTab({ bio, setOpen, id, setBio }: BioType) {
     await updateUserProfile(supabase, id, {
       bio: bio
     })
+    showSaveToast
     setOpen(false)
   }
   return (
