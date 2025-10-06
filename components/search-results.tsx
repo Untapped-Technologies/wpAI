@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 import { SearchResultItem } from '@/lib/types'
 
@@ -67,10 +67,20 @@ export function SearchResults({
                     {result.content}
                   </p>
                   <div className="text-xs text-muted-foreground/80 mt-1 truncate">
-                    <span className="underline">
-                      {new URL(result.url).hostname}
-                    </span>{' '}
-                    - {index + 1}
+                    {result.publishedDate && (
+                      <span className="mr-2">
+                        {new Date(result.publishedDate).toLocaleDateString()}
+                      </span>
+                    )}
+                    {result.organization && (
+                      <span className="mr-2">{result.organization}</span>
+                    )}
+                    {result.author && (
+                      <span className="mr-2">{result.author}</span>
+                    )}
+                    <span className="text-muted-foreground/60">
+                      - {index + 1}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -105,7 +115,17 @@ export function SearchResults({
                     </AvatarFallback>
                   </Avatar>
                   <div className="text-xs opacity-60 truncate">
-                    {`${displayUrlName(result.url)} - ${index + 1}`}
+                    {result.publishedDate && (
+                      <span className="mr-1">
+                        {new Date(result.publishedDate).toLocaleDateString()}
+                      </span>
+                    )}
+                    {result.organization && (
+                      <span className="mr-1">{displayUrlName(result.url)}</span>
+                    )}
+                    <span className="text-muted-foreground/60">
+                      - {index + 1}
+                    </span>
                   </div>
                 </div>
               </CardContent>

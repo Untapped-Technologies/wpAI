@@ -1,4 +1,4 @@
-import { CoreMessage, JSONValue, Message } from 'ai'
+import { CoreMessage, JSONValue } from 'ai'
 
 export type SearchResults = {
   images: SearchResultImage[]
@@ -34,6 +34,9 @@ export type SearchResultItem = {
   title: string
   url: string
   content: string
+  publishedDate?: string
+  author?: string
+  organization?: string
 }
 
 export type ExaSearchResultItem = {

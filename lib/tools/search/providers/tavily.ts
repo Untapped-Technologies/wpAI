@@ -63,8 +63,17 @@ export class TavilySearchProvider extends BaseSearchProvider {
       : data.images.map((url: string) => sanitizeUrl(url))
 
     return {
-      ...data,
-      images: processedImages
+      results: data.results.map((result: any) => ({
+        title: result.title,
+        url: result.url,
+        content: result.content,
+        publishedDate: result.published_date,
+        author: result.author,
+        organization: new URL(result.url).hostname
+      })),
+      query: data.query,
+      images: processedImages,
+      number_of_results: data.results.length
     }
   }
 }

@@ -27,7 +27,10 @@ export class ExaSearchProvider extends BaseSearchProvider {
       results: exaResults.results.map((result: any) => ({
         title: result.title,
         url: result.url,
-        content: result.highlight || result.text
+        content: result.highlight || result.text,
+        publishedDate: result.publishedDate,
+        author: result.author,
+        organization: new URL(result.url).hostname
       })),
       query,
       images: [],
