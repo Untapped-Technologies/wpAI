@@ -1,6 +1,10 @@
-import Link from 'next/link'
+'use client'
 
-import { Plus } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+
+import { User } from '@supabase/supabase-js'
+import { MessageCircleMore } from 'lucide-react'
 
 import {
   Sidebar,
@@ -14,12 +18,40 @@ import {
 } from '@/components/ui/sidebar'
 
 import { homePage } from '@/components/_constants/staticData'
+import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
-import { menuItems } from './_constants/pageData/pageData'
 import { SidebarAuthSection } from './sidebar-auth-section'
+import { SidebarUserProfile } from './sidebar-user-profile'
 import { ChatHistorySection } from './sidebar/chat-history-section'
 
 export default function AppSidebar() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    // Get initial user
+    const getUser = async () => {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser()
+      setUser(user)
+      setLoading(false)
+    }
+
+    getUser()
+
+    // Listen for auth changes
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
   return (
     <Sidebar side="left" variant="sidebar" collapsible="offcanvas">
       <SidebarHeader className="flex flex-row justify-between items-center">
@@ -35,33 +67,23 @@ export default function AppSidebar() {
         <SidebarTrigger />
       </SidebarHeader>
       <SidebarContent className="flex flex-col px-2 py-4 h-full">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/newprompt" className="flex items-center gap-2">
-                <Plus className="size-4" />
-                <span>New</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          {menuItems.map(item => (
-            <SidebarMenuItem key={item.id}>
+        <div className="flex-1">
+          <SidebarMenu>
+            <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href={item.href} className="flex items-center gap-2">
-                  {item.icon}
-                  <span>{item.title}</span>
-                  {/* {item.expandIcon && (
-                    <div className="ml-auto">
-                      <ChevronRight size={24} />
-                    </div>
-                  )} */}
+                <Link href="/newprompt" className="flex items-center gap-2">
+                  <MessageCircleMore className="size-4" />
+                  <span>Talk World Politics</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-        <SidebarAuthSection />
-        <ChatHistorySection />
+          </SidebarMenu>
+          <SidebarAuthSection />
+          <ChatHistorySection />
+        </div>
+
+        {/* User Profile Section at Bottom */}
+        {!loading && user && <SidebarUserProfile user={user} />}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

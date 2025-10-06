@@ -1,5 +1,3 @@
-import { Fingerprint, Home, MessageSquareHeart } from 'lucide-react'
-
 export const faqData = [
   {
     id: 1,
@@ -235,37 +233,4 @@ export const cardImages = [
   }
 ]
 
-export const menuItems = [
-  {
-    id: 1,
-    title: 'Home',
-    href: '/',
-    icon: <Home size={24} />
-  },
-  {
-    id: 2,
-    title: 'Trending Topics',
-    href: '/trending-topics',
-    icon: <MessageSquareHeart size={24} />
-  },
-  {
-    id: 3,
-    title: 'Account Info',
-    href: '/user/profile',
-    icon: <Fingerprint size={24} />
-  }
-  // {
-  //   id: 3,
-  //   title: 'Manage Account',
-  //   href: '/',
-  //   icon: <Cog size={24} />,
-  //   expandIcon: true
-  // }
-  // {
-  //   id: 4,
-  //   title: 'Notifications',
-  //   href: '/',
-  //   icon: <Bell size={24} />,
-  //   expandIcon: true
-  // }
-]
+export const menuItems = []

@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/sidebar'
 import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
-import { KeyIcon, LogOut, UserRoundPlus } from 'lucide-react'
+import { KeyIcon, UserRoundPlus } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
@@ -73,16 +73,7 @@ export function SidebarAuthSection() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </>
-      ) : (
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <Link href="/auth/logout" className="flex items-center gap-2">
-              <LogOut size={24} />
-              <span>Logout</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      )}
+      ) : null}
     </SidebarMenu>
   )
 }
