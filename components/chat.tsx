@@ -13,15 +13,6 @@ import { cn } from '@/lib/utils'
 
 import { ChatMessages } from './chat-messages'
 import { ChatPanel } from './chat-panel'
-import { Button } from './ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from './ui/dialog'
 
 // Define section structure
 interface ChatSection {
@@ -245,27 +236,6 @@ export function Chat({
         showScrollToBottomButton={!isAtBottom}
         scrollContainerRef={scrollContainerRef}
       />
-      <Dialog
-        open={open}
-        onOpenChange={open => setOpen(open)}
-        aria-labelledby="share-dialog-title"
-        aria-describedby="share-dialog-description"
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Error: Incorrect Prompt</DialogTitle>
-            <DialogDescription>
-              This assistant only responds to political topics. Try asking about
-              elections, lawmakers, or public policy.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="items-center">
-            <Button size="sm" onClick={() => setOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
