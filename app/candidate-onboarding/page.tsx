@@ -93,10 +93,10 @@ export default function CandidateOnboardingPage() {
           return
         }
 
-        // If onboarding is already completed, redirect to profile
+        // If onboarding is already completed, redirect to candidate profile
         // Handle case where onboarding_completed field might not exist yet
         if (profile.onboarding_completed === true) {
-          router.push('/user/profile')
+          router.push('/candidate-profile')
           return
         }
 
@@ -113,8 +113,8 @@ export default function CandidateOnboardingPage() {
   }, [router, supabase.auth])
 
   const handleOnboardingComplete = () => {
-    // Redirect to profile page after completion
-    router.push('/user/profile')
+    // Redirect to candidate profile page after completion
+    router.push('/candidate-profile')
   }
 
   if (isLoading) {
