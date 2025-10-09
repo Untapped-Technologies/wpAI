@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { User } from 'lucide-react'
+import CandidateProfileEdit from './candidate-profile-edit'
 import CandidateProfileHeader from './candidate-profile-header'
 import CandidateProfileSections from './candidate-profile-sections'
 import CandidatePublicProfile from './candidate-public-profile'
@@ -47,6 +48,7 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isPublicView, setIsPublicView] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -88,7 +90,72 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
   }
 
   const handleEditProfile = () => {
-    router.push('/candidate-onboarding')
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+  }
+
+  const handleSaveProfile = async (updatedData: any) => {
+    setIsSaving(true)
+    try {
+      // Try to save to candidate_profile column first
+      let { data, error } = await supabase
+        .from('profiles')
+        .update({
+          candidate_profile: updatedData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .select()
+
+      // If candidate_profile column doesn't exist, fallback to preferences
+      if (error && error.message?.includes('candidate_profile')) {
+        console.log(
+          'candidate_profile column not found, using preferences fallback'
+        )
+
+        // Get current preferences
+        const { data: currentProfile } = await supabase
+          .from('profiles')
+          .select('preferences')
+          .eq('user_id', userId)
+          .single()
+
+        const currentPreferences = currentProfile?.preferences || {}
+        const updatedPreferences = {
+          ...currentPreferences,
+          candidate_profile: updatedData
+        }
+
+        const fallbackResult = await supabase
+          .from('profiles')
+          .update({
+            preferences: updatedPreferences,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId)
+          .select()
+
+        if (fallbackResult.error) {
+          throw fallbackResult.error
+        }
+
+        data = fallbackResult.data
+      } else if (error) {
+        throw error
+      }
+
+      // Update local state
+      setProfileData(updatedData)
+      setIsEditing(false)
+    } catch (error) {
+      console.error('Error saving profile:', error)
+      throw error
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleTogglePublicView = () => {
@@ -177,6 +244,18 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
           </CardContent>
         </Card>
       </div>
+    )
+  }
+
+  // Render edit mode if editing
+  if (isEditing && profileData) {
+    return (
+      <CandidateProfileEdit
+        profileData={profileData}
+        onSave={handleSaveProfile}
+        onCancel={handleCancelEdit}
+        isLoading={isSaving}
+      />
     )
   }
 

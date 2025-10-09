@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Card,
   CardContent,
@@ -7,12 +9,30 @@ import {
 } from '@/components/ui/card'
 import { Target } from 'lucide-react'
 
-const KeyIssues = ({ keyIssues, getColorClasses }) => {
+interface KeyIssuesProps {
+  keyIssues: Array<{
+    title: string
+    content: string
+    color: string
+    icon: React.ReactNode
+  }>
+  getColorClasses: (color: string) => {
+    bg: string
+    text: string
+    content: string
+    border: string
+  }
+}
+
+export default function KeyIssues({
+  keyIssues,
+  getColorClasses
+}: KeyIssuesProps) {
   return (
     <Card className="shadow-lg border-0">
-      <CardHeader className="">
-        <CardTitle className="flex items-center text-2xl text-[#2a4543]">
-          <Target className="w-6 h-6 mr-3 text-[#2a4543]" />
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
+        <CardTitle className="flex items-center text-2xl">
+          <Target className="w-6 h-6 mr-3 text-blue-600" />
           Key Issues
         </CardTitle>
         <CardDescription className="text-lg">
@@ -46,5 +66,3 @@ const KeyIssues = ({ keyIssues, getColorClasses }) => {
     </Card>
   )
 }
-
-export default KeyIssues

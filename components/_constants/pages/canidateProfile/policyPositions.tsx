@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Card,
   CardContent,
@@ -7,12 +9,28 @@ import {
 } from '@/components/ui/card'
 import { Award, FileText, MessageSquare, Users } from 'lucide-react'
 
-const PolicyPositions = ({ profileData }) => {
+interface PolicyPositionsProps {
+  profileData: {
+    policies: {
+      policy1: string
+      policy2: string
+      policy3: string
+    }
+  }
+}
+
+export default function PolicyPositions({ profileData }: PolicyPositionsProps) {
+  const policyIcons = [
+    <MessageSquare className="w-5 h-5 mr-2 text-blue-600" />,
+    <Users className="w-5 h-5 mr-2 text-green-600" />,
+    <Award className="w-5 h-5 mr-2 text-purple-600" />
+  ]
+
   return (
     <Card className="shadow-lg border-0">
-      <CardHeader className="">
+      <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
         <CardTitle className="flex items-center text-2xl">
-          <FileText className="w-6 h-6 mr-3" />
+          <FileText className="w-6 h-6 mr-3 text-green-600" />
           Policy Positions
         </CardTitle>
         <CardDescription className="text-lg">
@@ -24,7 +42,7 @@ const PolicyPositions = ({ profileData }) => {
           {profileData.policies.policy1 && (
             <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <h4 className="font-bold text-gray-900 mb-3 flex items-center">
-                <MessageSquare className="w-5 h-5 mr-2 text-blue-600" />
+                {policyIcons[0]}
                 Policy Position #1
               </h4>
               <p className="text-gray-700 leading-relaxed">
@@ -36,7 +54,7 @@ const PolicyPositions = ({ profileData }) => {
           {profileData.policies.policy2 && (
             <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <h4 className="font-bold text-gray-900 mb-3 flex items-center">
-                <Users className="w-5 h-5 mr-2 text-green-600" />
+                {policyIcons[1]}
                 Policy Position #2
               </h4>
               <p className="text-gray-700 leading-relaxed">
@@ -48,7 +66,7 @@ const PolicyPositions = ({ profileData }) => {
           {profileData.policies.policy3 && (
             <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
               <h4 className="font-bold text-gray-900 mb-3 flex items-center">
-                <Award className="w-5 h-5 mr-2 text-purple-600" />
+                {policyIcons[2]}
                 Policy Position #3
               </h4>
               <p className="text-gray-700 leading-relaxed">
@@ -61,5 +79,3 @@ const PolicyPositions = ({ profileData }) => {
     </Card>
   )
 }
-
-export default PolicyPositions

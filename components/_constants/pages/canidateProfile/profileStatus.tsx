@@ -1,10 +1,19 @@
+'use client'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Award, Calendar } from 'lucide-react'
 
-const ProfileStatus = ({ profileData }) => {
+interface ProfileStatusProps {
+  profileData: {
+    onboarding_completed: boolean
+    onboarding_completed_at?: string
+  }
+}
+
+export default function ProfileStatus({ profileData }: ProfileStatusProps) {
   return (
     <Card className="shadow-lg border-0">
-      <CardHeader className="">
+      <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
         <CardTitle className="flex items-center text-2xl">
           <Award className="w-6 h-6 mr-3 text-purple-600" />
           Profile Status
@@ -78,5 +87,3 @@ const ProfileStatus = ({ profileData }) => {
     </Card>
   )
 }
-
-export default ProfileStatus
