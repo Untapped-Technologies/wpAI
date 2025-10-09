@@ -4,6 +4,7 @@ import { Heart, Target, TrendingUp } from 'lucide-react'
 import KeyIssues from './_constants/pages/canidateProfile/keyIssues'
 import PolicyPositions from './_constants/pages/canidateProfile/policyPositions'
 import ProfileStatus from './_constants/pages/canidateProfile/profileStatus'
+import CandidateProfileAdditionalInfo from './candidate-profile-additional-info'
 
 interface CandidateProfileSectionsProps {
   profileData: {
@@ -20,10 +21,28 @@ interface CandidateProfileSectionsProps {
     onboarding_completed: boolean
     onboarding_completed_at?: string
   }
+  location?: {
+    address?: string
+    city?: string
+    state?: string
+    zipCode?: string
+    phone?: string
+    email?: string
+  }
+  notifications?: {
+    emailNotifications?: boolean
+    smsNotifications?: boolean
+    campaignUpdates?: boolean
+    voterMessages?: boolean
+    policyAlerts?: boolean
+    eventReminders?: boolean
+  }
 }
 
 export default function CandidateProfileSections({
-  profileData
+  profileData,
+  location,
+  notifications
 }: CandidateProfileSectionsProps) {
   const keyIssues = [
     {
@@ -89,6 +108,12 @@ export default function CandidateProfileSections({
 
       {/* Profile Status Section */}
       <ProfileStatus profileData={profileData} />
+
+      {/* Additional Information */}
+      <CandidateProfileAdditionalInfo
+        location={location}
+        notifications={notifications}
+      />
     </div>
   )
 }

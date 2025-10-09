@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { User } from 'lucide-react'
-import CandidateProfileEdit from './candidate-profile-edit'
+import CandidateProfileEditTabs from './candidate-profile-edit-tabs'
 import CandidateProfileHeader from './candidate-profile-header'
 import CandidateProfileSections from './candidate-profile-sections'
 import CandidatePublicProfile from './candidate-public-profile'
@@ -45,6 +45,8 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
   const [profileData, setProfileData] = useState<CandidateProfileData | null>(
     null
   )
+  const [locationData, setLocationData] = useState<any>(null)
+  const [notificationData, setNotificationData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isPublicView, setIsPublicView] = useState(false)
@@ -81,6 +83,51 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
       } else {
         toast.error('No candidate profile data found')
       }
+
+      // Set additional data from preferences column
+      if (data.preferences) {
+        // Location data from preferences
+        setLocationData(
+          data.preferences.location || {
+            address: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            phone: '',
+            email: ''
+          }
+        )
+
+        // Notification data from preferences
+        setNotificationData(
+          data.preferences.notifications || {
+            emailNotifications: true,
+            smsNotifications: false,
+            campaignUpdates: true,
+            voterMessages: true,
+            policyAlerts: true,
+            eventReminders: true
+          }
+        )
+      } else {
+        // Set default values if no preferences exist
+        setLocationData({
+          address: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          phone: '',
+          email: ''
+        })
+        setNotificationData({
+          emailNotifications: true,
+          smsNotifications: false,
+          campaignUpdates: true,
+          voterMessages: true,
+          policyAlerts: true,
+          eventReminders: true
+        })
+      }
     } catch (error) {
       console.error('Error fetching profile:', error)
       toast.error('Failed to load profile')
@@ -100,56 +147,78 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
   const handleSaveProfile = async (updatedData: any) => {
     setIsSaving(true)
     try {
-      // Try to save to candidate_profile column first
-      let { data, error } = await supabase
+      // Extract the core candidate profile data (excluding location and notifications)
+      const candidateProfileData = {
+        basic_info: updatedData.basic_info,
+        key_issues: updatedData.key_issues,
+        policies: updatedData.policies
+      }
+
+      // Get current preferences to merge with new data
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('preferences')
+        .eq('user_id', userId)
+        .single()
+
+      const currentPreferences = currentProfile?.preferences || {}
+
+      // Prepare updated preferences with location and notifications
+      const updatedPreferences = {
+        ...currentPreferences,
+        candidate_profile: candidateProfileData,
+        location: updatedData.location,
+        notifications: updatedData.notifications
+      }
+
+      // Try to save to candidate_profile column first, then update preferences
+      let candidateProfileError = null
+
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            candidate_profile: candidateProfileData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId)
+
+        if (error) {
+          candidateProfileError = error
+        }
+      } catch (err) {
+        candidateProfileError = err
+      }
+
+      // Always update preferences column with all data
+      const { data, error: preferencesError } = await supabase
         .from('profiles')
         .update({
-          candidate_profile: updatedData,
+          preferences: updatedPreferences,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', userId)
         .select()
 
-      // If candidate_profile column doesn't exist, fallback to preferences
-      if (error && error.message?.includes('candidate_profile')) {
-        console.log(
-          'candidate_profile column not found, using preferences fallback'
-        )
-
-        // Get current preferences
-        const { data: currentProfile } = await supabase
-          .from('profiles')
-          .select('preferences')
-          .eq('user_id', userId)
-          .single()
-
-        const currentPreferences = currentProfile?.preferences || {}
-        const updatedPreferences = {
-          ...currentPreferences,
-          candidate_profile: updatedData
-        }
-
-        const fallbackResult = await supabase
-          .from('profiles')
-          .update({
-            preferences: updatedPreferences,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', userId)
-          .select()
-
-        if (fallbackResult.error) {
-          throw fallbackResult.error
-        }
-
-        data = fallbackResult.data
-      } else if (error) {
-        throw error
+      if (preferencesError) {
+        throw preferencesError
       }
 
       // Update local state
-      setProfileData(updatedData)
+      setProfileData(candidateProfileData)
+      setLocationData(updatedData.location)
+      setNotificationData(updatedData.notifications)
       setIsEditing(false)
+
+      // Log if candidate_profile column doesn't exist
+      if (
+        candidateProfileError &&
+        candidateProfileError.message?.includes('candidate_profile')
+      ) {
+        console.log(
+          'candidate_profile column not found, data saved to preferences only'
+        )
+      }
     } catch (error) {
       console.error('Error saving profile:', error)
       throw error
@@ -250,8 +319,10 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
   // Render edit mode if editing
   if (isEditing && profileData) {
     return (
-      <CandidateProfileEdit
+      <CandidateProfileEditTabs
         profileData={profileData}
+        locationData={locationData}
+        notificationData={notificationData}
         onSave={handleSaveProfile}
         onCancel={handleCancelEdit}
         isLoading={isSaving}
@@ -298,7 +369,11 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
         />
 
         {/* Profile Sections */}
-        <CandidateProfileSections profileData={profileData} />
+        <CandidateProfileSections
+          profileData={profileData}
+          location={locationData}
+          notifications={notificationData}
+        />
       </div>
     </div>
   )
