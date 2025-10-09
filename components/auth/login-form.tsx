@@ -38,14 +38,32 @@ export function LoginForm({
     try {
       const loginOptions: any = {}
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
         options: loginOptions
       })
       if (error) throw error
-      // Redirect to user profile and refresh to ensure server components get updated session
-      router.push('/user/profile')
+
+      // Check if user is a candidate and needs onboarding
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_type_id, onboarding_completed')
+        .eq('user_id', data.user.id)
+        .single()
+
+      const candidateTypeId = '3dad0f25-2b3b-491b-9e82-9f9e71adad6f'
+
+      if (
+        profile?.user_type_id === candidateTypeId &&
+        !profile?.onboarding_completed
+      ) {
+        // Candidate needs to complete onboarding
+        router.push('/candidate-onboarding')
+      } else {
+        // Redirect to user profile and refresh to ensure server components get updated session
+        router.push('/user/profile')
+      }
       router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')

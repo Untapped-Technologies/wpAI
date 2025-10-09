@@ -32,48 +32,69 @@ export default function OAuthCallbackPage() {
       setUser(user)
 
       const prefs = await fetchLocationFromIP()
-
       setLocation(prefs)
     }
 
     load()
   }, [supabase.auth])
 
-  if (user && location) {
-    const locationData = {
-      city: location?.city,
-      state: location?.state,
-      postalCode: location?.postalCode,
-      country: location?.country,
-      latitude: location?.latitude,
-      longitude: location?.longitude,
-      emailNotifs: true,
-      smsNotifs: true
+  useEffect(() => {
+    const handleUserSetup = async () => {
+      if (!user || !location) return
+
+      const locationData = {
+        city: location?.city,
+        state: location?.state,
+        postalCode: location?.postalCode,
+        country: location?.country,
+        latitude: location?.latitude,
+        longitude: location?.longitude,
+        emailNotifs: true,
+        smsNotifs: true
+      }
+      const userData = {
+        name: user.user_metadata.name,
+        avatar: user.user_metadata.avatar_url
+      }
+
+      // Get selected user type from URL parameter first, then localStorage as fallback
+      const urlUserType = searchParams.get('userType')
+      const localStorageUserType = localStorage.getItem('selectedUserType')
+      const selectedUserType =
+        urlUserType ||
+        localStorageUserType ||
+        '77503f6f-c160-4cca-9d13-70f08e09fcc4'
+
+      await createOrUpdateUserProfile(
+        supabase,
+        user,
+        locationData,
+        userData,
+        selectedUserType
+      )
+
+      // Clean up localStorage after profile creation
+      localStorage.removeItem('selectedUserType')
+
+      // Check if user is a candidate and redirect to onboarding if needed
+      const candidateTypeId = '3dad0f25-2b3b-491b-9e82-9f9e71adad6f'
+      if (selectedUserType === candidateTypeId) {
+        // For new candidates, redirect to onboarding
+        router.push('/candidate-onboarding')
+      } else {
+        router.push('/user/profile')
+      }
     }
-    const userData = {
-      name: user.user_metadata.name,
-      avatar: user.user_metadata.avatar_url
-    }
 
-    // Get selected user type from URL parameter first, then localStorage as fallback
-    const urlUserType = searchParams.get('userType')
-    const localStorageUserType = localStorage.getItem('selectedUserType')
-    const selectedUserType =
-      urlUserType ||
-      localStorageUserType ||
-      '77503f6f-c160-4cca-9d13-70f08e09fcc4'
+    handleUserSetup()
+  }, [user, location, router, searchParams, supabase])
 
-    createOrUpdateUserProfile(
-      supabase,
-      user,
-      locationData,
-      userData,
-      selectedUserType
-    )
-
-    // Clean up localStorage after profile creation
-    localStorage.removeItem('selectedUserType')
-
-    router.push('/user/profile')
-  }
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Setting up your account...</p>
+      </div>
+    </div>
+  )
 }

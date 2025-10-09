@@ -106,6 +106,14 @@ export function SignUpForm({
       // Show success message or redirect
       if (data.user && !data.user.email_confirmed_at) {
         setError('Please check your email for a confirmation link.')
+      } else if (data.user && data.user.email_confirmed_at) {
+        // If email is already confirmed, check if candidate needs onboarding
+        const candidateTypeId = '3dad0f25-2b3b-491b-9e82-9f9e71adad6f'
+        if (selectedUserType === candidateTypeId) {
+          router.push('/candidate-onboarding')
+        } else {
+          router.push('/user/profile')
+        }
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
