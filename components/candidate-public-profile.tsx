@@ -14,6 +14,7 @@ import {
   Building,
   Download,
   ExternalLink,
+  EyeOff,
   FileText,
   Globe,
   Heart,
@@ -51,10 +52,12 @@ interface CandidatePublicProfileProps {
     onboarding_completed: boolean
     onboarding_completed_at?: string
   }
+  onTogglePublicView?: () => void
 }
 
 export default function CandidatePublicProfile({
-  profileData
+  profileData,
+  onTogglePublicView
 }: CandidatePublicProfileProps) {
   const getJurisdictionBadges = () => {
     if (!profileData.basic_info?.jurisdiction) return null
@@ -193,7 +196,20 @@ export default function CandidatePublicProfile({
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Action Bar */}
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-between mb-6">
+          {/* Back to Private View Button */}
+          {onTogglePublicView && (
+            <Button
+              variant="outline"
+              onClick={onTogglePublicView}
+              className="flex items-center"
+            >
+              <EyeOff className="w-4 h-4 mr-2" />
+              Back to Private View
+            </Button>
+          )}
+
+          {/* Action Buttons */}
           <div className="flex space-x-3">
             <Button
               variant="outline"

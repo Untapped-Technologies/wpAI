@@ -360,7 +360,12 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
 
   // Render public view if toggled
   if (isPublicView) {
-    return <CandidatePublicProfile profileData={profileData} />
+    return (
+      <CandidatePublicProfile
+        profileData={profileData}
+        onTogglePublicView={handleTogglePublicView}
+      />
+    )
   }
 
   return (
