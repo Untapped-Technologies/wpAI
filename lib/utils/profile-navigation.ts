@@ -47,3 +47,43 @@ export function useProfileUrl(user: User | null): string {
   // when the component renders and calls getProfileUrl
   return '/user/profile'
 }
+
+/**
+ * Gets the full candidate status including approval status
+ * @param user - The Supabase user object
+ * @returns Promise<{isCandidate: boolean, approved: boolean | null, onboardingCompleted: boolean | null}>
+ */
+export async function getCandidateStatus(user: User | null): Promise<{
+  isCandidate: boolean
+  approved: boolean | null
+  onboardingCompleted: boolean | null
+}> {
+  if (!user) {
+    return { isCandidate: false, approved: null, onboardingCompleted: null }
+  }
+
+  try {
+    // Check if user is a candidate using the existing API
+    const response = await fetch('/api/candidate/status')
+
+    if (!response.ok) {
+      // If API fails, return default values
+      return { isCandidate: false, approved: null, onboardingCompleted: null }
+    }
+
+    const result = await response.json()
+
+    if (!result.success) {
+      // If API returns error, return default values
+      return { isCandidate: false, approved: null, onboardingCompleted: null }
+    }
+
+    const { isCandidate, approved, onboardingCompleted } = result.data
+
+    return { isCandidate, approved, onboardingCompleted }
+  } catch (error) {
+    console.error('Error checking candidate status:', error)
+    // If any error occurs, return default values
+    return { isCandidate: false, approved: null, onboardingCompleted: null }
+  }
+}

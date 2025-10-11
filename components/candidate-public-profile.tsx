@@ -36,6 +36,7 @@ interface CandidatePublicProfileProps {
       website: string
       bio: string
       jurisdiction: string[]
+      approved: boolean
     }
     key_issues: {
       issue1: string

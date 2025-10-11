@@ -15,7 +15,7 @@ export async function GET(
 
     const { data, error } = await supabaseAdmin
       .from('profiles')
-      .select('candidate_profile, preferences, onboarding_completed')
+      .select('candidate_profile, preferences, onboarding_completed, approved')
       .eq('user_id', id)
       .single()
 
@@ -32,9 +32,16 @@ export async function GET(
       return new Response('No candidate profile data found', { status: 404 })
     }
 
-    // Check if profile is approved (onboarding completed)
+    // Check if profile is approved (onboarding completed and approved)
     if (!data.onboarding_completed) {
       return new Response('This candidate profile is not yet approved', {
+        status: 403
+      })
+    }
+
+    // Check if candidate review has been approved
+    if (!data.approved) {
+      return new Response('This candidate profile is not publicly visible', {
         status: 403
       })
     }

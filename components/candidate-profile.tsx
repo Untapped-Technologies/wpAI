@@ -10,9 +10,10 @@ import {
   extractLocationData,
   extractNotificationData
 } from '@/lib/utils/debugPreferences'
-import { User } from 'lucide-react'
+import { Clock, User } from 'lucide-react'
 import CandidateProfileEditTabs from './candidate-profile-edit-tabs'
 import CandidateProfileHeader from './candidate-profile-header'
+import CandidateProfileLocked from './candidate-profile-locked'
 import CandidateProfileSections from './candidate-profile-sections'
 import CandidatePublicProfile from './candidate-public-profile'
 
@@ -25,6 +26,7 @@ interface CandidateProfileData {
     website: string
     bio: string
     jurisdiction: string[]
+    approved: boolean
   }
   key_issues: {
     issue1: string
@@ -50,6 +52,7 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
   )
   const [locationData, setLocationData] = useState<any>(null)
   const [notificationData, setNotificationData] = useState<any>(null)
+  const [rejectedMessage, setRejectedMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isPublicView, setIsPublicView] = useState(false)
@@ -81,11 +84,22 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
         candidateProfile,
         preferences,
         onboardingCompleted,
-        onboardingCompletedAt
+        onboardingCompletedAt,
+        approved,
+        rejectedMessage
       } = result.data
 
       if (candidateProfile) {
-        setProfileData(candidateProfile)
+        // Add approved status to the profile data
+        const updatedProfileData = {
+          ...candidateProfile,
+          basic_info: {
+            ...candidateProfile.basic_info,
+            approved: approved
+          }
+        }
+        setProfileData(updatedProfileData)
+        setRejectedMessage(rejectedMessage)
       } else {
         toast.error('No candidate profile data found')
       }
@@ -320,6 +334,16 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
     )
   }
 
+  // Render locked view if profile is rejected (approved is false)
+  if (profileData && profileData.basic_info.approved === false) {
+    return (
+      <CandidateProfileLocked
+        profileData={profileData}
+        rejectedMessage={rejectedMessage}
+      />
+    )
+  }
+
   // Render edit mode if editing
   if (isEditing && profileData) {
     return (
@@ -363,6 +387,32 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
             </Button> */}
           </div>
         </div>
+
+        {/* Approval Status Warning */}
+        {profileData &&
+          (profileData.basic_info.approved === null ||
+            profileData.basic_info.approved === undefined) && (
+            <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Clock className="h-5 w-5 text-orange-400" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-orange-800">
+                    Profile Under Review
+                  </h3>
+                  <div className="mt-2 text-sm text-orange-700">
+                    <p>
+                      Your candidate profile is currently under review and is
+                      not visible to the public. You can still view and edit
+                      your profile, but it won't be accessible to visitors until
+                      it's approved.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
         {/* Profile Header */}
         <CandidateProfileHeader

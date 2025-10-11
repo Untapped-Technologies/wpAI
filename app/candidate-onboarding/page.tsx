@@ -53,7 +53,8 @@ export default function CandidateOnboardingPage() {
             throw new Error('Failed to get user status')
           }
 
-          const { isCandidate, onboardingCompleted } = statusResult.data
+          const { isCandidate, onboardingCompleted, approved } =
+            statusResult.data
 
           if (!isCandidate) {
             // Not a candidate, redirect to profile

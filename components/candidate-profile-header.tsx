@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
+  AlertTriangle,
   Building,
   CheckCircle,
   Clock,
@@ -25,6 +26,7 @@ interface CandidateProfileHeaderProps {
       website: string
       bio: string
       jurisdiction: string[]
+      approved: boolean
     }
     onboarding_completed: boolean
     onboarding_completed_at?: string
@@ -50,6 +52,27 @@ export default function CandidateProfileHeader({
       )
     }
 
+    if (profileData.basic_info.approved === false) {
+      return (
+        <Badge variant="destructive" className="bg-red-100 text-red-800">
+          <AlertTriangle className="w-3 h-3 mr-1" />
+          Profile Rejected
+        </Badge>
+      )
+    }
+
+    if (
+      profileData.basic_info.approved === null ||
+      profileData.basic_info.approved === undefined
+    ) {
+      return (
+        <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+          <Clock className="w-3 h-3 mr-1" />
+          Under Review
+        </Badge>
+      )
+    }
+
     return (
       <Badge variant="default" className="bg-green-100 text-green-800">
         <CheckCircle className="w-3 h-3 mr-1" />
@@ -69,6 +92,12 @@ export default function CandidateProfileHeader({
   }
 
   const handleShare = () => {
+    // Only allow sharing if profile is approved
+    if (profileData.basic_info.approved !== true) {
+      // You might want to show a toast here explaining the profile is not public
+      return
+    }
+
     // Create public share URL
     const publicUrl = `${window.location.origin}/candidate/${window.location.pathname.split('/').pop()}`
 
@@ -153,7 +182,13 @@ export default function CandidateProfileHeader({
           <Button
             variant="outline"
             onClick={handleShare}
+            disabled={profileData.basic_info.approved !== true}
             className="flex items-center"
+            title={
+              profileData.basic_info.approved !== true
+                ? 'Profile must be approved to share publicly'
+                : 'Share profile'
+            }
           >
             <Share2 className="w-4 h-4 mr-2" />
             Share
