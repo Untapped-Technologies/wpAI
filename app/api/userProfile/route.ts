@@ -9,7 +9,7 @@ export async function GET() {
     .from('profiles')
     .select('*')
     .eq('id', userId)
-    .single()
+    .maybeSingle()
 
   if (error) return new Response(error.message, { status: 500 })
   return new Response(JSON.stringify(data), { status: 200 })
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     .from('profiles')
     .insert([{ user_id: userId, ...body }])
     .select()
-    .single()
+    .maybeSingle()
 
   if (error) return new Response(error.message, { status: 500 })
   return new Response(JSON.stringify(data), { status: 201 })
@@ -40,7 +40,7 @@ export async function PATCH(req: Request) {
     .update({ user_id: userId, ...body })
     .eq('id', userId)
     .select()
-    .single()
+    .maybeSingle()
 
   if (error) return new Response(error.message, { status: 500 })
   return new Response(JSON.stringify(data), { status: 200 })

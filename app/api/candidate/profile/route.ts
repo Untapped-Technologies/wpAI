@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
         'candidate_profile, preferences, onboarding_completed, onboarding_completed_at, approved, rejected_message'
       )
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
 
     if (error) {
       console.error('Error fetching candidate profile:', error)
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       .from('profiles')
       .select('id, user_id, preferences')
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
 
     if (checkError) {
       return new Response(checkError.message, { status: 500 })

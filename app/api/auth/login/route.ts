@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       .from('profiles')
       .select('user_type_id, onboarding_completed')
       .eq('user_id', data.user.id)
-      .single()
+      .maybeSingle()
 
     const candidateTypeId = '3dad0f25-2b3b-491b-9e82-9f9e71adad6f'
     const needsOnboarding =

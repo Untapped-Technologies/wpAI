@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     .from('users')
     .select('*')
     .eq('id', userId)
-    .single()
+    .maybeSingle()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 })
 

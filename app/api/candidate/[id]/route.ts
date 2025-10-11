@@ -17,7 +17,7 @@ export async function GET(
       .from('profiles')
       .select('candidate_profile, preferences, onboarding_completed, approved')
       .eq('user_id', id)
-      .single()
+      .maybeSingle()
 
     if (error) {
       console.error('Error fetching candidate profile:', error)

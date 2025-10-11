@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
         'user_type_id, onboarding_completed, onboarding_completed_at, approved'
       )
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
 
     if (error) {
       console.error('Error fetching user status:', error)
