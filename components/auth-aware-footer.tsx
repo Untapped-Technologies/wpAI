@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import { getProfileUrl } from '@/lib/utils/profile-navigation'
 import { User } from '@supabase/supabase-js'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -13,6 +14,7 @@ interface AuthAwareFooterProps {
 const AuthAwareFooter = ({ className = '' }: AuthAwareFooterProps) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profileUrl, setProfileUrl] = useState('/user/profile')
   const supabase = createClient()
 
   useEffect(() => {
@@ -22,6 +24,11 @@ const AuthAwareFooter = ({ className = '' }: AuthAwareFooterProps) => {
         data: { user }
       } = await supabase.auth.getUser()
       setUser(user)
+
+      // Set appropriate profile URL
+      const url = await getProfileUrl(user)
+      setProfileUrl(url)
+
       setLoading(false)
     }
 
@@ -30,8 +37,14 @@ const AuthAwareFooter = ({ className = '' }: AuthAwareFooterProps) => {
     // Listen for auth changes
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+
+      // Set appropriate profile URL
+      const url = await getProfileUrl(currentUser)
+      setProfileUrl(url)
+
       setLoading(false)
     })
 
@@ -79,7 +92,7 @@ const AuthAwareFooter = ({ className = '' }: AuthAwareFooterProps) => {
       <>
         <li>
           <Link
-            href="/user/profile"
+            href={profileUrl}
             className="hover:text-white transition-colors"
           >
             Profile

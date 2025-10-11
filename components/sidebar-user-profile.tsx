@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { User } from '@supabase/supabase-js'
 import { ChevronRight, Fingerprint, Home, LogOut } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/client'
+import { getProfileUrl } from '@/lib/utils/profile-navigation'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -26,12 +27,22 @@ interface SidebarUserProfileProps {
 export function SidebarUserProfile({ user }: SidebarUserProfileProps) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
+  const [profileUrl, setProfileUrl] = useState('/user/profile')
 
   const userName =
     user.user_metadata?.full_name || user.user_metadata?.name || 'User'
   const userEmail = user.email || ''
   const avatarUrl =
     user.user_metadata?.avatar_url || user.user_metadata?.picture
+
+  // Set appropriate profile URL when component mounts
+  useEffect(() => {
+    const setUrl = async () => {
+      const url = await getProfileUrl(user)
+      setProfileUrl(url)
+    }
+    setUrl()
+  }, [user])
 
   const getInitials = (name: string, email: string) => {
     if (name && name !== 'User') {
@@ -117,7 +128,7 @@ export function SidebarUserProfile({ user }: SidebarUserProfileProps) {
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link
-              href="/user/profile"
+              href={profileUrl}
               className="flex items-center justify-between"
             >
               <div className="flex items-center gap-2">

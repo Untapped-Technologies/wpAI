@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
+import { getProfileUrl } from '@/lib/utils/profile-navigation'
 import { User } from '@supabase/supabase-js'
 import { LogOut, Menu, User as UserIcon, X } from 'lucide-react'
 import Image from 'next/image'
@@ -17,6 +18,7 @@ const AuthAwareNavigation = ({ className = '' }: AuthAwareNavigationProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profileUrl, setProfileUrl] = useState('/user/profile')
   const router = useRouter()
   const supabase = createClient()
 
@@ -27,6 +29,11 @@ const AuthAwareNavigation = ({ className = '' }: AuthAwareNavigationProps) => {
         data: { user }
       } = await supabase.auth.getUser()
       setUser(user)
+
+      // Set appropriate profile URL
+      const url = await getProfileUrl(user)
+      setProfileUrl(url)
+
       setLoading(false)
     }
 
@@ -35,8 +42,14 @@ const AuthAwareNavigation = ({ className = '' }: AuthAwareNavigationProps) => {
     // Listen for auth changes
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const currentUser = session?.user ?? null
+      setUser(currentUser)
+
+      // Set appropriate profile URL
+      const url = await getProfileUrl(currentUser)
+      setProfileUrl(url)
+
       setLoading(false)
     })
 
@@ -83,7 +96,7 @@ const AuthAwareNavigation = ({ className = '' }: AuthAwareNavigationProps) => {
   ]
 
   const authenticatedLinks = [
-    { href: '/user/profile', label: 'Profile', icon: UserIcon },
+    { href: profileUrl, label: 'Profile', icon: UserIcon },
     {
       href: '/auth/logout',
       label: 'Logout',
