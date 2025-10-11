@@ -15,7 +15,7 @@ interface CandidateProfileLockedProps {
     }
     onboarding_completed: boolean
   }
-  rejectedMessage?: string
+  rejectedMessage?: string | null
 }
 
 export default function CandidateProfileLocked({
