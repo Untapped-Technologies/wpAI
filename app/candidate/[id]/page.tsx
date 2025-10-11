@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 interface CandidatePublicPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default function CandidatePublicPage({
@@ -20,11 +20,12 @@ export default function CandidatePublicPage({
 
   useEffect(() => {
     fetchCandidateProfile()
-  }, [params.id])
+  }, [])
 
   const fetchCandidateProfile = async () => {
     try {
-      const response = await fetch(`/api/candidate/${params.id}`)
+      const { id } = await params
+      const response = await fetch(`/api/candidate/${id}`)
 
       if (!response.ok) {
         const errorText = await response.text()

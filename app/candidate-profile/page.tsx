@@ -1,7 +1,6 @@
 'use client'
 
 import CandidateProfile from '@/components/candidate-profile'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -10,17 +9,29 @@ export default function CandidateProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCandidate, setIsCandidate] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     const checkUserAndLoadProfile = async () => {
       try {
-        const {
-          data: { user },
-          error
-        } = await supabase.auth.getUser()
+        const response = await fetch('/api/auth/user')
 
-        if (error || !user) {
+        if (!response.ok) {
+          if (response.status === 401) {
+            router.push('/auth/login')
+            return
+          }
+          throw new Error('Failed to fetch user')
+        }
+
+        const result = await response.json()
+
+        if (!result.success) {
+          throw new Error('Failed to get user data')
+        }
+
+        const { user } = result.data
+
+        if (!user) {
           router.push('/auth/login')
           return
         }
@@ -29,19 +40,19 @@ export default function CandidateProfilePage() {
 
         // Check if user is a candidate using API
         try {
-          const response = await fetch('/api/candidate/status')
+          const statusResponse = await fetch('/api/candidate/status')
 
-          if (!response.ok) {
+          if (!statusResponse.ok) {
             throw new Error('Failed to fetch user status')
           }
 
-          const result = await response.json()
+          const statusResult = await statusResponse.json()
 
-          if (!result.success) {
+          if (!statusResult.success) {
             throw new Error('Failed to get user status')
           }
 
-          const { isCandidate, onboardingCompleted } = result.data
+          const { isCandidate, onboardingCompleted } = statusResult.data
 
           if (!isCandidate) {
             // Not a candidate, redirect to regular profile

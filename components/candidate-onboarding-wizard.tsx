@@ -168,9 +168,9 @@ export default function CandidateOnboardingWizard({
     } catch (error) {
       console.error('Error saving progress:', error)
       console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : 'Unknown'
       })
       toast.error('Failed to save progress. Please try again.')
       return false
@@ -234,9 +234,9 @@ export default function CandidateOnboardingWizard({
     } catch (error) {
       console.error('Error completing onboarding:', error)
       console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : 'Unknown'
       })
       toast.error('Failed to complete onboarding. Please try again.')
     } finally {
@@ -515,7 +515,9 @@ export default function CandidateOnboardingWizard({
                 <Checkbox
                   id="truthfulness"
                   checked={hasConfirmedTruthfulness}
-                  onCheckedChange={setHasConfirmedTruthfulness}
+                  onCheckedChange={checked =>
+                    setHasConfirmedTruthfulness(checked === true)
+                  }
                 />
                 <div className="space-y-2">
                   <label

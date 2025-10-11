@@ -4,10 +4,10 @@ import { NextRequest } from 'next/server'
 // GET /api/candidate/[id] - Fetch public candidate profile by ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     if (!id) {
       return new Response('Candidate ID is required', { status: 400 })

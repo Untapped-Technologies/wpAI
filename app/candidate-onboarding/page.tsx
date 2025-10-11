@@ -1,7 +1,6 @@
 'use client'
 
 import CandidateOnboardingWizard from '@/components/candidate-onboarding-wizard'
-import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -11,96 +10,69 @@ export default function CandidateOnboardingPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCandidate, setIsCandidate] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     const checkUserAndRedirect = async () => {
       try {
-        const {
-          data: { user },
-          error
-        } = await supabase.auth.getUser()
+        const response = await fetch('/api/auth/user')
 
-        if (error || !user) {
+        if (!response.ok) {
+          if (response.status === 401) {
+            router.push('/auth/login')
+            return
+          }
+          throw new Error('Failed to fetch user')
+        }
+
+        const result = await response.json()
+
+        if (!result.success) {
+          throw new Error('Failed to get user data')
+        }
+
+        const { user } = result.data
+
+        if (!user) {
           router.push('/auth/login')
           return
         }
 
         setUser(user)
 
-        // Check if user is a candidate - use a more flexible approach
-        let profile
+        // Check if user is a candidate using API
         try {
-          // First try with onboarding fields
-          let { data, error } = await supabase
-            .from('profiles')
-            .select(
-              'user_type_id, onboarding_completed, onboarding_completed_at'
-            )
-            .eq('user_id', user.id)
-            .single()
+          const statusResponse = await fetch('/api/candidate/status')
 
-          // If that fails, try without onboarding fields (they might not exist yet)
-          if (error && error.message?.includes('onboarding_completed')) {
-            console.log('Onboarding fields not found, trying without them...')
-            const fallbackResult = await supabase
-              .from('profiles')
-              .select('user_type_id')
-              .eq('user_id', user.id)
-              .single()
-
-            if (fallbackResult.error) {
-              throw fallbackResult.error
-            }
-
-            // Add default values for onboarding fields
-            profile = {
-              ...fallbackResult.data,
-              onboarding_completed: false,
-              onboarding_completed_at: null
-            }
-          } else if (error) {
-            throw error
-          } else {
-            profile = data
+          if (!statusResponse.ok) {
+            throw new Error('Failed to fetch user status')
           }
-        } catch (error) {
-          console.error('Profile fetch failed:', error)
 
-          // If profile doesn't exist, redirect to profile creation
-          if (error.code === 'PGRST116') {
-            console.log('Profile does not exist, redirecting to profile page')
+          const statusResult = await statusResponse.json()
+
+          if (!statusResult.success) {
+            throw new Error('Failed to get user status')
+          }
+
+          const { isCandidate, onboardingCompleted } = statusResult.data
+
+          if (!isCandidate) {
+            // Not a candidate, redirect to profile
             router.push('/user/profile')
             return
           }
 
+          // If onboarding is already completed, redirect to candidate profile
+          if (onboardingCompleted === true) {
+            router.push('/candidate-profile')
+            return
+          }
+
+          setIsCandidate(true)
+        } catch (error) {
+          console.error('Profile fetch failed:', error)
           router.push('/user/profile')
           return
         }
-
-        if (!profile) {
-          console.log('No profile found, redirecting to profile page')
-          router.push('/user/profile')
-          return
-        }
-
-        // Check if user is a candidate (ID: 3dad0f25-2b3b-491b-9e82-9f9e71adad6f)
-        const candidateTypeId = '3dad0f25-2b3b-491b-9e82-9f9e71adad6f'
-
-        if (profile.user_type_id !== candidateTypeId) {
-          // Not a candidate, redirect to profile
-          router.push('/user/profile')
-          return
-        }
-
-        // If onboarding is already completed, redirect to candidate profile
-        // Handle case where onboarding_completed field might not exist yet
-        if (profile.onboarding_completed === true) {
-          router.push('/candidate-profile')
-          return
-        }
-
-        setIsCandidate(true)
       } catch (error) {
         console.error('Error in candidate onboarding check:', error)
         router.push('/auth/login')
@@ -110,7 +82,7 @@ export default function CandidateOnboardingPage() {
     }
 
     checkUserAndRedirect()
-  }, [router, supabase.auth])
+  }, [router])
 
   const handleOnboardingComplete = () => {
     // Redirect to candidate profile page after completion

@@ -4,11 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-import { createClient } from '@/lib/supabase/client'
-import {
-  createOrUpdateUserProfile,
-  fetchLocationFromIP
-} from '@/lib/utils/createOrUpdateUserProfile'
+import { fetchLocationFromIP } from '@/lib/utils/createOrUpdateUserProfile'
 import { cn } from '@/lib/utils/index'
 
 import { signUpUserTypes } from '@/components/_constants/pageData/userTypes'
@@ -52,7 +48,6 @@ export function SignUpForm({
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
@@ -63,57 +58,52 @@ export function SignUpForm({
     }
 
     try {
-      const signUpOptions: any = {
-        emailRedirectTo: `${location.origin}/auth/oauth?next=/auth/oauth/oauth-callback`
+      const location = await fetchLocationFromIP()
+      const locationData = {
+        city: location?.city,
+        state: location?.state,
+        postalCode: location?.postalCode,
+        country: location?.country,
+        latitude: location?.latitude,
+        longitude: location?.longitude,
+        emailNotifs: true,
+        smsNotifs: true
       }
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: signUpOptions
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          userType: selectedUserType,
+          locationData
+        })
       })
 
-      if (error) throw error
-
-      // Create user profile with selected user type
-      if (data.user) {
-        try {
-          const location = await fetchLocationFromIP()
-          const locationData = {
-            city: location?.city,
-            state: location?.state,
-            postalCode: location?.postalCode,
-            country: location?.country,
-            latitude: location?.latitude,
-            longitude: location?.longitude,
-            emailNotifs: true,
-            smsNotifs: true
-          }
-
-          await createOrUpdateUserProfile(
-            supabase,
-            data.user,
-            locationData,
-            {},
-            selectedUserType
-          )
-        } catch (profileError) {
-          console.error('Profile creation error:', profileError)
-          // Don't fail the signup if profile creation fails
-        }
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Signup failed')
       }
 
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error('Signup failed')
+      }
+
+      const { needsEmailConfirmation, needsOnboarding, redirectPath } =
+        result.data
+
       // Show success message or redirect
-      if (data.user && !data.user.email_confirmed_at) {
+      if (needsEmailConfirmation) {
         setError('Please check your email for a confirmation link.')
-      } else if (data.user && data.user.email_confirmed_at) {
-        // If email is already confirmed, check if candidate needs onboarding
-        const candidateTypeId = '3dad0f25-2b3b-491b-9e82-9f9e71adad6f'
-        if (selectedUserType === candidateTypeId) {
-          router.push('/candidate-onboarding')
-        } else {
-          router.push('/user/profile')
-        }
+      } else if (needsOnboarding) {
+        router.push('/candidate-onboarding')
+      } else {
+        router.push('/user/profile')
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
@@ -123,19 +113,34 @@ export function SignUpForm({
   }
 
   const handleSocialSignup = async () => {
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
+      const response = await fetch('/api/auth/oauth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          provider: 'google',
           redirectTo: `${location.origin}/auth/oauth?next=/auth/oauth/oauth-callback?userType=${encodeURIComponent(selectedUserType)}`
-        }
+        })
       })
 
-      if (error) throw error
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'OAuth signup failed')
+      }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error('OAuth signup failed')
+      }
+
+      // Redirect to OAuth callback
+      window.location.href = result.data.url
     } catch (error: unknown) {
       setError(
         error instanceof Error ? error.message : 'An OAuth error occurred'

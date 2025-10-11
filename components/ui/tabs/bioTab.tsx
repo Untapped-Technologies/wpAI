@@ -1,6 +1,4 @@
 'use client'
-import { createClient } from '@/lib/supabase/client'
-import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
 import TabHeaderTitle from '../_custom/_common/tabHeaderTitle'
 
 type BioType = {
@@ -18,8 +16,6 @@ export default function BioTab({
   setBio,
   showSaveToast
 }: BioType) {
-  const supabase = createClient()
-
   interface ChangeEvent {
     preventDefault: () => void
     target: {
@@ -34,11 +30,35 @@ export default function BioTab({
 
   const handleSave = async () => {
     setOpen(true)
-    await updateUserProfile(supabase, id, {
-      bio: bio
-    })
-    showSaveToast('Bio')
-    setOpen(false)
+
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          bio: bio
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update bio')
+      }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error('Failed to update bio')
+      }
+
+      showSaveToast('Bio')
+    } catch (error) {
+      console.error('Error updating bio:', error)
+      // Handle error appropriately
+    } finally {
+      setOpen(false)
+    }
   }
   return (
     <div className="space-y-4">

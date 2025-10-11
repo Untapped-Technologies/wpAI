@@ -128,17 +128,25 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
       const candidateProfileData = {
         basic_info: updatedData.basic_info,
         key_issues: updatedData.key_issues,
-        policies: updatedData.policies
+        policies: updatedData.policies,
+        onboarding_completed: true,
+        onboarding_completed_at: new Date().toISOString()
       }
 
       // Get current preferences to merge with new data
-      const { data: currentProfile } = await supabase
-        .from('profiles')
-        .select('preferences')
-        .eq('user_id', userId)
-        .single()
+      const response = await fetch('/api/user/profile')
 
-      const currentPreferences = currentProfile?.preferences || {}
+      if (!response.ok) {
+        throw new Error('Failed to fetch current profile')
+      }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error('Failed to get current profile')
+      }
+
+      const currentPreferences = result.data.preferences || {}
 
       // Prepare updated preferences with location and notifications
       const updatedPreferences = {
@@ -148,41 +156,43 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
         notifications: updatedData.notifications
       }
 
-      // Try to save to candidate_profile column first, then update preferences
-      let candidateProfileError = null
+      // Save candidate profile using API
+      const candidateResponse = await fetch('/api/candidate/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ candidateData: candidateProfileData })
+      })
 
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            candidate_profile: candidateProfileData,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', userId)
-
-        if (error) {
-          candidateProfileError = error
-        }
-      } catch (err) {
-        candidateProfileError = err
+      if (!candidateResponse.ok) {
+        throw new Error('Failed to save candidate profile')
       }
 
-      // Always update preferences column with all data
-      const { data, error: preferencesError } = await supabase
-        .from('profiles')
-        .update({
-          preferences: updatedPreferences,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', userId)
-        .select()
+      const candidateResult = await candidateResponse.json()
 
-      if (preferencesError) {
-        console.error('Error saving preferences:', preferencesError)
-        throw preferencesError
+      if (!candidateResult.success) {
+        throw new Error('Failed to save candidate profile')
       }
 
-      console.log('Successfully saved preferences:', data)
+      // Update preferences using API
+      const preferencesResponse = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ preferences: updatedPreferences })
+      })
+
+      if (!preferencesResponse.ok) {
+        throw new Error('Failed to update preferences')
+      }
+
+      const preferencesResult = await preferencesResponse.json()
+
+      if (!preferencesResult.success) {
+        throw new Error('Failed to update preferences')
+      }
 
       // Update local state
       setProfileData(candidateProfileData)
@@ -190,15 +200,7 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
       setNotificationData(updatedData.notifications)
       setIsEditing(false)
 
-      // Log if candidate_profile column doesn't exist
-      if (
-        candidateProfileError &&
-        candidateProfileError.message?.includes('candidate_profile')
-      ) {
-        console.log(
-          'candidate_profile column not found, data saved to preferences only'
-        )
-      }
+      toast.success('Profile updated successfully')
     } catch (error) {
       console.error('Error saving profile:', error)
       throw error
@@ -268,17 +270,19 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
 
   const handleDebugPreferences = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('preferences, candidate_profile')
-        .eq('user_id', userId)
-        .single()
+      const response = await fetch('/api/user/profile')
 
-      if (error) {
-        console.error('Debug: Error fetching preferences:', error)
-        toast.error('Failed to fetch preferences for debugging')
-        return
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile')
       }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error('Failed to get profile data')
+      }
+
+      console.log('Debug: Profile data:', result.data)
       toast.success('Check console for debug information')
     } catch (error) {
       console.error('Debug: Error:', error)

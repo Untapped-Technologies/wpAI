@@ -1,6 +1,5 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -41,35 +40,41 @@ export default function UserProfilePage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const supabase = createClient()
+      try {
+        const response = await fetch('/api/user/profile')
 
-      const {
-        data: { session }
-      } = await supabase.auth.getSession()
+        if (!response.ok) {
+          if (response.status === 401) {
+            router.push('/auth/login')
+            return
+          }
+          throw new Error('Failed to fetch profile')
+        }
 
-      if (!session?.user) {
+        const result = await response.json()
+
+        if (!result.success) {
+          throw new Error('Failed to get profile data')
+        }
+
+        const data = result.data
+
+        setFormValues({ ...formValues, ...data })
+        setFormValues({
+          ...formValues,
+          email: data.email || '',
+          display_name: data.display_name,
+          user_type_id: data.user_type_id
+        })
+        setUserID(data.user_id)
+        setBio(data.bio)
+        setPrefs(data.preferences || {})
+        setProfile(data)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error fetching profile:', error)
         router.push('/auth/login')
-        return
       }
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .single()
-
-      setFormValues({ ...formValues, ...data })
-      setFormValues({
-        ...formValues,
-        email: session.user.email || '',
-        display_name: data.display_name,
-        user_type_id: data.user_type_id
-      })
-      setUserID(session.user.id)
-      setBio(data.bio)
-      setPrefs(data.preferences)
-      setProfile(data)
-      setLoading(false)
     }
 
     fetchProfile()

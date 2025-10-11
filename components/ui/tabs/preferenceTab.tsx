@@ -1,8 +1,6 @@
 'use client'
 import { countries } from '@/components/_constants/pageData/countries'
 import { UserType } from '@/components/_constants/pageData/pageTypes'
-import { createClient } from '@/lib/supabase/client'
-import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
 import TabHeaderTitle from '../_custom/_common/tabHeaderTitle'
 
 export default function PreferencesTab({
@@ -13,8 +11,6 @@ export default function PreferencesTab({
   userType,
   showSaveToast
 }: UserType) {
-  const supabase = createClient()
-
   interface ChangeEvent {
     preventDefault: () => void
     target: {
@@ -39,11 +35,35 @@ export default function PreferencesTab({
 
   const handleSave = async () => {
     setOpen(true)
-    await updateUserProfile(supabase, id, {
-      preferences: prefs
-    })
-    showSaveToast('Location')
-    setOpen(false)
+
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          preferences: prefs
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update preferences')
+      }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error('Failed to update preferences')
+      }
+
+      showSaveToast('Location')
+    } catch (error) {
+      console.error('Error updating preferences:', error)
+      // Handle error appropriately
+    } finally {
+      setOpen(false)
+    }
   }
 
   return (

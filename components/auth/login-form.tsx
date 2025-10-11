@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils/index'
 
 import { Button } from '@/components/ui/button'
@@ -31,33 +30,35 @@ export function LoginForm({
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const loginOptions: any = {}
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-        options: loginOptions
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
       })
-      if (error) throw error
 
-      // Check if user is a candidate and needs onboarding
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('user_type_id, onboarding_completed')
-        .eq('user_id', data.user.id)
-        .single()
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Login failed')
+      }
 
-      const candidateTypeId = '3dad0f25-2b3b-491b-9e82-9f9e71adad6f'
+      const result = await response.json()
 
-      if (
-        profile?.user_type_id === candidateTypeId &&
-        !profile?.onboarding_completed
-      ) {
+      if (!result.success) {
+        throw new Error('Login failed')
+      }
+
+      const { needsOnboarding, redirectPath } = result.data
+
+      if (needsOnboarding) {
         // Candidate needs to complete onboarding
         router.push('/candidate-onboarding')
       } else {
@@ -73,18 +74,34 @@ export function LoginForm({
   }
 
   const handleSocialLogin = async () => {
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
+      const response = await fetch('/api/auth/oauth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          provider: 'google',
           redirectTo: `${location.origin}/auth/oauth`
-        }
+        })
       })
-      if (error) throw error
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'OAuth login failed')
+      }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error('OAuth login failed')
+      }
+
+      // Redirect to OAuth callback
+      window.location.href = result.data.url
     } catch (error: unknown) {
       setError(
         error instanceof Error ? error.message : 'An OAuth error occurred'

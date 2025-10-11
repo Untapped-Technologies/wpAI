@@ -1,7 +1,5 @@
 'use client'
 import { PrefType, UserType } from '@/components/_constants/pageData/pageTypes'
-import { createClient } from '@/lib/supabase/client'
-import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
 import TabHeaderTitle from '../_custom/_common/tabHeaderTitle'
 
 export default function NotificationsTab({
@@ -12,8 +10,6 @@ export default function NotificationsTab({
   userType,
   showSaveToast
 }: UserType) {
-  const supabase = createClient()
-
   interface ChangeEvent {
     preventDefault: () => void
     target: {
@@ -36,11 +32,35 @@ export default function NotificationsTab({
 
   const handleSave = async () => {
     setOpen(true)
-    await updateUserProfile(supabase, id, {
-      preferences: prefs
-    })
-    showSaveToast('Notifications')
-    setOpen(false)
+
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          preferences: prefs
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update notifications')
+      }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error('Failed to update notifications')
+      }
+
+      showSaveToast('Notifications')
+    } catch (error) {
+      console.error('Error updating notifications:', error)
+      // Handle error appropriately
+    } finally {
+      setOpen(false)
+    }
   }
 
   return (

@@ -2,8 +2,6 @@
 
 import { userTypes } from '@/components/_constants/pageData/userTypes'
 import { profileType } from '@/components/_constants/pages/signUp/signupTypes'
-import { createClient } from '@/lib/supabase/client'
-import { updateUserProfile } from '@/lib/utils/createOrUpdateUserProfile'
 import SelectType from '../_custom/_common/selectType'
 import TabHeaderTitle from '../_custom/_common/tabHeaderTitle'
 
@@ -14,8 +12,6 @@ export default function AccountTab({
   setFormValues,
   showSaveToast
 }: profileType) {
-  const supabase = createClient()
-
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>): void => {
     evt.preventDefault()
     const { name, value } = evt.target as HTMLInputElement
@@ -30,12 +26,35 @@ export default function AccountTab({
   const handleSave = async () => {
     setOpen(true)
 
-    await updateUserProfile(supabase, id, {
-      display_name: formValues.display_name,
-      user_type_id: formValues.user_type_id
-    })
-    showSaveToast('Account Info')
-    setOpen(false)
+    try {
+      const response = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          display_name: formValues.display_name,
+          user_type_id: formValues.user_type_id
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update profile')
+      }
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error('Failed to update profile')
+      }
+
+      showSaveToast('Account Info')
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      // Handle error appropriately
+    } finally {
+      setOpen(false)
+    }
   }
   return (
     <div className="space-y-4">

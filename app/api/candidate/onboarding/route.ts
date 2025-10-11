@@ -2,7 +2,6 @@ import { getCurrentUserId } from '@/lib/auth/get-current-user'
 import { supabaseAdmin } from '@/lib/supabase/supabaseAdmin'
 import { NextRequest } from 'next/server'
 
-// PATCH /api/candidate/onboarding - Update onboarding completion status
 export async function PATCH(req: NextRequest) {
   try {
     const userId = await getCurrentUserId()
