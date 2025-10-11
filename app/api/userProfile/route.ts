@@ -12,6 +12,7 @@ export async function GET() {
     .maybeSingle()
 
   if (error) return new Response(error.message, { status: 500 })
+  if (!data) return new Response('Profile not found', { status: 404 })
   return new Response(JSON.stringify(data), { status: 200 })
 }
 

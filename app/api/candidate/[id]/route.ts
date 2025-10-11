@@ -26,21 +26,21 @@ export async function GET(
 
     // Try candidate_profile column first, then fallback to preferences
     const candidateData =
-      data.candidate_profile || data.preferences?.candidate_profile
+      data?.candidate_profile || data?.preferences?.candidate_profile
 
     if (!candidateData) {
       return new Response('No candidate profile data found', { status: 404 })
     }
 
     // Check if profile is approved (onboarding completed and approved)
-    if (!data.onboarding_completed) {
+    if (!data?.onboarding_completed) {
       return new Response('This candidate profile is not yet approved', {
         status: 403
       })
     }
 
     // Check if candidate review has been approved
-    if (!data.approved) {
+    if (!data?.approved) {
       return new Response('This candidate profile is not publicly visible', {
         status: 403
       })
@@ -51,7 +51,7 @@ export async function GET(
         success: true,
         data: {
           candidateProfile: candidateData,
-          onboardingCompleted: data.onboarding_completed
+          onboardingCompleted: data?.onboarding_completed
         }
       }),
       {

@@ -25,18 +25,18 @@ export async function GET(req: NextRequest) {
 
     // Try candidate_profile column first, then fallback to preferences
     const candidateData =
-      data.candidate_profile || data.preferences?.candidate_profile
+      data?.candidate_profile || data?.preferences?.candidate_profile
 
     return new Response(
       JSON.stringify({
         success: true,
         data: {
           candidateProfile: candidateData,
-          onboardingCompleted: data.onboarding_completed,
-          onboardingCompletedAt: data.onboarding_completed_at,
-          approved: data.approved,
-          rejectedMessage: data.rejected_message,
-          preferences: data.preferences
+          onboardingCompleted: data?.onboarding_completed,
+          onboardingCompletedAt: data?.onboarding_completed_at,
+          approved: data?.approved,
+          rejectedMessage: data?.rejected_message,
+          preferences: data?.preferences
         }
       }),
       {
