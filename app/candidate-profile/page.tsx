@@ -27,47 +27,40 @@ export default function CandidateProfilePage() {
 
         setUser(user)
 
-        // Check if user is a candidate
-        let profile
+        // Check if user is a candidate using API
         try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('user_type_id, onboarding_completed')
-            .eq('user_id', user.id)
-            .single()
+          const response = await fetch('/api/candidate/status')
 
-          if (error) {
-            throw error
+          if (!response.ok) {
+            throw new Error('Failed to fetch user status')
           }
 
-          profile = data
+          const result = await response.json()
+
+          if (!result.success) {
+            throw new Error('Failed to get user status')
+          }
+
+          const { isCandidate, onboardingCompleted } = result.data
+
+          if (!isCandidate) {
+            // Not a candidate, redirect to regular profile
+            router.push('/user/profile')
+            return
+          }
+
+          // If onboarding is not completed, redirect to onboarding
+          if (!onboardingCompleted) {
+            router.push('/candidate-onboarding')
+            return
+          }
+
+          setIsCandidate(true)
         } catch (error) {
           console.error('Profile fetch failed:', error)
           router.push('/user/profile')
           return
         }
-
-        if (!profile) {
-          router.push('/user/profile')
-          return
-        }
-
-        // Check if user is a candidate (ID: 3dad0f25-2b3b-491b-9e82-9f9e71adad6f)
-        const candidateTypeId = '3dad0f25-2b3b-491b-9e82-9f9e71adad6f'
-
-        if (profile.user_type_id !== candidateTypeId) {
-          // Not a candidate, redirect to regular profile
-          router.push('/user/profile')
-          return
-        }
-
-        // If onboarding is not completed, redirect to onboarding
-        if (!profile.onboarding_completed) {
-          router.push('/candidate-onboarding')
-          return
-        }
-
-        setIsCandidate(true)
       } catch (error) {
         console.error('Error in candidate profile check:', error)
         router.push('/auth/login')
@@ -77,7 +70,7 @@ export default function CandidateProfilePage() {
     }
 
     checkUserAndLoadProfile()
-  }, [router, supabase.auth])
+  }, [router])
 
   if (isLoading) {
     return (

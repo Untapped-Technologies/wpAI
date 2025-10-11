@@ -47,13 +47,13 @@ interface CandidateProfileEditTabsProps {
     address: string
     city: string
     state: string
-    zipCode: string
+    postalCode: string
     phone: string
     email: string
   }
   notificationData?: {
-    emailNotifications: boolean
-    smsNotifications: boolean
+    emailNotifs: boolean
+    smsNotifs: boolean
     campaignUpdates: boolean
     voterMessages: boolean
     policyAlerts: boolean
@@ -125,13 +125,13 @@ export default function CandidateProfileEditTabs({
       address: locationData?.address || '',
       city: locationData?.city || '',
       state: locationData?.state || '',
-      zipCode: locationData?.zipCode || '',
+      postalCode: locationData?.postalCode || '',
       phone: locationData?.phone || '',
       email: locationData?.email || ''
     },
     notifications: {
-      emailNotifications: notificationData?.emailNotifications ?? true,
-      smsNotifications: notificationData?.smsNotifications ?? false,
+      emailNotifs: notificationData?.emailNotifs ?? true,
+      smsNotifs: notificationData?.smsNotifs ?? false,
       campaignUpdates: notificationData?.campaignUpdates ?? true,
       voterMessages: notificationData?.voterMessages ?? true,
       policyAlerts: notificationData?.policyAlerts ?? true,
@@ -424,15 +424,7 @@ export default function CandidateProfileEditTabs({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.location.email}
-                  onChange={e =>
-                    handleInputChange('location', 'email', e.target.value)
-                  }
-                  placeholder="your.email@example.com"
-                />
+                <Input value={''} disabled />
               </div>
               <div>
                 <Label htmlFor="phone">Phone Number</Label>
@@ -484,12 +476,12 @@ export default function CandidateProfileEditTabs({
                 />
               </div>
               <div>
-                <Label htmlFor="zipCode">ZIP Code</Label>
+                <Label htmlFor="postalCode">ZIP Code</Label>
                 <Input
-                  id="zipCode"
-                  value={formData.location.zipCode}
+                  id="postalCode"
+                  value={formData.location.postalCode}
                   onChange={e =>
-                    handleInputChange('location', 'zipCode', e.target.value)
+                    handleInputChange('location', 'postalCode', e.target.value)
                   }
                   placeholder="12345"
                 />
@@ -522,11 +514,11 @@ export default function CandidateProfileEditTabs({
                   </div>
                 </div>
                 <Checkbox
-                  checked={formData.notifications.emailNotifications}
+                  checked={formData.notifications.emailNotifs}
                   onCheckedChange={checked =>
                     handleInputChange(
                       'notifications',
-                      'emailNotifications',
+                      'emailNotifs',
                       checked as boolean
                     )
                   }
@@ -546,11 +538,11 @@ export default function CandidateProfileEditTabs({
                   </div>
                 </div>
                 <Checkbox
-                  checked={formData.notifications.smsNotifications}
+                  checked={formData.notifications.smsNotifs}
                   onCheckedChange={checked =>
                     handleInputChange(
                       'notifications',
-                      'smsNotifications',
+                      'smsNotifs',
                       checked as boolean
                     )
                   }

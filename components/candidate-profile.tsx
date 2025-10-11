@@ -1,12 +1,15 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  extractLocationData,
+  extractNotificationData
+} from '@/lib/utils/debugPreferences'
 import { User } from 'lucide-react'
 import CandidateProfileEditTabs from './candidate-profile-edit-tabs'
 import CandidateProfileHeader from './candidate-profile-header'
@@ -52,7 +55,6 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
   const [isPublicView, setIsPublicView] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     fetchCandidateProfile()
@@ -60,76 +62,51 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
 
   const fetchCandidateProfile = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(
-          'candidate_profile, preferences, onboarding_completed, onboarding_completed_at'
-        )
-        .eq('user_id', userId)
-        .single()
+      const response = await fetch('/api/candidate/profile')
 
-      if (error) {
-        console.error('Error fetching candidate profile:', error)
+      if (!response.ok) {
+        const errorText = await response.text()
         toast.error('Failed to load profile data')
         return
       }
 
-      // Try candidate_profile column first, then fallback to preferences
-      const candidateData =
-        data.candidate_profile || data.preferences?.candidate_profile
+      const result = await response.json()
 
-      if (candidateData) {
-        setProfileData(candidateData)
+      if (!result.success) {
+        toast.error('Failed to load profile data')
+        return
+      }
+
+      const {
+        candidateProfile,
+        preferences,
+        onboardingCompleted,
+        onboardingCompletedAt
+      } = result.data
+
+      if (candidateProfile) {
+        setProfileData(candidateProfile)
       } else {
         toast.error('No candidate profile data found')
       }
 
       // Set additional data from preferences column
-      if (data.preferences) {
-        // Location data from preferences
-        setLocationData(
-          data.preferences.location || {
-            address: '',
-            city: '',
-            state: '',
-            zipCode: '',
-            phone: '',
-            email: ''
-          }
-        )
+      if (preferences) {
+        // Extract location and notification data using utility functions
+        const locationData = preferences
+        const notificationData = {
+          onboarding_completed: onboardingCompleted,
+          onboarding_completed_at: onboardingCompletedAt
+        }
 
-        // Notification data from preferences
-        setNotificationData(
-          data.preferences.notifications || {
-            emailNotifications: true,
-            smsNotifications: false,
-            campaignUpdates: true,
-            voterMessages: true,
-            policyAlerts: true,
-            eventReminders: true
-          }
-        )
+        setLocationData(locationData)
+        setNotificationData(notificationData)
       } else {
         // Set default values if no preferences exist
-        setLocationData({
-          address: '',
-          city: '',
-          state: '',
-          zipCode: '',
-          phone: '',
-          email: ''
-        })
-        setNotificationData({
-          emailNotifications: true,
-          smsNotifications: false,
-          campaignUpdates: true,
-          voterMessages: true,
-          policyAlerts: true,
-          eventReminders: true
-        })
+        setLocationData(extractLocationData(null))
+        setNotificationData(extractNotificationData(null))
       }
     } catch (error) {
-      console.error('Error fetching profile:', error)
       toast.error('Failed to load profile')
     } finally {
       setIsLoading(false)
@@ -201,8 +178,11 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
         .select()
 
       if (preferencesError) {
+        console.error('Error saving preferences:', preferencesError)
         throw preferencesError
       }
+
+      console.log('Successfully saved preferences:', data)
 
       // Update local state
       setProfileData(candidateProfileData)
@@ -286,6 +266,26 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
     }
   }
 
+  const handleDebugPreferences = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('preferences, candidate_profile')
+        .eq('user_id', userId)
+        .single()
+
+      if (error) {
+        console.error('Debug: Error fetching preferences:', error)
+        toast.error('Failed to fetch preferences for debugging')
+        return
+      }
+      toast.success('Check console for debug information')
+    } catch (error) {
+      console.error('Debug: Error:', error)
+      toast.error('Debug failed')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
@@ -339,9 +339,9 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Action Bar */}
-        {/* <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-6">
           <div className="flex space-x-3">
-            <Button
+            {/* <Button
               variant="outline"
               onClick={handleDownloadProfile}
               className="flex items-center"
@@ -356,9 +356,9 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
             >
               <Printer className="w-4 h-4 mr-2" />
               Print
-            </Button>
+            </Button> */}
           </div>
-        </div> */}
+        </div>
 
         {/* Profile Header */}
         <CandidateProfileHeader

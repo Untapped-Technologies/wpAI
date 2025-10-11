@@ -25,7 +25,7 @@ interface CandidateProfileSectionsProps {
     address?: string
     city?: string
     state?: string
-    zipCode?: string
+    postalCode?: string
     phone?: string
     email?: string
   }

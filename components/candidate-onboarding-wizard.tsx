@@ -1,7 +1,5 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import { saveCandidateProfile } from '@/lib/utils/createOrUpdateUserProfile'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -62,7 +60,6 @@ export default function CandidateOnboardingWizard({
   const [hasConfirmedTruthfulness, setHasConfirmedTruthfulness] =
     useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const [formValues, setFormValues] = useState({
     // Basic Information
@@ -142,7 +139,22 @@ export default function CandidateOnboardingWizard({
       }
 
       console.log('Candidate data to save:', candidateData)
-      const result = await saveCandidateProfile(supabase, userId, candidateData)
+      const response = await fetch('/api/candidate/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ candidateData })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Save candidate profile failed:', errorText)
+        toast.error('Failed to save progress. Please try again.')
+        return false
+      }
+
+      const result = await response.json()
       console.log('Save candidate profile result:', result)
 
       if (!result.success) {
@@ -185,20 +197,21 @@ export default function CandidateOnboardingWizard({
           'Progress saved successfully, updating completion status...'
         )
 
-        // Mark onboarding as completed - handle case where fields might not exist
+        // Mark onboarding as completed using API
         try {
-          const { error } = await supabase
-            .from('profiles')
-            .update({
-              onboarding_completed: true,
-              onboarding_completed_at: new Date().toISOString()
-            })
-            .eq('user_id', userId)
+          const response = await fetch('/api/candidate/onboarding', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ onboardingCompleted: true })
+          })
 
-          if (error) {
+          if (!response.ok) {
+            const errorText = await response.text()
             console.warn(
               'Could not update onboarding fields (they may not exist yet):',
-              error
+              errorText
             )
             // Continue anyway - the candidate profile data is saved
           } else {

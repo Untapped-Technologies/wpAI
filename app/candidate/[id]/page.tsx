@@ -1,7 +1,6 @@
 'use client'
 
 import CandidatePublicProfile from '@/components/candidate-public-profile'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -18,7 +17,6 @@ export default function CandidatePublicPage({
   const [profileData, setProfileData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     fetchCandidateProfile()
@@ -26,38 +24,33 @@ export default function CandidatePublicPage({
 
   const fetchCandidateProfile = async () => {
     try {
-      // First, get the user profile to find the candidate profile data
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('candidate_profile, preferences, onboarding_completed')
-        .eq('user_id', params.id)
-        .single()
+      const response = await fetch(`/api/candidate/${params.id}`)
 
-      if (profileError) {
-        console.error('Error fetching candidate profile:', profileError)
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Error fetching candidate profile:', errorText)
         toast.error('Candidate profile not found')
         router.push('/')
         return
       }
 
-      // Try candidate_profile column first, then fallback to preferences
-      const candidateData =
-        profile.candidate_profile || profile.preferences?.candidate_profile
+      const result = await response.json()
 
-      if (!candidateData) {
+      if (!result.success) {
+        toast.error('Candidate profile not found')
+        router.push('/')
+        return
+      }
+
+      const { candidateProfile } = result.data
+
+      if (!candidateProfile) {
         toast.error('No candidate profile data found')
         router.push('/')
         return
       }
 
-      // Check if profile is approved (onboarding completed)
-      if (!profile.onboarding_completed) {
-        toast.error('This candidate profile is not yet approved')
-        router.push('/')
-        return
-      }
-
-      setProfileData(candidateData)
+      setProfileData(candidateProfile)
     } catch (error) {
       console.error('Error fetching profile:', error)
       toast.error('Failed to load candidate profile')
