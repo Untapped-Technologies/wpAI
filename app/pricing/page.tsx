@@ -1,9 +1,6 @@
 'use client'
 import HomeCTA from '@/components/_constants/pages/home/homeCTA'
-import {
-  pricingData,
-  pricingEnterprise
-} from '@/components/_constants/pricing/pricingData'
+import { pricingEnterprise } from '@/components/_constants/pricing/pricingData'
 import AuthAwareFooter from '@/components/auth-aware-footer'
 import AuthAwareNavigation from '@/components/auth-aware-navigation'
 import { Badge } from '@/components/ui/badge'
@@ -18,10 +15,73 @@ import {
 } from '@/components/ui/card'
 import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+type DisplayPlan = {
+  id: number
+  priceId: string
+  paymentType: 'payment' | 'subscription'
+  title: string
+  subtitle?: string
+  price: string
+  timeframe?: string
+  trial?: boolean
+  trialButton?: boolean
+  features: { fid: number; feature: string; description?: string }[]
+}
 
 const Pricing = () => {
   const [loading, setLoading] = useState<string | null>(null)
+  const [plans, setPlans] = useState<DisplayPlan[]>([])
+  const [plansLoading, setPlansLoading] = useState<boolean>(true)
+  const [plansError, setPlansError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const toDisplayPlan = (plan: any, idx: number): DisplayPlan => {
+      const amountCents = plan.amount_cents ?? plan.unit_amount ?? null
+      const priceText =
+        plan.price ??
+        (amountCents != null ? `$${(amountCents / 100).toFixed(0)}` : '')
+      const interval = plan.timeframe ?? plan.interval ?? ''
+      const feats = Array.isArray(plan.plan_features)
+        ? plan.plan_features.map((pf: any, i: number) => ({
+            fid: i + 1,
+            feature: pf.feature ?? '',
+            description: pf.description ?? ''
+          }))
+        : []
+      return {
+        id: plan.id ?? idx,
+        priceId: plan.price_id ?? plan.priceId ?? '',
+        paymentType: (plan.payment_type ?? 'subscription') as
+          | 'payment'
+          | 'subscription',
+        title: plan.title ?? plan.name ?? 'Plan',
+        subtitle: plan.subtitle ?? '',
+        price: priceText,
+        timeframe: interval,
+        trial: plan.trial ?? false,
+        trialButton: plan.trial_button ?? plan.trial ?? false,
+        features: feats
+      }
+    }
+
+    const fetchPlans = async () => {
+      try {
+        setPlansLoading(true)
+        const res = await fetch('/api/pricing')
+        const json = await res.json()
+        if (!res.ok) throw new Error(json?.error || 'Failed to load plans')
+        const data = Array.isArray(json?.data) ? json.data : []
+        setPlans(data.map((p: any, i: number) => toDisplayPlan(p, i)))
+      } catch (e: any) {
+        setPlansError(e?.message || 'Failed to load plans')
+      } finally {
+        setPlansLoading(false)
+      }
+    }
+    fetchPlans()
+  }, [])
 
   const handleCheckout = async (priceId: string, paymentType: string) => {
     setLoading(priceId)
@@ -61,78 +121,93 @@ const Pricing = () => {
       <section className="py-20 bg-slate-50">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {pricingData.map(plan => (
-              <Card
-                key={plan.id}
-                className={`border-2 transition-colors duration-300 flex flex-col ${
-                  plan.id === 2
-                    ? 'border-[#203c39] relative'
-                    : 'border-slate-200 hover:border-[#203c39]'
-                }`}
-              >
-                {plan.id === 2 && (
-                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#203c39] text-white">
-                    Most Popular
-                  </Badge>
-                )}
-
-                <CardHeader className="text-center">
-                  <CardTitle className="text-xl">{plan.title}</CardTitle>
-                  <div className="text-3xl font-bold text-[#203c39] mb-2">
-                    {plan.price}
-                    {plan.timeframe && (
-                      <span className="text-lg font-normal">
-                        /{plan.timeframe}
-                      </span>
-                    )}
-                  </div>
-                  {plan.subtitle && (
-                    <CardDescription className="text-sm">
-                      {plan.subtitle}
-                    </CardDescription>
-                  )}
-                  {plan.trialButton && (
-                    <Badge
-                      variant="outline"
-                      className="mt-2 text-xs flex justify-center p-2 bg-gray-200"
-                    >
-                      10 Day Free Trial
+            {plansLoading && (
+              <div className="md:col-span-2 lg:col-span-3 text-center text-slate-500">
+                Loading plans...
+              </div>
+            )}
+            {plansError && (
+              <div className="md:col-span-2 lg:col-span-3 text-center text-red-600">
+                {plansError}
+              </div>
+            )}
+            {!plansLoading &&
+              !plansError &&
+              plans.map(plan => (
+                <Card
+                  key={plan.id}
+                  className={`border-2 transition-colors duration-300 flex flex-col ${
+                    plan.id === 2
+                      ? 'border-[#203c39] relative'
+                      : 'border-slate-200 hover:border-[#203c39]'
+                  }`}
+                >
+                  {plan.id === 2 && (
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#203c39] text-white">
+                      Most Popular
                     </Badge>
                   )}
-                </CardHeader>
 
-                <CardContent className="flex flex-col h-full">
-                  <ul className="space-y-3 mb-6">
-                    {plan.features.map(feature => (
-                      <li key={feature.fid} className="flex items-start gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{feature.feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="mt-auto">
-                    <SimpleButton
-                      classes={`w-full ${
-                        plan.id === 2
-                          ? 'bg-[#203c39] hover:bg-[#203c39]/90 text-white'
-                          : 'variant-outline'
-                      }`}
-                      handleClick={() =>
-                        handleCheckout(plan.priceId, plan.paymentType)
-                      }
-                      label="Start Free Trial"
-                    />
-
-                    {plan.trial && (
-                      <p className="mt-2 text-xs text-center text-slate-500">
-                        Cancel anytime
-                      </p>
+                  <CardHeader className="text-center">
+                    <CardTitle className="text-xl">{plan.title}</CardTitle>
+                    <div className="text-3xl font-bold text-[#203c39] mb-2">
+                      {plan.price}
+                      {plan.timeframe && (
+                        <span className="text-lg font-normal">
+                          /{plan.timeframe}
+                        </span>
+                      )}
+                    </div>
+                    {plan.subtitle && (
+                      <CardDescription className="text-sm">
+                        {plan.subtitle}
+                      </CardDescription>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    {plan.trialButton && (
+                      <Badge
+                        variant="outline"
+                        className="mt-2 text-xs flex justify-center p-2 bg-gray-200"
+                      >
+                        10 Day Free Trial
+                      </Badge>
+                    )}
+                  </CardHeader>
+
+                  <CardContent className="flex flex-col h-full">
+                    <ul className="space-y-3 mb-6">
+                      {plan.features.map(feature => (
+                        <li
+                          key={feature.fid}
+                          className="flex items-start gap-2"
+                        >
+                          <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm">{feature.feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="mt-auto">
+                      <SimpleButton
+                        classes={`w-full ${
+                          plan.id === 2
+                            ? 'bg-[#203c39] hover:bg-[#203c39]/90 text-white'
+                            : 'variant-outline'
+                        }`}
+                        handleClick={() =>
+                          handleCheckout(plan.priceId, plan.paymentType)
+                        }
+                        label="Start Free Trial"
+                      />
+
+                      {plan.trial && (
+                        <p className="mt-2 text-xs text-center text-slate-500">
+                          Cancel anytime
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
           </div>
           {
             <Card
