@@ -4,40 +4,89 @@ import { Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { cardImages } from '../pageData/pageData'
-import { pricingData } from '../pricing/pricingData'
 
 type ProductFeature = {
   fid: number
   feature: string
 }
 
-// const stripePromise = loadStripe('pk_test_YOUR_PUBLIC_KEY') // Replace with your Stripe public key
-
-// const supabase = createClient(
-//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-// )
+type DisplayPlan = {
+  id: number
+  priceId: string
+  paymentType: 'payment' | 'subscription'
+  title: string
+  subtitle?: string
+  price: string
+  timeframe?: string
+  trial?: boolean
+  trialButton?: boolean
+  features: { fid: number; feature: string; description?: string }[]
+}
 
 export default function PaymentClient({ id }: { id: string }) {
-  const [product, setProduct] = useState<any>(null)
+  const [product, setProduct] = useState<DisplayPlan | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
+    const toDisplayPlan = (plan: any, idx: number): DisplayPlan => {
+      const amountCents = plan.amount_cents ?? plan.unit_amount ?? null
+      const priceText =
+        plan.price ??
+        (amountCents != null ? `$${(amountCents / 100).toFixed(0)}` : '')
+      const interval = plan.timeframe ?? plan.interval ?? ''
+      const feats = Array.isArray(plan.plan_features)
+        ? plan.plan_features.map((pf: any, i: number) => ({
+            fid: i + 1,
+            feature: pf.feature ?? '',
+            description: pf.description ?? ''
+          }))
+        : []
+      return {
+        id: plan.id ?? idx,
+        priceId: plan.price_id ?? plan.priceId ?? '',
+        paymentType: (plan.payment_type ?? 'subscription') as
+          | 'payment'
+          | 'subscription',
+        title: plan.title ?? plan.name ?? 'Plan',
+        subtitle: plan.subtitle ?? '',
+        price: priceText,
+        timeframe: interval,
+        trial: plan.trial ?? false,
+        trialButton: plan.trial_button ?? plan.trial ?? false,
+        features: feats
+      }
+    }
+
     async function fetchProduct() {
-      const productInfo = pricingData.find(price => String(price.id) === id)
+      try {
+        setLoading(true)
+        const res = await fetch('/api/pricing')
+        const json = await res.json()
 
-      // const { data, error } = await supabase
-      //   .from('products')
-      //   .select('*')
-      //   .eq('id', id)
-      //   .single()
+        if (!res.ok) {
+          throw new Error(json?.error || 'Failed to load plans')
+        }
 
-      if (!productInfo) {
-        console.error('Error fetching product:', 'mess')
-        router.push('/404')
-      } else {
-        setProduct(productInfo)
+        const data = Array.isArray(json?.data) ? json.data : []
+        const plans: DisplayPlan[] = data.map((p: any, i: number) =>
+          toDisplayPlan(p, i)
+        )
+        const productInfo: DisplayPlan | undefined = plans.find(
+          plan => String(plan.id) === id
+        )
+
+        if (!productInfo) {
+          console.error('Error fetching product:', 'Plan not found')
+          router.push('/404')
+        } else {
+          setProduct(productInfo)
+        }
+      } catch (e: any) {
+        setError(e?.message || 'Failed to load product')
+        console.error('Error fetching product:', e)
+      } finally {
         setLoading(false)
       }
     }
@@ -65,7 +114,9 @@ export default function PaymentClient({ id }: { id: string }) {
   //   }
   // }
 
-  // if (loading) return <div className="p-6 text-center">Loading...</div>
+  if (loading) return <div className="p-6 text-center">Loading...</div>
+  if (error) return <div className="p-6 text-center text-red-600">{error}</div>
+  if (!product) return <div className="p-6 text-center">Product not found</div>
 
   return (
     <div className="bg-white p-4">
@@ -191,11 +242,15 @@ export default function PaymentClient({ id }: { id: string }) {
 
           <div className="bg-gray-100 p-6 rounded-md">
             <h2 className="text-2xl font-semibold text-slate-900">
-              {product?.title}{' '}
+              {product.title}
             </h2>
-            <span className="text-md text-gray-600">Annual Subscription</span>
+            <span className="text-md text-gray-600">
+              {product.timeframe
+                ? `${product.timeframe.charAt(0).toUpperCase() + product.timeframe.slice(1)} Subscription`
+                : 'Subscription'}
+            </span>
             <ul className="text-slate-500 font-medium mt-8 space-y-4">
-              {product?.features?.map((prod: ProductFeature) => (
+              {product.features?.map((prod: ProductFeature) => (
                 <li className="flex flex-wrap gap-4 text-sm" key={prod.fid}>
                   <Check
                     size={20}
@@ -207,11 +262,11 @@ export default function PaymentClient({ id }: { id: string }) {
               <li className="flex flex-wrap gap-4 text-sm">
                 SubTotal{' '}
                 <span className="ml-auto font-semibold text-slate-900">
-                  {product?.price}
+                  {product.price}
                 </span>
               </li>
               <li className="flex flex-wrap gap-4 text-[15px] font-semibold text-slate-900 border-t border-gray-300 pt-4">
-                Total <span className="ml-auto">{product?.price}</span>
+                Total <span className="ml-auto">{product.price}</span>
               </li>
             </ul>
           </div>
