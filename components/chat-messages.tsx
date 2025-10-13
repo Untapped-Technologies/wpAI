@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 
 import { ChatRequestOptions, JSONValue, Message } from 'ai'
@@ -128,6 +129,19 @@ export function ChatMessages({
         sections.length > 0 ? 'flex-1 overflow-y-auto' : ''
       )}
     >
+      {/* Floating logo overlay - only show when there are results */}
+      {sections.length > 0 && (
+        <div className="fixed top-4 right-4 z-50 pointer-events-none">
+          <Image
+            src="/images/logos/icononly_transparent_nobuffer.png"
+            alt="World Politics Logo"
+            width={32}
+            height={32}
+            className="opacity-60 hover:opacity-80 transition-opacity"
+          />
+        </div>
+      )}
+
       <div className="relative mx-auto w-full max-w-3xl px-4">
         {sections.map((section, sectionIndex) => (
           <div
