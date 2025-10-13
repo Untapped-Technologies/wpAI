@@ -1,11 +1,11 @@
 export const pricingData = [
   {
     id: 1,
-    priceId: 'price_1SE8N07DLFB5DirEgsgfdHfL',
+    priceId: 'price_1SE7kX7DLFB5DirEEEf7e0TQ',
     paymentType: 'subscription',
-    title: 'Free Tier',
+    title: 'Citizen Tier',
     subtitle: '',
-    price: '$0',
+    price: '$4.99',
     timeframe: '',
     url: '/auth/sign-up',
     trial: true,
@@ -13,7 +13,7 @@ export const pricingData = [
     features: [
       {
         fid: 1,
-        feature: 'Access to limited daily queries (e.g., 20 prompts/day).',
+        feature: 'Access to limited daily queries (e.g., 5 prompts/day).',
         description: ''
       },
       {
@@ -25,6 +25,17 @@ export const pricingData = [
         fid: 3,
         feature:
           'Basic personalization (topics of interest, regions followed).',
+        description: ''
+      },
+      {
+        fid: 4,
+        feature: 'Ad-Free Browsing & Reading',
+        description: ''
+      },
+      {
+        fid: 6,
+        feature:
+          'Weekly update emails (“Here’s what changed this week in Climate & Economy”).',
         description: ''
       }
     ]

@@ -30,14 +30,13 @@ const Pricing = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ priceId, paymentType })
     })
-
     const data = await res.json()
-    if (data.url) {
+    if (res.ok && data.url) {
       window.location.href = data.url // redirect to Stripe Checkout
-    } else {
-      alert('Checkout failed')
-      setLoading(null)
+      return
     }
+    alert(`Checkout failed: ${data?.error || 'Unknown error'}`)
+    setLoading(null)
   }
 
   return (
@@ -65,7 +64,7 @@ const Pricing = () => {
             {pricingData.map(plan => (
               <Card
                 key={plan.id}
-                className={`border-2 transition-colors duration-300 ${
+                className={`border-2 transition-colors duration-300 flex flex-col ${
                   plan.id === 2
                     ? 'border-[#203c39] relative'
                     : 'border-slate-200 hover:border-[#203c39]'
@@ -102,7 +101,7 @@ const Pricing = () => {
                   )}
                 </CardHeader>
 
-                <CardContent>
+                <CardContent className="flex flex-col h-full">
                   <ul className="space-y-3 mb-6">
                     {plan.features.map(feature => (
                       <li key={feature.fid} className="flex items-start gap-2">
@@ -112,23 +111,25 @@ const Pricing = () => {
                     ))}
                   </ul>
 
-                  <SimpleButton
-                    classes={`w-full ${
-                      plan.id === 2
-                        ? 'bg-[#203c39] hover:bg-[#203c39]/90 text-white'
-                        : 'variant-outline'
-                    }`}
-                    handleClick={() =>
-                      handleCheckout(plan.priceId, plan.paymentType)
-                    }
-                    label="Start Free Trial"
-                  />
+                  <div className="mt-auto">
+                    <SimpleButton
+                      classes={`w-full ${
+                        plan.id === 2
+                          ? 'bg-[#203c39] hover:bg-[#203c39]/90 text-white'
+                          : 'variant-outline'
+                      }`}
+                      handleClick={() =>
+                        handleCheckout(plan.priceId, plan.paymentType)
+                      }
+                      label="Start Free Trial"
+                    />
 
-                  {plan.trial && (
-                    <p className="mt-2 text-xs text-center text-slate-500">
-                      Cancel anytime
-                    </p>
-                  )}
+                    {plan.trial && (
+                      <p className="mt-2 text-xs text-center text-slate-500">
+                        Cancel anytime
+                      </p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
