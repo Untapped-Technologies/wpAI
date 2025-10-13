@@ -28,9 +28,9 @@ export default function PolicyPositions({ profileData }: PolicyPositionsProps) {
 
   return (
     <Card className="shadow-lg border-0">
-      <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
+      <CardHeader className="bg-white">
         <CardTitle className="flex items-center text-2xl">
-          <FileText className="w-6 h-6 mr-3 text-green-600" />
+          <FileText className="w-6 h-6 mr-3" />
           Policy Positions
         </CardTitle>
         <CardDescription className="text-lg">
@@ -38,40 +38,43 @@ export default function PolicyPositions({ profileData }: PolicyPositionsProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-8">
-        <div className="space-y-8">
+        <div className="flex flex-col gap-4">
           {profileData.policies.policy1 && (
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <h4 className="font-bold text-gray-900 mb-3 flex items-center">
-                {policyIcons[0]}
+            <div>
+              <h4 className="font-bold text-gray-900 pb-2 pl-1">
                 Policy Position #1
               </h4>
-              <p className="text-gray-700 leading-relaxed">
-                {profileData.policies.policy1}
-              </p>
+              <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                <p className="text-gray-700 leading-relaxed">
+                  {profileData.policies.policy1}
+                </p>
+              </div>
             </div>
           )}
 
           {profileData.policies.policy2 && (
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <h4 className="font-bold text-gray-900 mb-3 flex items-center">
-                {policyIcons[1]}
+            <div>
+              <h4 className="font-bold text-gray-900 pb-2 pl-1">
                 Policy Position #2
               </h4>
-              <p className="text-gray-700 leading-relaxed">
-                {profileData.policies.policy2}
-              </p>
+              <div className="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                <p className="text-gray-700 leading-relaxed">
+                  {profileData.policies.policy2}
+                </p>
+              </div>
             </div>
           )}
 
           {profileData.policies.policy3 && (
-            <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <h4 className="font-bold text-gray-900 mb-3 flex items-center">
-                {policyIcons[2]}
+            <div>
+              <h4 className="font-bold text-gray-900 pb-2 pl-1">
                 Policy Position #3
               </h4>
-              <p className="text-gray-700 leading-relaxed">
-                {profileData.policies.policy3}
-              </p>
+              <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                <p className="text-gray-700 leading-relaxed">
+                  {profileData.policies.policy3}
+                </p>
+              </div>
             </div>
           )}
         </div>

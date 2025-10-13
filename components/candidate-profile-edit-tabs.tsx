@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Bell,
-  Calendar,
   FileText,
   Mail,
   MapPin,
@@ -68,25 +67,25 @@ const TABS = [
   {
     id: 'profile',
     label: 'Profile',
-    icon: <User className="w-4 h-4" />,
+    icon: <User className="w-8 h-8" />,
     description: 'Basic candidate information and contact details'
   },
   {
     id: 'issues',
     label: 'Key Issues',
-    icon: <Target className="w-4 h-4" />,
+    icon: <Target className="w-6 h-6" />,
     description: 'Priority issues and policies'
   },
   {
     id: 'location',
     label: 'Location',
-    icon: <MapPin className="w-4 h-4" />,
+    icon: <MapPin className="w-6 h-6" />,
     description: 'Geographic location details'
   },
   {
     id: 'notifications',
     label: 'Notifications',
-    icon: <Bell className="w-4 h-4" />,
+    icon: <Bell className="w-6 h-6" />,
     description: 'Communication preferences'
   }
 ]
@@ -193,7 +192,7 @@ export default function CandidateProfileEditTabs({
     switch (activeTab) {
       case 'profile':
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Label htmlFor="fullName">Full Name *</Label>
@@ -319,10 +318,6 @@ export default function CandidateProfileEditTabs({
           <div className="space-y-8">
             {/* Key Issues */}
             <div>
-              <h3 className="text-lg font-semibold mb-4 flex items-center">
-                <Target className="w-5 h-5 mr-2" />
-                Key Issues
-              </h3>
               <div className="bg-blue-50 p-4 rounded-lg mb-6">
                 <p className="text-sm text-blue-800">
                   Share your top 3 key issues that you'll focus on if elected.
@@ -548,102 +543,6 @@ export default function CandidateProfileEditTabs({
                   }
                 />
               </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Bell className="w-5 h-5 text-purple-600" />
-                  <div>
-                    <Label className="text-base font-medium">
-                      Campaign Updates
-                    </Label>
-                    <p className="text-sm text-gray-600">
-                      Updates about your campaign profile
-                    </p>
-                  </div>
-                </div>
-                <Checkbox
-                  checked={formData.notifications.campaignUpdates}
-                  onCheckedChange={checked =>
-                    handleInputChange(
-                      'notifications',
-                      'campaignUpdates',
-                      checked as boolean
-                    )
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-orange-600" />
-                  <div>
-                    <Label className="text-base font-medium">
-                      Voter Messages
-                    </Label>
-                    <p className="text-sm text-gray-600">
-                      Messages from potential voters
-                    </p>
-                  </div>
-                </div>
-                <Checkbox
-                  checked={formData.notifications.voterMessages}
-                  onCheckedChange={checked =>
-                    handleInputChange(
-                      'notifications',
-                      'voterMessages',
-                      checked as boolean
-                    )
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <FileText className="w-5 h-5 text-red-600" />
-                  <div>
-                    <Label className="text-base font-medium">
-                      Policy Alerts
-                    </Label>
-                    <p className="text-sm text-gray-600">
-                      Updates on policy changes and news
-                    </p>
-                  </div>
-                </div>
-                <Checkbox
-                  checked={formData.notifications.policyAlerts}
-                  onCheckedChange={checked =>
-                    handleInputChange(
-                      'notifications',
-                      'policyAlerts',
-                      checked as boolean
-                    )
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Calendar className="w-5 h-5 text-indigo-600" />
-                  <div>
-                    <Label className="text-base font-medium">
-                      Event Reminders
-                    </Label>
-                    <p className="text-sm text-gray-600">
-                      Reminders for campaign events and deadlines
-                    </p>
-                  </div>
-                </div>
-                <Checkbox
-                  checked={formData.notifications.eventReminders}
-                  onCheckedChange={checked =>
-                    handleInputChange(
-                      'notifications',
-                      'eventReminders',
-                      checked as boolean
-                    )
-                  }
-                />
-              </div>
             </div>
           </div>
         )
@@ -680,7 +579,7 @@ export default function CandidateProfileEditTabs({
               <Button
                 onClick={handleSave}
                 disabled={!isFormValid() || isLoading}
-                className="flex items-center bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                className="flex items-center bg-[#254541]"
               >
                 <Save className="w-4 h-4 mr-2" />
                 {isLoading ? 'Saving...' : 'Save Changes'}
@@ -730,7 +629,7 @@ export default function CandidateProfileEditTabs({
                   </span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-8">{renderTabContent()}</CardContent>
+              <CardContent>{renderTabContent()}</CardContent>
             </Card>
           </div>
         </div>
@@ -749,7 +648,7 @@ export default function CandidateProfileEditTabs({
           <Button
             onClick={handleSave}
             disabled={!isFormValid() || isLoading}
-            className="flex items-center bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+            className="flex items-center bg-[#254541]"
           >
             <Save className="w-4 h-4 mr-2" />
             {isLoading ? 'Saving...' : 'Save Changes'}

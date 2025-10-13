@@ -30,9 +30,9 @@ export default function KeyIssues({
 }: KeyIssuesProps) {
   return (
     <Card className="shadow-lg border-0">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
+      <CardHeader className="bg-white">
         <CardTitle className="flex items-center text-2xl">
-          <Target className="w-6 h-6 mr-3 text-blue-600" />
+          <Target className="w-6 h-6 mr-3" />
           Key Issues
         </CardTitle>
         <CardDescription className="text-lg">

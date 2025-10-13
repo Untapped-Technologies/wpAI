@@ -7,7 +7,15 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { Bell, CheckCircle, Mail, MapPin, Phone, XCircle } from 'lucide-react'
+import {
+  Bell,
+  CheckCircle,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
+  XCircle
+} from 'lucide-react'
 
 interface CandidateProfileAdditionalInfoProps {
   location?: {
@@ -58,9 +66,9 @@ export default function CandidateProfileAdditionalInfo({
       {/* Location Information */}
       {hasLocationData && (
         <Card className="shadow-lg border-0">
-          <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50">
+          <CardHeader className="bg-white">
             <CardTitle className="flex items-center text-2xl">
-              <MapPin className="w-6 h-6 mr-3 text-green-600" />
+              <MessageCircle className="w-6 h-6 mr-3" />
               Contact Information
             </CardTitle>
             <CardDescription className="text-lg">

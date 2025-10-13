@@ -48,19 +48,19 @@ export default function CandidateProfileSections({
     {
       title: 'Priority Issue #1',
       content: profileData.key_issues.issue1,
-      color: 'blue',
+      color: 'gray',
       icon: <Target className="w-5 h-5" />
     },
     {
       title: 'Priority Issue #2',
       content: profileData.key_issues.issue2,
-      color: 'green',
+      color: 'gray',
       icon: <TrendingUp className="w-5 h-5" />
     },
     {
       title: 'Priority Issue #3',
       content: profileData.key_issues.issue3,
-      color: 'purple',
+      color: 'gray',
       icon: <Heart className="w-5 h-5" />
     }
   ]

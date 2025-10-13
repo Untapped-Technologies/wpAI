@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Award, Calendar } from 'lucide-react'
+import { Award, Calendar, User } from 'lucide-react'
 
 interface ProfileStatusProps {
   profileData: {
@@ -13,9 +13,9 @@ interface ProfileStatusProps {
 export default function ProfileStatus({ profileData }: ProfileStatusProps) {
   return (
     <Card className="shadow-lg border-0">
-      <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
+      <CardHeader className="bg-white">
         <CardTitle className="flex items-center text-2xl">
-          <Award className="w-6 h-6 mr-3 text-purple-600" />
+          <User className="w-6 h-6 mr-3" />
           Profile Status
         </CardTitle>
       </CardHeader>

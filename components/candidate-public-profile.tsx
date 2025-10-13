@@ -10,7 +10,6 @@ import {
   CardTitle
 } from '@/components/ui/card'
 import {
-  Award,
   Building,
   Download,
   ExternalLink,
@@ -19,12 +18,10 @@ import {
   Globe,
   Heart,
   MapPin,
-  MessageSquare,
   Printer,
   Share2,
   Target,
-  TrendingUp,
-  Users
+  TrendingUp
 } from 'lucide-react'
 
 interface CandidatePublicProfileProps {
@@ -296,7 +293,7 @@ export default function CandidatePublicProfile({
         <Card className="shadow-lg border-0 mb-8">
           <CardHeader className="bg-gradient-to-r bg-white">
             <CardTitle className="flex items-center text-2xl justify-center">
-              <Target className="w-6 h-6 mr-3 text-green-800" />
+              <Target className="w-6 h-6 mr-3" />
               Key Issues
             </CardTitle>
             <CardDescription className="text-lg text-center">
@@ -349,7 +346,6 @@ export default function CandidatePublicProfile({
               {profileData.policies.policy1 && (
                 <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                   <h4 className="font-bold text-gray-900 mb-3 flex items-center justify-center">
-                    <MessageSquare className="w-5 h-5 mr-2 text-blue-600" />
                     Policy Position #1
                   </h4>
                   <p className="text-gray-700 leading-relaxed text-center">
@@ -361,7 +357,6 @@ export default function CandidatePublicProfile({
               {profileData.policies.policy2 && (
                 <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                   <h4 className="font-bold text-gray-900 mb-3 flex items-center justify-center">
-                    <Users className="w-5 h-5 mr-2 text-green-600" />
                     Policy Position #2
                   </h4>
                   <p className="text-gray-700 leading-relaxed text-center">
@@ -373,7 +368,6 @@ export default function CandidatePublicProfile({
               {profileData.policies.policy3 && (
                 <div className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                   <h4 className="font-bold text-gray-900 mb-3 flex items-center justify-center">
-                    <Award className="w-5 h-5 mr-2 text-purple-600" />
                     Policy Position #3
                   </h4>
                   <p className="text-gray-700 leading-relaxed text-center">
