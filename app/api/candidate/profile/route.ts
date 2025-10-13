@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from('profiles')
       .select(
-        'candidate_profile, preferences, onboarding_completed, onboarding_completed_at, approved, rejected_message'
+        'candidate_profile, preferences, onboarding_completed, onboarding_completed_at, approved, rejected_message, email'
       )
       .eq('user_id', userId)
       .maybeSingle()
@@ -36,7 +36,8 @@ export async function GET(req: NextRequest) {
           onboardingCompletedAt: data?.onboarding_completed_at,
           approved: data?.approved,
           rejectedMessage: data?.rejected_message,
-          preferences: data?.preferences
+          preferences: data?.preferences,
+          email: data?.email
         }
       }),
       {

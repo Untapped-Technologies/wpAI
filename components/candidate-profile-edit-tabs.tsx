@@ -69,7 +69,7 @@ const TABS = [
     id: 'profile',
     label: 'Profile',
     icon: <User className="w-4 h-4" />,
-    description: 'Basic candidate information'
+    description: 'Basic candidate information and contact details'
   },
   {
     id: 'issues',
@@ -81,7 +81,7 @@ const TABS = [
     id: 'location',
     label: 'Location',
     icon: <MapPin className="w-4 h-4" />,
-    description: 'Contact and location details'
+    description: 'Geographic location details'
   },
   {
     id: 'notifications',
@@ -215,6 +215,25 @@ export default function CandidateProfileEditTabs({
                     handleInputChange('basic_info', 'office', e.target.value)
                   }
                   placeholder="e.g., Mayor, City Council, State Representative"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="email">Email Address</Label>
+                <Input value={locationData?.email || ''} disabled />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.location.phone}
+                  onChange={e =>
+                    handleInputChange('location', 'phone', e.target.value)
+                  }
+                  placeholder="(555) 123-4567"
                 />
               </div>
             </div>
@@ -416,28 +435,9 @@ export default function CandidateProfileEditTabs({
           <div className="space-y-6">
             <div className="bg-blue-50 p-4 rounded-lg">
               <p className="text-sm text-blue-800">
-                Update your contact information and location details. This
-                information helps voters connect with you.
+                Update your location details. This information helps voters
+                understand your geographic representation area.
               </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input value={''} disabled />
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.location.phone}
-                  onChange={e =>
-                    handleInputChange('location', 'phone', e.target.value)
-                  }
-                  placeholder="(555) 123-4567"
-                />
-              </div>
             </div>
 
             <div>

@@ -12,6 +12,7 @@ export async function createOrUpdateUserProfile(
   const { error } = await supabase.from('profiles').upsert(
     {
       user_id: id,
+      email: email,
       updated_at: new Date().toISOString(),
       preferences: location ?? {},
       display_name: userData?.name,

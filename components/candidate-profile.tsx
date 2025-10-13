@@ -86,7 +86,8 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
         onboardingCompleted,
         onboardingCompletedAt,
         approved,
-        rejectedMessage
+        rejectedMessage,
+        email
       } = result.data
 
       if (candidateProfile) {
@@ -107,7 +108,10 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
       // Set additional data from preferences column
       if (preferences) {
         // Extract location and notification data using utility functions
-        const locationData = preferences
+        const locationData = {
+          ...preferences,
+          email: email
+        }
         const notificationData = {
           onboarding_completed: onboardingCompleted,
           onboarding_completed_at: onboardingCompletedAt
@@ -117,7 +121,10 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
         setNotificationData(notificationData)
       } else {
         // Set default values if no preferences exist
-        setLocationData(extractLocationData(null))
+        setLocationData({
+          ...extractLocationData(null),
+          email: email
+        })
         setNotificationData(extractNotificationData(null))
       }
     } catch (error) {

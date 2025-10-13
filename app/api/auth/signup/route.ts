@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
       try {
         const { error: profileError } = await supabase.from('profiles').insert({
           user_id: data.user.id,
+          email: data.user.email,
           display_name: data.user.email?.split('@')[0] || 'User',
           user_type_id: userType,
           preferences: locationData || {},
