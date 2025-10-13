@@ -10,6 +10,7 @@ import {
   CardTitle
 } from '@/components/ui/card'
 import { Edit, Mail, MapPin, User } from 'lucide-react'
+import Image from 'next/image'
 
 interface UserProfileHeaderProps {
   profileData: {
@@ -29,6 +30,7 @@ interface UserProfileHeaderProps {
       emailNotifs: boolean
       avatar: string
     }
+    profile_picture?: string | null
   }
   onEditProfile: () => void
 }
@@ -59,8 +61,18 @@ export default function UserProfileHeader({
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              <User className="w-10 h-10 text-white" />
+            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+              {profileData.profile_picture ? (
+                <Image
+                  src={profileData.profile_picture}
+                  alt="Profile picture"
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-10 h-10 text-white" />
+              )}
             </div>
             <div>
               <CardTitle className="text-2xl font-bold text-gray-900">

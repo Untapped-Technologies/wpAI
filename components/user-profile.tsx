@@ -32,6 +32,7 @@ interface UserProfileData {
     emailNotifs: boolean
     avatar: string
   }
+  profile_picture?: string | null
 }
 
 interface UserProfileProps {
@@ -92,7 +93,8 @@ export default function UserProfile({ userId }: UserProfileProps) {
             smsNotifs: true,
             emailNotifs: true,
             avatar: ''
-          }
+          },
+          profile_picture: data.profile_picture || null
         }
         setProfileData(transformedData)
       } else {
@@ -126,22 +128,35 @@ export default function UserProfile({ userId }: UserProfileProps) {
   const handleSaveProfile = async (updatedData: any) => {
     setIsSaving(true)
     try {
+      // Transform the nested data structure to match API expectations
+      const apiData = {
+        display_name: updatedData.basic_info?.display_name,
+        user_type_id: updatedData.basic_info?.user_type_id,
+        bio: updatedData.basic_info?.bio,
+        preferences: updatedData.preferences,
+        profile_picture: updatedData.profile_picture
+      }
+
+      console.log('Sending profile data:', apiData)
+
       const response = await fetch('/api/user/profile', {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(updatedData)
+        body: JSON.stringify(apiData)
       })
 
       if (!response.ok) {
-        throw new Error('Failed to save profile')
+        const errorText = await response.text()
+        console.error('Profile save failed:', response.status, errorText)
+        throw new Error(`Failed to save profile: ${response.status}`)
       }
 
       const result = await response.json()
 
       if (!result.success) {
-        throw new Error('Failed to save profile')
+        throw new Error(result.message || 'Failed to save profile')
       }
 
       toast.success('Profile updated successfully!')
@@ -149,7 +164,9 @@ export default function UserProfile({ userId }: UserProfileProps) {
       setIsEditing(false)
     } catch (error) {
       console.error('Error saving profile:', error)
-      toast.error('Failed to save profile')
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to save profile'
+      )
     } finally {
       setIsSaving(false)
     }

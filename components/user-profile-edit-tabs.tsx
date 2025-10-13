@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Save, X } from 'lucide-react'
 import { useState } from 'react'
+import ImageUpload from './image-upload'
 
 interface UserProfileEditTabsProps {
   profileData: {
@@ -27,6 +28,7 @@ interface UserProfileEditTabsProps {
       emailNotifs: boolean
       avatar: string
     }
+    profile_picture?: string | null
   }
   locationData?: any
   notificationData?: any
@@ -59,7 +61,8 @@ export default function UserProfileEditTabs({
       smsNotifs: profileData.preferences.smsNotifs,
       emailNotifs: profileData.preferences.emailNotifs,
       avatar: profileData.preferences.avatar
-    }
+    },
+    profile_picture: profileData.profile_picture
   })
 
   const handleInputChange = (section: string, field: string, value: any) => {
@@ -69,6 +72,20 @@ export default function UserProfileEditTabs({
         ...prev[section as keyof typeof prev],
         [field]: value
       }
+    }))
+  }
+
+  const handleImageChange = (url: string | null) => {
+    setFormData(prev => ({
+      ...prev,
+      profile_picture: url
+    }))
+  }
+
+  const handleImageRemove = () => {
+    setFormData(prev => ({
+      ...prev,
+      profile_picture: null
     }))
   }
 
@@ -104,6 +121,19 @@ export default function UserProfileEditTabs({
             </div>
           </CardHeader>
           <CardContent className="space-y-8">
+            {/* Profile Picture Upload */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Profile Picture
+              </h3>
+              <ImageUpload
+                currentImage={formData.profile_picture}
+                onImageChange={handleImageChange}
+                onImageRemove={handleImageRemove}
+                isLoading={isLoading}
+              />
+            </div>
+
             {/* Basic Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">

@@ -46,7 +46,8 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { display_name, user_type_id, bio, preferences } = body
+    const { display_name, user_type_id, bio, preferences, profile_picture } =
+      body
 
     const updateData: any = {
       updated_at: new Date().toISOString()
@@ -56,6 +57,8 @@ export async function PATCH(req: NextRequest) {
     if (user_type_id !== undefined) updateData.user_type_id = user_type_id
     if (bio !== undefined) updateData.bio = bio
     if (preferences !== undefined) updateData.preferences = preferences
+    if (profile_picture !== undefined)
+      updateData.profile_picture = profile_picture
 
     const { data, error } = await supabaseAdmin
       .from('profiles')
@@ -65,11 +68,29 @@ export async function PATCH(req: NextRequest) {
 
     if (error) {
       console.error('Error updating user profile:', error)
-      return new Response(error.message, { status: 500 })
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: `Database error: ${error.message}`
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     if (!data || data.length === 0) {
-      return new Response('Update failed - no rows affected', { status: 500 })
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Update failed - no rows affected'
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     return new Response(
@@ -84,6 +105,16 @@ export async function PATCH(req: NextRequest) {
     )
   } catch (error) {
     console.error('Error in user profile PATCH:', error)
-    return new Response('Internal server error', { status: 500 })
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message:
+          error instanceof Error ? error.message : 'Internal server error'
+      }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
   }
 }
