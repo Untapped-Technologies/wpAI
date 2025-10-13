@@ -66,13 +66,18 @@ export default function UserProfileEditTabs({
   })
 
   const handleInputChange = (section: string, field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section as keyof typeof prev],
-        [field]: value
+    setFormData(prev => {
+      const sectionData = prev[section as keyof typeof prev]
+      return {
+        ...prev,
+        [section]: {
+          ...(typeof sectionData === 'object' && sectionData !== null
+            ? sectionData
+            : {}),
+          [field]: value
+        }
       }
-    }))
+    })
   }
 
   const handleImageChange = (url: string | null) => {
