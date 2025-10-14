@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { useUserProfile } from '@/hooks/useUserProfile'
 import {
   extractLocationData,
   extractNotificationData
@@ -43,79 +44,55 @@ export default function UserProfile({ userId }: UserProfileProps) {
   const [profileData, setProfileData] = useState<UserProfileData | null>(null)
   const [locationData, setLocationData] = useState<any>(null)
   const [notificationData, setNotificationData] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const router = useRouter()
+  const {
+    data: userProfile,
+    loading: profileLoading,
+    error: profileError
+  } = useUserProfile()
 
   useEffect(() => {
-    fetchUserProfile()
-  }, [userId])
-
-  const fetchUserProfile = async () => {
-    try {
-      const response = await fetch('/api/user/profile')
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.push('/auth/login')
-          return
-        }
-        const errorText = await response.text()
-        toast.error('Failed to load profile data')
-        return
+    if (userProfile) {
+      // Transform the data to match our interface
+      const transformedData: UserProfileData = {
+        basic_info: {
+          display_name: userProfile.display_name || '',
+          email: userProfile.email || '',
+          user_type_id: userProfile.user_type_id || '',
+          bio: userProfile.bio || ''
+        },
+        preferences: userProfile.preferences || {
+          city: '',
+          state: '',
+          country: 'US',
+          postalCode: '',
+          timezone: '',
+          smsNotifs: true,
+          emailNotifs: true,
+          avatar: ''
+        },
+        profile_picture: userProfile.profile_picture || null
       }
-
-      const result = await response.json()
-
-      if (!result.success) {
-        toast.error('Failed to load profile data')
-        return
-      }
-
-      const data = result.data
-
-      if (data) {
-        // Transform the data to match our interface
-        const transformedData: UserProfileData = {
-          basic_info: {
-            display_name: data.display_name || '',
-            email: data.email || '',
-            user_type_id: data.user_type_id || '',
-            bio: data.bio || ''
-          },
-          preferences: data.preferences || {
-            city: '',
-            state: '',
-            country: 'US',
-            postalCode: '',
-            timezone: '',
-            smsNotifs: true,
-            emailNotifs: true,
-            avatar: ''
-          },
-          profile_picture: data.profile_picture || null
-        }
-        setProfileData(transformedData)
-      } else {
-        toast.error('No user profile data found')
-      }
-
-      // Set additional data from preferences column
-      if (data.preferences) {
-        const location = extractLocationData(data.preferences)
-        const notifications = extractNotificationData(data.preferences)
-        setLocationData(location)
-        setNotificationData(notifications)
-      }
-
-      setIsLoading(false)
-    } catch (error) {
-      console.error('Error fetching user profile:', error)
-      toast.error('Failed to load profile data')
-      setIsLoading(false)
+      setProfileData(transformedData)
     }
-  }
+  }, [userProfile])
+
+  useEffect(() => {
+    if (profileError) {
+      toast.error('Failed to load profile data')
+    }
+  }, [profileError])
+
+  useEffect(() => {
+    if (userProfile?.preferences) {
+      const location = extractLocationData(userProfile.preferences)
+      const notifications = extractNotificationData(userProfile.preferences)
+      setLocationData(location)
+      setNotificationData(notifications)
+    }
+  }, [userProfile])
 
   const handleEditProfile = () => {
     setIsEditing(true)
@@ -162,6 +139,13 @@ export default function UserProfile({ userId }: UserProfileProps) {
       toast.success('Profile updated successfully!')
       setProfileData(updatedData)
       setIsEditing(false)
+
+      // Invalidate cache to refresh data
+      import('@/hooks/useUserProfile').then(
+        ({ invalidateUserProfileCache }) => {
+          invalidateUserProfileCache()
+        }
+      )
     } catch (error) {
       console.error('Error saving profile:', error)
       toast.error(
@@ -172,7 +156,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
     }
   }
 
-  if (isLoading) {
+  if (profileLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
         <Card className="w-full max-w-md">

@@ -1,3 +1,4 @@
+import { getCandidateStatus } from '@/hooks/useCandidateStatus'
 import { User } from '@supabase/supabase-js'
 
 /**
@@ -11,28 +12,10 @@ export async function getProfileUrl(user: User | null): Promise<string> {
   }
 
   try {
-    // Check if user is a candidate using the existing API
-    const response = await fetch('/api/candidate/status')
-
-    if (!response.ok) {
-      // If API fails, default to regular profile
-      return '/user/profile'
-    }
-
-    const result = await response.json()
-
-    if (!result.success) {
-      // If API returns error, default to regular profile
-      return '/user/profile'
-    }
-
-    const { isCandidate } = result.data
-
-    // Return candidate profile URL if user is a candidate, otherwise regular profile
+    const { isCandidate } = await getCandidateStatus()
     return isCandidate ? '/candidate-profile' : '/user/profile'
   } catch (error) {
     console.error('Error checking user candidate status:', error)
-    // If any error occurs, default to regular profile
     return '/user/profile'
   }
 }
@@ -53,7 +36,7 @@ export function useProfileUrl(user: User | null): string {
  * @param user - The Supabase user object
  * @returns Promise<{isCandidate: boolean, approved: boolean | null, onboardingCompleted: boolean | null}>
  */
-export async function getCandidateStatus(user: User | null): Promise<{
+export async function getCandidateStatusData(user: User | null): Promise<{
   isCandidate: boolean
   approved: boolean | null
   onboardingCompleted: boolean | null
@@ -63,27 +46,11 @@ export async function getCandidateStatus(user: User | null): Promise<{
   }
 
   try {
-    // Check if user is a candidate using the existing API
-    const response = await fetch('/api/candidate/status')
-
-    if (!response.ok) {
-      // If API fails, return default values
-      return { isCandidate: false, approved: null, onboardingCompleted: null }
-    }
-
-    const result = await response.json()
-
-    if (!result.success) {
-      // If API returns error, return default values
-      return { isCandidate: false, approved: null, onboardingCompleted: null }
-    }
-
-    const { isCandidate, approved, onboardingCompleted } = result.data
-
+    const { isCandidate, approved, onboardingCompleted } =
+      await getCandidateStatus()
     return { isCandidate, approved, onboardingCompleted }
   } catch (error) {
     console.error('Error checking candidate status:', error)
-    // If any error occurs, return default values
     return { isCandidate: false, approved: null, onboardingCompleted: null }
   }
 }

@@ -1,58 +1,44 @@
 'use client'
 
 import UserProfile from '@/components/user-profile'
+import { useAuthUser } from '@/hooks/useAuthUser'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 export default function UserProfilePage() {
-  const [user, setUser] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const { data: user, loading: userLoading, error: userError } = useAuthUser()
 
   useEffect(() => {
-    const checkUserAndLoadProfile = async () => {
-      try {
-        const response = await fetch('/api/auth/user')
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            router.push('/auth/login')
-            return
-          }
-          throw new Error('Failed to fetch user')
-        }
-
-        const result = await response.json()
-
-        if (!result.success) {
-          throw new Error('Failed to get user data')
-        }
-
-        const { user } = result.data
-
-        if (!user) {
-          router.push('/auth/login')
-          return
-        }
-
-        setUser(user)
-      } catch (error) {
-        console.error('Error in user profile check:', error)
+    if (!userLoading && userError) {
+      if (userError === 'Unauthorized') {
         router.push('/auth/login')
-      } finally {
-        setIsLoading(false)
       }
     }
+  }, [userLoading, userError, router])
 
-    checkUserAndLoadProfile()
-  }, [router])
-
-  if (isLoading) {
+  if (userLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading your profile...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (userError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600">Error loading user: {userError}</p>
+          <button
+            onClick={() => router.push('/auth/login')}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Login
+          </button>
         </div>
       </div>
     )
