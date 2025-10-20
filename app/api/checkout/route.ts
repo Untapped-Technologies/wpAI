@@ -1,3 +1,4 @@
+import { getCurrentUserId } from '@/lib/auth/get-current-user'
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
@@ -15,6 +16,9 @@ export async function POST(req: NextRequest) {
 
     const { priceId, paymentType } = await req.json()
     const origin = req.headers.get('origin') || req.nextUrl.origin
+
+    // Get user ID using the same pattern as other API routes
+    const userId = await getCurrentUserId()
 
     if (!priceId) {
       return NextResponse.json({ error: 'Missing priceId' }, { status: 400 })
@@ -50,7 +54,10 @@ export async function POST(req: NextRequest) {
       ],
       mode,
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/pricing?canceled=true`
+      cancel_url: `${origin}/pricing?canceled=true`,
+      metadata: {
+        user_id: userId || 'anonymous'
+      }
     })
 
     if (!session.url) {

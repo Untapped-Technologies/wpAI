@@ -53,7 +53,8 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
       '/pricing',
       '/privacy',
       '/terms',
-      '/trending-topics'
+      '/trending-topics',
+      '/success'
     ]
     const shouldHideSidebar = marketingPages.includes(pathname) || !user
     setHideSidebar(shouldHideSidebar)

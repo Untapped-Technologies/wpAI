@@ -1,7 +1,11 @@
-import { CheckCircle, Home, Mail, User } from 'lucide-react'
+import { CheckCircle, Mail, User } from 'lucide-react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
+import {
+  successNext,
+  successSupport
+} from '@/components/_constants/pages/successData'
 import AuthAwareNavigation from '@/components/auth-aware-navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -133,70 +137,34 @@ export default async function Success({ searchParams }: any) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-xs font-semibold text-blue-600">
-                          1
-                        </span>
+                    {successNext.map(item => (
+                      <div className="flex items-start gap-3" key={item.id}>
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-xs font-semibold text-blue-600">
+                            {item.id}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-slate-900">
+                            {item.title}
+                          </p>
+                          <p className="text-sm text-slate-600">
+                            {item.description}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-slate-900">
-                          Check Your Email
-                        </p>
-                        <p className="text-sm text-slate-600">
-                          Look for a confirmation email with your receipt and
-                          next steps.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-xs font-semibold text-blue-600">
-                          2
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-900">
-                          Access Your Account
-                        </p>
-                        <p className="text-sm text-slate-600">
-                          Your subscription or purchase is now active. You can
-                          access all features immediately.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-xs font-semibold text-blue-600">
-                          3
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-900">Need Help?</p>
-                        <p className="text-sm text-slate-600">
-                          If you have any questions, please contact our support
-                          team.
-                        </p>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-[#203c39] hover:bg-[#203c39]/90"
-                >
-                  <Link href="/" className="flex items-center gap-2">
-                    <Home className="w-4 h-4" />
-                    Go to Dashboard
-                  </Link>
-                </Button>
                 <Button asChild variant="outline" size="lg">
-                  <Link href="/profile" className="flex items-center gap-2">
+                  <Link
+                    href="/user/profile"
+                    className="flex items-center gap-2"
+                  >
                     <User className="w-4 h-4" />
                     View Profile
                   </Link>
@@ -204,21 +172,19 @@ export default async function Success({ searchParams }: any) {
               </div>
 
               {/* Support Information */}
-              <div className="text-center mt-12 p-6 bg-slate-50 rounded-lg">
+              <div className="text-center mt-12 p-6 bg-white rounded-lg border border-slate-200">
                 <h3 className="font-semibold text-slate-900 mb-2">
-                  Need Assistance?
+                  {successSupport.title}
                 </h3>
                 <p className="text-slate-600 mb-4">
-                  If you have any questions about your purchase or need
-                  technical support, we're here to help.
+                  {successSupport.description}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/contact">Contact Support</Link>
-                  </Button>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href="/faqs">View FAQs</Link>
-                  </Button>
+                  {successSupport.buttons.map(btns => (
+                    <Button asChild variant="outline" size="sm" key={btns.id}>
+                      <Link href={btns.url}>{btns.label}</Link>
+                    </Button>
+                  ))}
                 </div>
               </div>
             </div>

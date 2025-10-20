@@ -6,12 +6,14 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import {
   extractLocationData,
   extractNotificationData
 } from '@/lib/utils/debugPreferences'
-import { Clock, User } from 'lucide-react'
+import { Clock, CreditCard, Settings, User } from 'lucide-react'
+import PaymentHistory from './payment-history'
 import UserProfileEditTabs from './user-profile-edit-tabs'
 import UserProfileHeader from './user-profile-header'
 import UserProfileSections from './user-profile-sections'
@@ -207,16 +209,54 @@ export default function UserProfile({ userId }: UserProfileProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4">
         <UserProfileHeader
           profileData={profileData}
           onEditProfile={handleEditProfile}
         />
-        <UserProfileSections
-          profileData={profileData}
-          location={locationData}
-          notifications={notificationData}
-        />
+
+        <Tabs defaultValue="profile" className="mt-8">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Settings
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4" />
+              Payment History
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile" className="mt-6">
+            <UserProfileSections
+              profileData={profileData}
+              location={locationData}
+              notifications={notificationData}
+            />
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-6">
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold mb-4">Account Settings</h2>
+                <p className="text-gray-600 mb-4">
+                  Manage your account preferences and settings.
+                </p>
+                <Button onClick={handleEditProfile} className="w-full">
+                  Edit Profile Settings
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="payments" className="mt-6">
+            <PaymentHistory userId={userId} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )
