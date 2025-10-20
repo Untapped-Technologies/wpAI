@@ -5,14 +5,13 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import {
   extractLocationData,
   extractNotificationData
 } from '@/lib/utils/debugPreferences'
-import { Clock, CreditCard, Settings, User } from 'lucide-react'
+import { Clock, CreditCard, User } from 'lucide-react'
 import PaymentHistory from './payment-history'
 import UserProfileEditTabs from './user-profile-edit-tabs'
 import UserProfileHeader from './user-profile-header'
@@ -42,12 +41,28 @@ interface UserProfileProps {
   userId: string
 }
 
+const TABS = [
+  {
+    id: 'profile',
+    label: 'Profile',
+    icon: <User className="w-6 h-6" />,
+    description: 'Personal information and preferences'
+  },
+  {
+    id: 'payments',
+    label: 'Payment History',
+    icon: <CreditCard className="w-6 h-6" />,
+    description: 'Transaction history and billing'
+  }
+]
+
 export default function UserProfile({ userId }: UserProfileProps) {
   const [profileData, setProfileData] = useState<UserProfileData | null>(null)
   const [locationData, setLocationData] = useState<any>(null)
   const [notificationData, setNotificationData] = useState<any>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState('profile')
   const router = useRouter()
   const {
     data: userProfile,
@@ -215,48 +230,59 @@ export default function UserProfile({ userId }: UserProfileProps) {
           onEditProfile={handleEditProfile}
         />
 
-        <Tabs defaultValue="profile" className="mt-8">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              Profile
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Settings
-            </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center gap-2">
-              <CreditCard className="w-4 h-4" />
-              Payment History
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="profile" className="mt-6">
-            <UserProfileSections
-              profileData={profileData}
-              location={locationData}
-              notifications={notificationData}
-            />
-          </TabsContent>
-
-          <TabsContent value="settings" className="mt-6">
+        <div className="flex gap-8">
+          {/* Vertical Tabs */}
+          <div className="w-64 flex-shrink-0">
             <Card>
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Account Settings</h2>
-                <p className="text-gray-600 mb-4">
-                  Manage your account preferences and settings.
-                </p>
-                <Button onClick={handleEditProfile} className="w-full">
-                  Edit Profile Settings
-                </Button>
+              <CardContent className="p-0">
+                <nav className="space-y-1 p-4">
+                  {TABS.map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`w-full flex items-center space-x-3 px-3 py-3 text-left rounded-lg transition-colors ${
+                        activeTab === tab.id
+                          ? 'bg-blue-100 text-blue-900 border border-blue-200'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {tab.icon}
+                      <div>
+                        <div className="font-medium">{tab.label}</div>
+                        <div className="text-xs text-gray-500">
+                          {tab.description}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </nav>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="payments" className="mt-6">
-            <PaymentHistory userId={userId} />
-          </TabsContent>
-        </Tabs>
+          {/* Tab Content */}
+          <div className="flex-1">
+            {activeTab === 'profile' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <span className="ml-2">
+                      {TABS.find(tab => tab.id === activeTab)?.label}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UserProfileSections
+                    profileData={profileData}
+                    location={locationData}
+                    notifications={notificationData}
+                  />
+                </CardContent>
+              </Card>
+            )}
+            {activeTab === 'payments' && <PaymentHistory userId={userId} />}
+          </div>
+        </div>
       </div>
     </div>
   )
