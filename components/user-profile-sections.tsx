@@ -23,7 +23,6 @@ interface UserProfileSectionsProps {
       state: string
       country: string
       postalCode: string
-      timezone: string
       smsNotifs: boolean
       emailNotifs: boolean
       avatar: string
@@ -58,7 +57,7 @@ export default function UserProfileSections({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Account Information */}
-      <Card className="shadow-md">
+      <Card className="shadow-none">
         <CardHeader>
           <CardTitle className="flex items-center text-lg">
             <User className="w-5 h-5 mr-2 text-blue-600" />
@@ -91,15 +90,13 @@ export default function UserProfileSections({
       </Card>
 
       {/* Location Information */}
-      <Card className="shadow-md">
+      <Card className="shadow-none">
         <CardHeader>
           <CardTitle className="flex items-center text-lg">
             <MapPin className="w-5 h-5 mr-2 text-green-600" />
             Location
           </CardTitle>
-          <CardDescription>
-            Your location and timezone preferences
-          </CardDescription>
+          <CardDescription>Your location preferences</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -122,17 +119,17 @@ export default function UserProfileSections({
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">
-              Timezone
+              Postal Code
             </label>
             <p className="text-gray-900">
-              {preferences.timezone || 'Not specified'}
+              {preferences.postalCode || 'Not specified'}
             </p>
           </div>
         </CardContent>
       </Card>
 
       {/* Notification Preferences */}
-      <Card className="shadow-md">
+      <Card className="shadow-none">
         <CardHeader>
           <CardTitle className="flex items-center text-lg">
             <Bell className="w-5 h-5 mr-2 text-purple-600" />
@@ -163,7 +160,7 @@ export default function UserProfileSections({
       </Card>
 
       {/* Profile Summary */}
-      <Card className="shadow-md">
+      <Card className="shadow-none">
         <CardHeader>
           <CardTitle className="flex items-center text-lg">
             <Settings className="w-5 h-5 mr-2 text-orange-600" />

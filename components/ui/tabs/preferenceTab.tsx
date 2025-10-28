@@ -1,6 +1,7 @@
 'use client'
 import { countries } from '@/components/_constants/pageData/countries'
 import { UserType } from '@/components/_constants/pageData/pageTypes'
+import { toast } from 'sonner'
 import TabHeaderTitle from '../_custom/_common/tabHeaderTitle'
 
 export default function PreferencesTab({
@@ -31,6 +32,46 @@ export default function PreferencesTab({
   const handleCountryChange = (evt: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = evt.target
     setPrefs({ ...prefs, [name]: value })
+  }
+
+  const handlePostalCodeLookup = async (postalCode: string) => {
+    if (!postalCode || postalCode.length < 5) {
+      return // Don't look up if postal code is too short (need at least 5 digits)
+    }
+
+    try {
+      const response = await fetch(
+        `/api/location/postal-code?code=${postalCode}`
+      )
+
+      // Check if response is OK before parsing
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Postal code not found - silently ignore, user can fill manually
+          console.log('Postal code not found in database')
+        }
+        return
+      }
+
+      const result = await response.json()
+
+      if (result.success && result.data) {
+        const { city, state, country } = result.data
+
+        // Auto-populate the location fields
+        setPrefs({
+          ...prefs,
+          city: city || prefs.city,
+          state: state || prefs.state,
+          country: country || prefs.country
+        })
+
+        toast.success('Location information auto-filled!')
+      }
+    } catch (error) {
+      console.error('Failed to lookup postal code:', error)
+      // Don't show error toast to avoid annoying the user
+    }
   }
 
   const handleSave = async () => {
@@ -102,7 +143,11 @@ export default function PreferencesTab({
           placeholder="Postal Code"
           name="postalCode"
           value={prefs.postalCode}
-          onChange={handleChange}
+          onChange={evt => {
+            handleChange(evt)
+            // Auto-populate location data when postal code changes
+            handlePostalCodeLookup(evt.target.value)
+          }}
         />
       </div>
 

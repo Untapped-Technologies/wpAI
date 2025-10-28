@@ -45,6 +45,7 @@ export default function CandidateProfileAdditionalInfo({
     (location.address ||
       location.city ||
       location.state ||
+      location.postalCode ||
       location.phone ||
       location.email)
 

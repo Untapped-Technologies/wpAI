@@ -29,7 +29,6 @@ interface UserProfileData {
     state: string
     country: string
     postalCode: string
-    timezone: string
     smsNotifs: boolean
     emailNotifs: boolean
     avatar: string
@@ -85,7 +84,6 @@ export default function UserProfile({ userId }: UserProfileProps) {
           state: '',
           country: 'US',
           postalCode: '',
-          timezone: '',
           smsNotifs: true,
           emailNotifs: true,
           avatar: ''
@@ -223,7 +221,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-8">
+    <div className="min-h-screen py-8">
       <div className="max-w-6xl mx-auto px-4">
         <UserProfileHeader
           profileData={profileData}
@@ -263,7 +261,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
           {/* Tab Content */}
           <div className="flex-1">
             {activeTab === 'profile' && (
-              <Card>
+              <Card className="bg-white border-0 shadow-none">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <span className="ml-2">

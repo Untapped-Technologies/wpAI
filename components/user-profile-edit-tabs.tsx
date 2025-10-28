@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Save, X } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
 import ImageUpload from './image-upload'
 
 interface UserProfileEditTabsProps {
@@ -23,7 +24,6 @@ interface UserProfileEditTabsProps {
       state: string
       country: string
       postalCode: string
-      timezone: string
       smsNotifs: boolean
       emailNotifs: boolean
       avatar: string
@@ -57,7 +57,6 @@ export default function UserProfileEditTabs({
       state: profileData.preferences.state,
       country: profileData.preferences.country,
       postalCode: profileData.preferences.postalCode,
-      timezone: profileData.preferences.timezone,
       smsNotifs: profileData.preferences.smsNotifs,
       emailNotifs: profileData.preferences.emailNotifs,
       avatar: profileData.preferences.avatar
@@ -94,14 +93,57 @@ export default function UserProfileEditTabs({
     }))
   }
 
+  const handlePostalCodeLookup = async (postalCode: string) => {
+    if (!postalCode || postalCode.length < 5) {
+      return // Don't look up if postal code is too short (need at least 5 digits)
+    }
+
+    try {
+      const response = await fetch(
+        `/api/location/postal-code?code=${postalCode}`
+      )
+
+      // Check if response is OK before parsing
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Postal code not found - silently ignore, user can fill manually
+          console.log('Postal code not found in database')
+        }
+        return
+      }
+
+      const result = await response.json()
+
+      if (result.success && result.data) {
+        const { city, state, country } = result.data
+
+        // Auto-populate the location fields
+        setFormData(prev => ({
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            city: city || prev.preferences.city,
+            state: state || prev.preferences.state,
+            country: country || prev.preferences.country
+          }
+        }))
+
+        toast.success('Location information auto-filled!')
+      }
+    } catch (error) {
+      console.error('Failed to lookup postal code:', error)
+      // Don't show error toast to avoid annoying the user
+    }
+  }
+
   const handleSave = async () => {
     await onSave(formData)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-8">
+    <div className="min-h-screen py-8 bg-white">
       <div className="max-w-4xl mx-auto px-4">
-        <Card className="shadow-lg">
+        <Card className="shadow-none">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-2xl font-bold">Edit Profile</CardTitle>
@@ -229,18 +271,17 @@ export default function UserProfileEditTabs({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="timezone">Timezone</Label>
+                  <Label htmlFor="postalCode">Postal Code</Label>
                   <Input
-                    id="timezone"
-                    value={formData.preferences.timezone}
-                    onChange={e =>
-                      handleInputChange(
-                        'preferences',
-                        'timezone',
-                        e.target.value
-                      )
-                    }
-                    placeholder="Enter your timezone"
+                    id="postalCode"
+                    value={formData.preferences.postalCode}
+                    onChange={e => {
+                      const value = e.target.value
+                      handleInputChange('preferences', 'postalCode', value)
+                      // Auto-populate location data when postal code changes
+                      handlePostalCodeLookup(value)
+                    }}
+                    placeholder="Enter your postal code"
                   />
                 </div>
               </div>

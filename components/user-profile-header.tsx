@@ -25,7 +25,6 @@ interface UserProfileHeaderProps {
       state: string
       country: string
       postalCode: string
-      timezone: string
       smsNotifs: boolean
       emailNotifs: boolean
       avatar: string
@@ -57,11 +56,11 @@ export default function UserProfileHeader({
   }
 
   return (
-    <Card className="mb-8 shadow-lg">
+    <Card className="mb-8 shadow-none">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden">
               {profileData.profile_picture ? (
                 <Image
                   src={profileData.profile_picture}

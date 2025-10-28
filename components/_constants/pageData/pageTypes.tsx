@@ -3,7 +3,6 @@ export type PrefType = {
   state: string
   country: string
   postalCode: string
-  timezone: string
   smsNotifs: boolean
   emailNotifs: boolean
   avatar: string

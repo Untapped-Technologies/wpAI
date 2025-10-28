@@ -164,6 +164,49 @@ export default function CandidateProfileEditTabs({
     }))
   }
 
+  const handlePostalCodeLookup = async (postalCode: string) => {
+    if (!postalCode || postalCode.length < 5) {
+      return // Don't look up if postal code is too short (need at least 5 digits)
+    }
+
+    try {
+      const response = await fetch(
+        `/api/location/postal-code?code=${postalCode}`
+      )
+
+      // Check if response is OK before parsing
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Postal code not found - silently ignore, user can fill manually
+          console.log('Postal code not found in database')
+        }
+        return
+      }
+
+      const result = await response.json()
+
+      if (result.success && result.data) {
+        const { city, state, country } = result.data
+
+        // Auto-populate the location fields
+        setFormData(prev => ({
+          ...prev,
+          location: {
+            ...prev.location,
+            city: city || prev.location.city,
+            state: state || prev.location.state,
+            country: country || prev.location.country
+          }
+        }))
+
+        toast.success('Location information auto-filled!')
+      }
+    } catch (error) {
+      console.error('Failed to lookup postal code:', error)
+      // Don't show error toast to avoid annoying the user
+    }
+  }
+
   const handleSave = async () => {
     try {
       await onSave(formData)
@@ -475,9 +518,12 @@ export default function CandidateProfileEditTabs({
                 <Input
                   id="postalCode"
                   value={formData.location.postalCode}
-                  onChange={e =>
-                    handleInputChange('location', 'postalCode', e.target.value)
-                  }
+                  onChange={e => {
+                    const value = e.target.value
+                    handleInputChange('location', 'postalCode', value)
+                    // Auto-populate location data when postal code changes
+                    handlePostalCodeLookup(value)
+                  }}
                   placeholder="12345"
                 />
               </div>

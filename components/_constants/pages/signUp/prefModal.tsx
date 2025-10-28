@@ -14,6 +14,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 export function LocationConfirmModal({
   preferences,
@@ -41,6 +42,46 @@ export function LocationConfirmModal({
 
   const handleSelectChange = (val: string) => {
     setUserType(val)
+  }
+
+  const handlePostalCodeLookup = async (postalCode: string) => {
+    if (!postalCode || postalCode.length < 5) {
+      return // Don't look up if postal code is too short (need at least 5 digits)
+    }
+
+    try {
+      const response = await fetch(
+        `/api/location/postal-code?code=${postalCode}`
+      )
+
+      // Check if response is OK before parsing
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Postal code not found - silently ignore, user can fill manually
+          console.log('Postal code not found in database')
+        }
+        return
+      }
+
+      const result = await response.json()
+
+      if (result.success && result.data) {
+        const { city, state, country } = result.data
+
+        // Auto-populate the location fields
+        setLocalPrefs({
+          ...localPrefs,
+          city: city || localPrefs.city,
+          state: state || localPrefs.state,
+          country: country || localPrefs.country
+        })
+
+        toast.success('Location information auto-filled!')
+      }
+    } catch (error) {
+      console.error('Failed to lookup postal code:', error)
+      // Don't show error toast to avoid annoying the user
+    }
   }
 
   return (
@@ -77,7 +118,7 @@ export function LocationConfirmModal({
             </div>
 
             <div className="space-y-2 mt-4">
-              {['city', 'state', 'postalCode', 'country'].map(field => (
+              {['city', 'state', 'country'].map(field => (
                 <div key={field}>
                   <label className="block font-medium capitalize text-gray-800">
                     {field}
@@ -92,6 +133,21 @@ export function LocationConfirmModal({
                   />
                 </div>
               ))}
+              <div>
+                <label className="block font-medium capitalize text-gray-800">
+                  Postal Code
+                </label>
+                <input
+                  type="text"
+                  value={(localPrefs.postalCode || '') as string}
+                  onChange={e => {
+                    handleChange('postalCode', e.target.value)
+                    // Auto-populate location data when postal code changes
+                    handlePostalCodeLookup(e.target.value)
+                  }}
+                  className="w-full bg-white border px-2 py-1 rounded border-gray-300 text-gray-600"
+                />
+              </div>
             </div>
           </DialogDescription>
         </DialogHeader>
