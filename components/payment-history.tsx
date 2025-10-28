@@ -37,6 +37,7 @@ interface PaymentHistoryProps {
 
 export default function PaymentHistory({ userId }: PaymentHistoryProps) {
   const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

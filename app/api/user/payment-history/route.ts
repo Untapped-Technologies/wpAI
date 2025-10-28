@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
     // Fetch payment transactions for the user
     const { data: transactions, error } = await supabaseAdmin
-      .from('payment_transactions')
+      .from('payment_history')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })

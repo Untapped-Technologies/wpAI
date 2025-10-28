@@ -24,17 +24,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing priceId' }, { status: 400 })
     }
 
-    // Preflight: ensure the Price exists and is compatible with the requested mode
+    // Check if we're in development mode (using test price IDs)
+    const isDevelopmentMode = priceId.startsWith('price_test_')
+
     let price
-    try {
-      price = await stripe.prices.retrieve(priceId)
-    } catch (e: any) {
-      const hint =
-        'Verify the price belongs to the same Stripe account and mode (test vs live) as your secret key.'
-      return NextResponse.json(
-        { error: `Stripe says: ${e?.message || 'No such price'}. ${hint}` },
-        { status: 400 }
-      )
+    if (isDevelopmentMode) {
+      // For development mode, create a mock price object
+      price = {
+        id: priceId,
+        unit_amount: 2000, // Default to $20 for testing
+        currency: 'usd',
+        type: 'recurring',
+        recurring: { interval: 'month' }
+      }
+    } else {
+      // For production mode, verify the price exists in Stripe
+      try {
+        price = await stripe.prices.retrieve(priceId)
+      } catch (e: any) {
+        const hint =
+          'Verify the price belongs to the same Stripe account and mode (test vs live) as your secret key.'
+        return NextResponse.json(
+          { error: `Stripe says: ${e?.message || 'No such price'}. ${hint}` },
+          { status: 400 }
+        )
+      }
     }
 
     const derivedMode: 'payment' | 'subscription' =

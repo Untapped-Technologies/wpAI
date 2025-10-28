@@ -12,9 +12,88 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { stripe } from '../../lib/stripe'
 
 export default async function Success({ searchParams }: any) {
-  const { session_id } = await searchParams
+  const { session_id, registration, plan, user_id } = await searchParams
 
-  // Redirect to 404 if no session_id provided
+  // Handle registration success (no session_id needed for free plans)
+  if (registration === 'true') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+        <AuthAwareNavigation />
+
+        <div className="container mx-auto px-4 py-20">
+          <div className="max-w-2xl mx-auto">
+            {/* Success Header */}
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
+                <CheckCircle className="w-10 h-10 text-green-600" />
+              </div>
+              <h1 className="text-4xl font-bold text-slate-900 mb-4">
+                Registration Successful!
+              </h1>
+              <p className="text-xl text-slate-600">
+                Welcome to World Politics! Your account has been created
+                successfully.
+              </p>
+            </div>
+
+            {/* Account Details Card */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  Account Created
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Plan</p>
+                    <p className="text-lg font-semibold text-slate-900">
+                      {plan === 'free' ? 'Free Tier' : plan}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Status</p>
+                    <p className="text-lg font-semibold text-green-600">
+                      Active
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-200">
+                  <p className="text-sm font-medium text-slate-500 mb-2">
+                    Next Steps
+                  </p>
+                  <ul className="space-y-2 text-sm text-slate-700">
+                    <li>• Check your email for a welcome message</li>
+                    <li>• Complete your profile setup</li>
+                    <li>• Start exploring our features</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild variant="outline" size="lg">
+                <Link href="/user/profile" className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Complete Profile
+                </Link>
+              </Button>
+              <Button asChild size="lg">
+                <Link href="/" className="flex items-center gap-2">
+                  Start Exploring
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Redirect to 404 if no session_id provided for payment success
   if (!session_id) {
     redirect('/404')
   }

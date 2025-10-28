@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 type DisplayPlan = {
   id: number
   priceId: string
+  stripe_price_id: string
   paymentType: 'payment' | 'subscription'
   title: string
   subtitle?: string
@@ -38,10 +39,10 @@ const Pricing = () => {
 
   useEffect(() => {
     const toDisplayPlan = (plan: any, idx: number): DisplayPlan => {
-      const amountCents = plan.amount_cents ?? plan.unit_amount ?? null
+      const amountCents = plan.price_cents ?? plan.price_cents ?? null
       const priceText =
-        plan.price ??
-        (amountCents != null ? `$${(amountCents / 100).toFixed(0)}` : '')
+        plan.price_cents ??
+        (amountCents != null ? `$${(amountCents / 100).toFixed(2)}` : '')
       const interval = plan.timeframe ?? plan.interval ?? ''
       const feats = Array.isArray(plan.plan_features)
         ? plan.plan_features.map((pf: any, i: number) => ({
@@ -52,7 +53,7 @@ const Pricing = () => {
         : []
       return {
         id: plan.id ?? idx,
-        priceId: plan.price_id ?? plan.priceId ?? '',
+        priceId: plan.stripe_price_id ?? plan.stripe_price_id ?? '',
         paymentType: (plan.payment_type ?? 'subscription') as
           | 'payment'
           | 'subscription',
@@ -73,6 +74,7 @@ const Pricing = () => {
         const json = await res.json()
         if (!res.ok) throw new Error(json?.error || 'Failed to load plans')
         const data = Array.isArray(json?.data) ? json.data : []
+        console.log('🚀 ~ fetchPlans ~ data:', data)
         setPlans(data.map((p: any, i: number) => toDisplayPlan(p, i)))
       } catch (e: any) {
         setPlansError(e?.message || 'Failed to load plans')
@@ -194,7 +196,7 @@ const Pricing = () => {
                             : 'variant-outline'
                         }`}
                         handleClick={() =>
-                          handleCheckout(plan.priceId, plan.paymentType)
+                          handleCheckout(plan.stripe_price_id, plan.paymentType)
                         }
                         label="Start Free Trial"
                       />

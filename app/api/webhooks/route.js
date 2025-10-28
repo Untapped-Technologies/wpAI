@@ -4,21 +4,38 @@ import { NextResponse } from 'next/server'
 import { stripe } from '../../../lib/stripe'
 import { supabaseAdmin } from '../../../lib/supabase/supabaseAdmin'
 
-// Helper function to store payment transaction
-async function storePaymentTransaction(sessionData) {
+// Helper function to store payment transaction with retry logic
+async function storePaymentTransaction(sessionData, retryCount = 0) {
+  const maxRetries = 3
+
   try {
     // Extract user ID from metadata or customer email
     const userId = sessionData.metadata?.user_id || sessionData.customer_email
 
     if (!userId) {
       console.log('No user ID found in session metadata')
-      return
+      return { success: false, error: 'No user ID found' }
+    }
+
+    // Validate required fields
+    if (!sessionData.id || !sessionData.amount_total) {
+      console.error('Missing required session data:', {
+        id: sessionData.id,
+        amount_total: sessionData.amount_total
+      })
+      return { success: false, error: 'Missing required session data' }
     }
 
     // Get line items to determine product details
-    const lineItems = await stripe.checkout.sessions.listLineItems(
-      sessionData.id
-    )
+    let lineItems
+    try {
+      lineItems = await stripe.checkout.sessions.listLineItems(sessionData.id)
+    } catch (error) {
+      console.error('Error fetching line items:', error)
+      // Continue with default values if line items can't be fetched
+      lineItems = { data: [] }
+    }
+
     const productName = lineItems.data[0]?.description || 'Unknown Product'
 
     // Determine payment type
@@ -38,7 +55,9 @@ async function storePaymentTransaction(sessionData) {
       status: sessionData.payment_status === 'paid' ? 'succeeded' : 'pending',
       payment_type: paymentType,
       product_name: productName,
-      product_description: lineItems.data[0]?.description || null
+      product_description: lineItems.data[0]?.description || null,
+      created_at: new Date(sessionData.created * 1000).toISOString(),
+      updated_at: new Date().toISOString()
     }
 
     const { error } = await supabaseAdmin
@@ -49,36 +68,107 @@ async function storePaymentTransaction(sessionData) {
 
     if (error) {
       console.error('Error storing payment transaction:', error)
+
+      // Retry logic for database errors
+      if (retryCount < maxRetries && error.code === 'PGRST301') {
+        console.log(
+          `Retrying payment transaction storage (attempt ${retryCount + 1}/${maxRetries})`
+        )
+        await new Promise(resolve =>
+          setTimeout(resolve, 1000 * (retryCount + 1))
+        ) // Exponential backoff
+        return await storePaymentTransaction(sessionData, retryCount + 1)
+      }
+
+      return { success: false, error: error.message }
     } else {
       console.log('Payment transaction stored successfully:', sessionData.id)
+      return { success: true }
     }
   } catch (error) {
     console.error('Exception storing payment transaction:', error)
+
+    // Retry logic for network/other errors
+    if (retryCount < maxRetries) {
+      console.log(
+        `Retrying payment transaction storage (attempt ${retryCount + 1}/${maxRetries})`
+      )
+      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))) // Exponential backoff
+      return await storePaymentTransaction(sessionData, retryCount + 1)
+    }
+
+    return { success: false, error: error.message }
   }
 }
 
-// Helper function to update payment transaction status
-async function updatePaymentTransactionStatus(paymentIntentId, status) {
+// Helper function to update payment transaction status with retry logic
+async function updatePaymentTransactionStatus(
+  paymentIntentId,
+  status,
+  retryCount = 0
+) {
+  const maxRetries = 3
+
   try {
+    if (!paymentIntentId || !status) {
+      console.error('Missing required parameters for status update:', {
+        paymentIntentId,
+        status
+      })
+      return { success: false, error: 'Missing required parameters' }
+    }
+
     const { error } = await supabaseAdmin
       .from('payment_transactions')
       .update({
         status: status,
-        stripe_payment_intent_id: paymentIntentId
+        updated_at: new Date().toISOString()
       })
       .eq('stripe_payment_intent_id', paymentIntentId)
 
     if (error) {
       console.error('Error updating payment transaction status:', error)
+
+      // Retry logic for database errors
+      if (retryCount < maxRetries && error.code === 'PGRST301') {
+        console.log(
+          `Retrying payment transaction status update (attempt ${retryCount + 1}/${maxRetries})`
+        )
+        await new Promise(resolve =>
+          setTimeout(resolve, 1000 * (retryCount + 1))
+        ) // Exponential backoff
+        return await updatePaymentTransactionStatus(
+          paymentIntentId,
+          status,
+          retryCount + 1
+        )
+      }
+
+      return { success: false, error: error.message }
     } else {
       console.log(
         'Payment transaction status updated successfully:',
-        paymentIntentId,
-        status
+        paymentIntentId
       )
+      return { success: true }
     }
   } catch (error) {
     console.error('Exception updating payment transaction status:', error)
+
+    // Retry logic for network/other errors
+    if (retryCount < maxRetries) {
+      console.log(
+        `Retrying payment transaction status update (attempt ${retryCount + 1}/${maxRetries})`
+      )
+      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))) // Exponential backoff
+      return await updatePaymentTransactionStatus(
+        paymentIntentId,
+        status,
+        retryCount + 1
+      )
+    }
+
+    return { success: false, error: error.message }
   }
 }
 
