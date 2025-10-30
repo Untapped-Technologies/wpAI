@@ -13,10 +13,11 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
 import { formatCurrency } from '@/lib/utils/utils'
 import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type DisplayPlan = {
   id: number
@@ -37,6 +38,10 @@ const Pricing = () => {
   const [plans, setPlans] = useState<DisplayPlan[]>([])
   const [plansLoading, setPlansLoading] = useState<boolean>(true)
   const [plansError, setPlansError] = useState<string | null>(null)
+  const [interval, setInterval] = useState<'month' | 'annual'>('month')
+  const cacheRef = useRef<{ month?: DisplayPlan[]; annual?: DisplayPlan[] }>({})
+  const CACHE_KEY = 'pricingCache_v1'
+  const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
   useEffect(() => {
     const toDisplayPlan = (plan: any, idx: number): DisplayPlan => {
@@ -72,11 +77,74 @@ const Pricing = () => {
     const fetchPlans = async () => {
       try {
         setPlansLoading(true)
-        const res = await fetch('/api/pricing')
+        // 1) Try in-memory cache first
+        const memCached = cacheRef.current[interval]
+        if (memCached && memCached.length > 0) {
+          setPlans(memCached)
+          setPlansLoading(false)
+          return
+        }
+
+        // 2) Try localStorage cache
+        try {
+          const raw =
+            typeof window !== 'undefined'
+              ? localStorage.getItem(CACHE_KEY)
+              : null
+          if (raw) {
+            const parsed = JSON.parse(raw)
+            if (
+              parsed &&
+              typeof parsed === 'object' &&
+              typeof parsed.timestamp === 'number' &&
+              Date.now() - parsed.timestamp < CACHE_TTL_MS &&
+              parsed[interval] &&
+              Array.isArray(parsed[interval])
+            ) {
+              cacheRef.current = {
+                month: parsed.month || cacheRef.current.month,
+                annual: parsed.annual || cacheRef.current.annual
+              }
+              setPlans(parsed[interval])
+              setPlansLoading(false)
+              return
+            }
+          }
+        } catch {}
+
+        // 3) Fetch from API
+        const res = await fetch(`/api/pricing?interval=${interval}`, {
+          // allow browser caches to use Cache-Control from server
+          cache: 'default'
+        })
         const json = await res.json()
         if (!res.ok) throw new Error(json?.error || 'Failed to load plans')
         const data = Array.isArray(json?.data) ? json.data : []
-        setPlans(data.map((p: any, i: number) => toDisplayPlan(p, i)))
+        const mapped = data.map((p: any, i: number) => toDisplayPlan(p, i))
+        setPlans(mapped)
+        // update in-memory cache
+        cacheRef.current[interval] = mapped
+        // update localStorage cache snapshot for both intervals when present
+        try {
+          const existingRaw =
+            typeof window !== 'undefined'
+              ? localStorage.getItem(CACHE_KEY)
+              : null
+          const existing = existingRaw ? JSON.parse(existingRaw) : {}
+          const snapshot = {
+            month:
+              interval === 'month'
+                ? mapped
+                : existing.month || cacheRef.current.month,
+            annual:
+              interval === 'annual'
+                ? mapped
+                : existing.annual || cacheRef.current.annual,
+            timestamp: Date.now()
+          }
+          if (typeof window !== 'undefined')
+            localStorage.setItem(CACHE_KEY, JSON.stringify(snapshot))
+        } catch {}
       } catch (e: any) {
         setPlansError(e?.message || 'Failed to load plans')
       } finally {
@@ -84,7 +152,7 @@ const Pricing = () => {
       }
     }
     fetchPlans()
-  }, [])
+  }, [interval])
 
   const handleCheckout = async (priceId: string, paymentType: string) => {
     setLoading(priceId)
@@ -116,6 +184,25 @@ const Pricing = () => {
               Start free and upgrade as your needs grow. All plans include
               access to our core political intelligence platform.
             </p>
+          </div>
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <span
+              className={`text-sm ${interval === 'month' ? 'font-semibold text-slate-900' : 'text-slate-600'}`}
+            >
+              Monthly
+            </span>
+            <Switch
+              checked={interval === 'annual'}
+              onCheckedChange={(checked: boolean) =>
+                setInterval(checked ? 'annual' : 'month')
+              }
+              aria-label="Toggle annual billing"
+            />
+            <span
+              className={`text-sm ${interval === 'annual' ? 'font-semibold text-slate-900' : 'text-slate-600'}`}
+            >
+              Annual
+            </span>
           </div>
         </div>
       </section>
