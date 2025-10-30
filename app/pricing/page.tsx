@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
+import { formatCurrency } from '@/lib/utils/utils'
 import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -59,11 +60,12 @@ const Pricing = () => {
           | 'subscription',
         title: plan.title ?? plan.name ?? 'Plan',
         subtitle: plan.subtitle ?? '',
-        price: priceText,
+        price: plan.price_display,
         timeframe: interval,
         trial: plan.trial ?? false,
         trialButton: plan.trial_button ?? plan.trial ?? false,
-        features: feats
+        features: feats,
+        stripe_price_id: plan.stripe_price_id
       }
     }
 
@@ -74,7 +76,6 @@ const Pricing = () => {
         const json = await res.json()
         if (!res.ok) throw new Error(json?.error || 'Failed to load plans')
         const data = Array.isArray(json?.data) ? json.data : []
-        console.log('🚀 ~ fetchPlans ~ data:', data)
         setPlans(data.map((p: any, i: number) => toDisplayPlan(p, i)))
       } catch (e: any) {
         setPlansError(e?.message || 'Failed to load plans')
@@ -153,7 +154,7 @@ const Pricing = () => {
                   <CardHeader className="text-center">
                     <CardTitle className="text-xl">{plan.title}</CardTitle>
                     <div className="text-3xl font-bold text-[#203c39] mb-2">
-                      {plan.price}
+                      {formatCurrency({ value: plan.price })}
                       {plan.timeframe && (
                         <span className="text-lg font-normal">
                           /{plan.timeframe}

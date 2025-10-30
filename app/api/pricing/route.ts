@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     .from('plans')
     .select('*, plan_features(feature, description)')
     .eq('is_active', true)
-    .order('id')
+    .order('sort')
 
   const { data, count, error } = await query
 
