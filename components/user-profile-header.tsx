@@ -1,6 +1,5 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -11,6 +10,8 @@ import {
 } from '@/components/ui/card'
 import { Edit, Mail, MapPin, User } from 'lucide-react'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
+import MembershipInfo from './_constants/pages/user/membershipInfo'
 
 interface UserProfileHeaderProps {
   profileData: {
@@ -39,6 +40,39 @@ export default function UserProfileHeader({
   onEditProfile
 }: UserProfileHeaderProps) {
   const { basic_info, preferences } = profileData
+
+  const [membership, setMembership] = useState<string>('free')
+  const [trialDaysLeft, setTrialDaysLeft] = useState<number | null>(null)
+  const [hasPaidSub, setHasPaidSub] = useState<boolean>(false)
+  const [features, setFeatures] = useState<Record<string, any>>({})
+  const [limits, setLimits] = useState<Record<string, any>>({})
+
+  useEffect(() => {
+    const fetchAccess = async () => {
+      try {
+        const res = await fetch('/api/user/access', { cache: 'no-store' })
+        const data = await res.json()
+        const level = data?.level || data?.access_level || 'free'
+        setMembership(level)
+        setFeatures(data?.features || {})
+        setLimits(data?.limits || {})
+        const sub = data?.subscription
+        const paid = !!sub?.stripe_subscription_id
+        setHasPaidSub(paid)
+        if (sub?.trial_end && !paid) {
+          const end = new Date(sub.trial_end).getTime()
+          const msLeft = end - Date.now()
+          const days = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)))
+          setTrialDaysLeft(days)
+        } else {
+          setTrialDaysLeft(null)
+        }
+      } catch {
+        // noop
+      }
+    }
+    fetchAccess()
+  }, [])
 
   const getUserTypeLabel = (userTypeId: string) => {
     switch (userTypeId) {
@@ -80,6 +114,8 @@ export default function UserProfileHeader({
               <CardDescription className="text-lg text-gray-600 mt-1">
                 {getUserTypeLabel(basic_info.user_type_id)}
               </CardDescription>
+              {/* Membership and trial badges */}
+
               <div className="flex items-center space-x-4 mt-2">
                 <div className="flex items-center text-sm text-gray-500">
                   <Mail className="w-4 h-4 mr-1" />
@@ -94,12 +130,16 @@ export default function UserProfileHeader({
                   </div>
                 )}
               </div>
+              <MembershipInfo
+                membership={membership}
+                hasPaidSub={hasPaidSub}
+                trialDaysLeft={trialDaysLeft}
+                features={features}
+                limits={limits}
+              />
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <Badge variant="secondary" className="text-sm">
-              Active User
-            </Badge>
             <Button onClick={onEditProfile} variant="outline" size="sm">
               <Edit className="w-4 h-4 mr-2" />
               Edit Profile

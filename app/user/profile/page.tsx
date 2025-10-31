@@ -78,6 +78,7 @@ export default function UserProfilePage() {
 
   return (
     <>
+      <UserProfile userId={user.id} />
       {!hasPaidSub && trialDaysLeft !== null && (
         <div className="w-full bg-blue-50 border-b border-blue-100">
           <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between">
@@ -100,8 +101,6 @@ export default function UserProfilePage() {
           </div>
         </div>
       )}
-
-      <UserProfile userId={user.id} />
       <PostSignupPlanModal />
     </>
   )

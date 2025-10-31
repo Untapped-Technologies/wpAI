@@ -13,6 +13,7 @@ import {
 } from '@/lib/utils/debugPreferences'
 import { Clock, CreditCard, User } from 'lucide-react'
 import PaymentHistory from './payment-history'
+import PlanSelectionPanel from './plan-selection-panel'
 import UserProfileEditTabs from './user-profile-edit-tabs'
 import UserProfileHeader from './user-profile-header'
 import UserProfileSections from './user-profile-sections'
@@ -52,6 +53,12 @@ const TABS = [
     label: 'Payment History',
     icon: <CreditCard className="w-6 h-6" />,
     description: 'Transaction history and billing'
+  },
+  {
+    id: 'upgrade',
+    label: 'Upgrade',
+    icon: <CreditCard className="w-6 h-6" />,
+    description: 'Choose a plan and upgrade your membership'
   }
 ]
 
@@ -279,6 +286,20 @@ export default function UserProfile({ userId }: UserProfileProps) {
               </Card>
             )}
             {activeTab === 'payments' && <PaymentHistory userId={userId} />}
+            {activeTab === 'upgrade' && (
+              <Card className="bg-white border-0 shadow-none">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <span className="ml-2">
+                      {TABS.find(tab => tab.id === activeTab)?.label}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <PlanSelectionPanel />
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

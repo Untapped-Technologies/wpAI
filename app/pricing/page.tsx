@@ -96,6 +96,15 @@ const Pricing = () => {
                 month: parsed.month || cacheRef.current.month,
                 annual: parsed.annual || cacheRef.current.annual
               }
+              // populate a shared global cache so other pages/components can reuse without refetching
+              try {
+                const root: any = (window as any).__pricingCache || {}
+                if (parsed.month)
+                  root['month'] = { ts: parsed.timestamp, data: parsed.month }
+                if (parsed.annual)
+                  root['annual'] = { ts: parsed.timestamp, data: parsed.annual }
+                ;(window as any).__pricingCache = root
+              } catch {}
               setPlans(parsed[interval])
               setPlansLoading(false)
               return
@@ -135,6 +144,15 @@ const Pricing = () => {
           }
           if (typeof window !== 'undefined')
             localStorage.setItem(CACHE_KEY, JSON.stringify(snapshot))
+          // also update a shared global cache for immediate reuse
+          try {
+            const root: any = (window as any).__pricingCache || {}
+            if (snapshot.month)
+              root['month'] = { ts: snapshot.timestamp, data: snapshot.month }
+            if (snapshot.annual)
+              root['annual'] = { ts: snapshot.timestamp, data: snapshot.annual }
+            ;(window as any).__pricingCache = root
+          } catch {}
         } catch {}
       } catch (e: any) {
         setPlansError(e?.message || 'Failed to load plans')
