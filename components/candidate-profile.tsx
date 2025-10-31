@@ -5,17 +5,19 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   extractLocationData,
   extractNotificationData
 } from '@/lib/utils/debugPreferences'
-import { Clock, User } from 'lucide-react'
+import { Clock, CreditCard, User } from 'lucide-react'
 import CandidateProfileEditTabs from './candidate-profile-edit-tabs'
 import CandidateProfileHeader from './candidate-profile-header'
 import CandidateProfileLocked from './candidate-profile-locked'
 import CandidateProfileSections from './candidate-profile-sections'
 import CandidatePublicProfile from './candidate-public-profile'
+import PaymentHistory from './payment-history'
+import PlanSelectionPanel from './plan-selection-panel'
 
 interface CandidateProfileData {
   basic_info: {
@@ -57,7 +59,29 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [isPublicView, setIsPublicView] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState('profile')
   const router = useRouter()
+
+  const TABS = [
+    {
+      id: 'profile',
+      label: 'Profile',
+      icon: <User className="w-6 h-6" />,
+      description: 'Candidate information and preferences'
+    },
+    {
+      id: 'payments',
+      label: 'Payment History',
+      icon: <CreditCard className="w-6 h-6" />,
+      description: 'Transaction history and billing'
+    },
+    {
+      id: 'upgrade',
+      label: 'Upgrade',
+      icon: <CreditCard className="w-6 h-6" />,
+      description: 'Choose a plan and upgrade your membership'
+    }
+  ]
 
   useEffect(() => {
     fetchCandidateProfile()
@@ -378,28 +402,6 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Action Bar */}
-        <div className="flex justify-end mb-6">
-          <div className="flex space-x-3">
-            {/* <Button
-              variant="outline"
-              onClick={handleDownloadProfile}
-              className="flex items-center"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.print()}
-              className="flex items-center"
-            >
-              <Printer className="w-4 h-4 mr-2" />
-              Print
-            </Button> */}
-          </div>
-        </div>
-
         {/* Approval Status Warning */}
         {profileData &&
           (profileData.basic_info.approved === null ||
@@ -434,12 +436,73 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
           isPublicView={isPublicView}
         />
 
-        {/* Profile Sections */}
-        <CandidateProfileSections
-          profileData={profileData}
-          location={locationData}
-          notifications={notificationData}
-        />
+        <div className="flex gap-8 mt-6">
+          {/* Vertical Tabs */}
+          <div className="w-64 flex-shrink-0">
+            <Card>
+              <CardContent className="p-0">
+                <nav className="space-y-1 p-4">
+                  {TABS.map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`w-full flex items-center space-x-3 px-3 py-3 text-left rounded-lg transition-colors ${
+                        activeTab === tab.id
+                          ? 'bg-blue-100 text-blue-900 border border-blue-200'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      {tab.icon}
+                      <div>
+                        <div className="font-medium">{tab.label}</div>
+                        <div className="text-xs text-gray-500">
+                          {tab.description}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </nav>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Tab Content */}
+          <div className="flex-1">
+            {activeTab === 'profile' && (
+              <Card className="bg-white border-0 shadow-none">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <span className="ml-2">
+                      {TABS.find(tab => tab.id === activeTab)?.label}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CandidateProfileSections
+                    profileData={profileData}
+                    location={locationData}
+                    notifications={notificationData}
+                  />
+                </CardContent>
+              </Card>
+            )}
+            {activeTab === 'payments' && <PaymentHistory userId={userId} />}
+            {activeTab === 'upgrade' && (
+              <Card className="bg-white border-0 shadow-none">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <span className="ml-2">
+                      {TABS.find(tab => tab.id === activeTab)?.label}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <PlanSelectionPanel />
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
