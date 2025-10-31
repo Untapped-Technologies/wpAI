@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { usePricing } from '@/hooks/usePricing'
 
 type DisplayPlan = {
   id: string
@@ -27,139 +28,54 @@ type AccessResponse = {
 }
 
 export default function PlanSelectionPanel() {
-  const [loading, setLoading] = useState(true)
-  const [plans, setPlans] = useState<DisplayPlan[]>([])
-  const [allPlans, setAllPlans] = useState<any[]>([])
-  const [error, setError] = useState<string | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [interval, setInterval] = useState<'month' | 'annual'>('month')
+  const { data: intervalData, loading, error } = usePricing(interval)
+  const { data: allData } = usePricing('all')
 
-  const hasActivePaidSub = (access: AccessResponse) => {
-    const sub = access.subscription
-    if (!sub) return false
-    if (sub.stripe_subscription_id) return true
-    return false
-  }
-
-  // Client-side cache helpers (5 min TTL)
-  const CACHE_TTL_MS = 5 * 60 * 1000
-  const cacheKey = (key: string) => `pricing_cache_${key}`
-  const readGlobalCache = (key: string): any[] | null => {
-    try {
-      if (typeof window === 'undefined') return null
-      const root: any = (window as any).__pricingCache
-      if (!root) return null
-      const entry = root[key]
-      if (!entry) return null
-      if (Date.now() - entry.ts > CACHE_TTL_MS) return null
-      return Array.isArray(entry.data) ? entry.data : null
-    } catch {
-      return null
-    }
-  }
-  const writeGlobalCache = (key: string, data: any[]) => {
-    try {
-      if (typeof window === 'undefined') return
-      const root: any = (window as any).__pricingCache || {}
-      root[key] = { ts: Date.now(), data }
-      ;(window as any).__pricingCache = root
-    } catch {}
-  }
-  const readCache = (key: string): any[] | null => {
-    try {
-      if (typeof window === 'undefined') return null
-      const global = readGlobalCache(key)
-      if (global) return global
-      const raw = localStorage.getItem(cacheKey(key))
-      if (!raw) return null
-      const parsed = JSON.parse(raw)
-      if (!parsed?.ts || !parsed?.data) return null
-      if (Date.now() - parsed.ts > CACHE_TTL_MS) return null
-      return Array.isArray(parsed.data) ? parsed.data : null
-    } catch {
-      return null
-    }
-  }
-  const writeCache = (key: string, data: any[]) => {
-    try {
-      if (typeof window === 'undefined') return
-      writeGlobalCache(key, data)
-      localStorage.setItem(
-        cacheKey(key),
-        JSON.stringify({ ts: Date.now(), data })
-      )
-    } catch {}
-  }
-
+  // Ensure trial exists
   useEffect(() => {
     const init = async () => {
       try {
-        setLoading(true)
-
-        // Ensure trial exists
-        try {
-          const accessRes = await fetch('/api/user/access', {
-            cache: 'no-store'
-          })
-          const accessJson: AccessResponse = await accessRes.json()
-          if (
-            !accessJson.subscription ||
-            accessJson.subscription.trial_end == null
-          ) {
-            await fetch('/api/user/trial/start', { method: 'POST' })
-          }
-        } catch {}
-
-        // Load plans using cache or API
-        let data: any[] | null = readCache(interval)
-        if (!data) {
-          const res = await fetch(`/api/pricing?interval=${interval}`)
-          const json = await res.json()
-          data = Array.isArray(json?.data) ? json.data : []
-          writeCache(interval, data)
+        const accessRes = await fetch('/api/user/access', {
+          cache: 'no-store'
+        })
+        const accessJson: AccessResponse = await accessRes.json()
+        if (
+          !accessJson.subscription ||
+          accessJson.subscription.trial_end == null
+        ) {
+          await fetch('/api/user/trial/start', { method: 'POST' })
         }
-
-        let allData: any[] | null = readCache('all')
-        if (!allData) {
-          const resAll = await fetch(`/api/pricing?interval=all`)
-          const jsonAll = await resAll.json()
-          allData = Array.isArray(jsonAll?.data) ? jsonAll.data : []
-          writeCache('all', allData)
-        }
-
-        setAllPlans(allData || [])
-        const mapped: DisplayPlan[] = (data || []).map((p: any) => ({
-          id: String(p.id ?? ''),
-          title: p.name ?? p.title ?? 'Plan',
-          subtitle: p.description ?? p.subtitle ?? '',
-          priceId: p.stripe_price_id ?? p.price_id ?? '',
-          paymentType:
-            p.interval && p.interval !== 'one_time'
-              ? 'subscription'
-              : 'payment',
-          price: p.price
-            ? String(p.price)
-            : p.price_cents != null
-              ? `$${(p.price_cents / 100).toFixed(0)}`
-              : '',
-          timeframe: p.interval,
-          isPopular: p.is_popular ?? false,
-          features: Array.isArray(p.plan_features)
-            ? p.plan_features.map((pf: any) => ({
-                feature: pf.feature,
-                description: pf.description
-              }))
-            : []
-        }))
-        setPlans(mapped)
-      } catch (e: any) {
-        setError(e?.message || 'Failed to load plans')
-      } finally {
-        setLoading(false)
-      }
+      } catch {}
     }
     init()
-  }, [interval])
+  }, [])
+
+  // Transform raw data to DisplayPlan format
+  const plans: DisplayPlan[] = intervalData.map((p: any) => ({
+    id: String(p.id ?? ''),
+    title: p.name ?? p.title ?? 'Plan',
+    subtitle: p.description ?? p.subtitle ?? '',
+    priceId: p.stripe_price_id ?? p.price_id ?? '',
+    paymentType:
+      p.interval && p.interval !== 'one_time' ? 'subscription' : 'payment',
+    price: p.price
+      ? String(p.price)
+      : p.price_cents != null
+        ? `$${(p.price_cents / 100).toFixed(0)}`
+        : '',
+    timeframe: p.interval,
+    isPopular: p.is_popular ?? false,
+    features: Array.isArray(p.plan_features)
+      ? p.plan_features.map((pf: any) => ({
+          feature: pf.feature,
+          description: pf.description
+        }))
+      : []
+  }))
+
+  const allPlans = allData || []
 
   const onSelectPlan = async (plan: DisplayPlan) => {
     try {

@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import { usePricing } from '@/hooks/usePricing'
 
 type DisplayPlan = {
   id: string
@@ -38,67 +39,10 @@ type AccessResponse = {
 export default function PostSignupPlanModal() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [plans, setPlans] = useState<DisplayPlan[]>([])
-  const [allPlans, setAllPlans] = useState<any[]>([])
-  const [error, setError] = useState<string | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [interval, setInterval] = useState<'month' | 'annual'>('month')
-
-  // Client-side cache helpers (5 min TTL)
-  const CACHE_TTL_MS = 5 * 60 * 1000
-  const cacheKey = (key: string) => `pricing_cache_${key}`
-  const readGlobalCache = (key: string): any[] | null => {
-    try {
-      if (typeof window === 'undefined') return null
-      const root: any = (window as any).__pricingCache
-      if (!root) return null
-      const entry = root[key]
-      if (!entry) return null
-      if (Date.now() - entry.ts > CACHE_TTL_MS) return null
-      return Array.isArray(entry.data) ? entry.data : null
-    } catch {
-      return null
-    }
-  }
-  const writeGlobalCache = (key: string, data: any[]) => {
-    try {
-      if (typeof window === 'undefined') return
-      const root: any = (window as any).__pricingCache || {}
-      root[key] = { ts: Date.now(), data }
-      ;(window as any).__pricingCache = root
-    } catch {
-      // ignore
-    }
-  }
-  const readCache = (key: string): any[] | null => {
-    try {
-      if (typeof window === 'undefined') return null
-      // Prefer a live in-memory global cache if present
-      const global = readGlobalCache(key)
-      if (global) return global
-      const raw = localStorage.getItem(cacheKey(key))
-      if (!raw) return null
-      const parsed = JSON.parse(raw)
-      if (!parsed?.ts || !parsed?.data) return null
-      if (Date.now() - parsed.ts > CACHE_TTL_MS) return null
-      return Array.isArray(parsed.data) ? parsed.data : null
-    } catch {
-      return null
-    }
-  }
-  const writeCache = (key: string, data: any[]) => {
-    try {
-      if (typeof window === 'undefined') return
-      writeGlobalCache(key, data)
-      localStorage.setItem(
-        cacheKey(key),
-        JSON.stringify({ ts: Date.now(), data })
-      )
-    } catch {
-      // ignore
-    }
-  }
+  const { data: intervalData, loading, error } = usePricing(interval)
+  const { data: allData } = usePricing('all')
 
   const hasActivePaidSub = (access: AccessResponse) => {
     const sub = access.subscription
@@ -107,33 +51,18 @@ export default function PostSignupPlanModal() {
     return false
   }
 
-  const trialIsActive = (access: AccessResponse) => {
-    const sub = access.subscription
-    if (!sub) return false
-    if (!sub.trial_end) return false
-    try {
-      const end = new Date(sub.trial_end).getTime()
-      return Date.now() < end
-    } catch {
-      return false
-    }
-  }
-
+  // Check access and show/hide modal
   useEffect(() => {
     const init = async () => {
       try {
-        setLoading(true)
-        // 1) Fetch access status
         const accessRes = await fetch('/api/user/access', { cache: 'no-store' })
         const accessJson: AccessResponse = await accessRes.json()
 
-        // If user already has an active paid sub, do not show modal
         if (accessRes.ok && hasActivePaidSub(accessJson)) {
           setOpen(false)
           return
         }
 
-        // If no subscription record or no trial fields, start a trial
         if (
           !accessJson.subscription ||
           accessJson.subscription.trial_end == null
@@ -141,67 +70,43 @@ export default function PostSignupPlanModal() {
           await fetch('/api/user/trial/start', { method: 'POST' })
         }
 
-        // Re-check access to get trial_end
         const accessRes2 = await fetch('/api/user/access', {
           cache: 'no-store'
         })
         const accessJson2: AccessResponse = await accessRes2.json()
 
-        // If trial active or no paid sub, show modal
         if (!hasActivePaidSub(accessJson2)) {
           setOpen(true)
         }
-
-        // 2) Use client cache or call pricing API then cache
-        let data: any[] | null = readCache(interval)
-        if (!data) {
-          const plansRes = await fetch(`/api/pricing?interval=${interval}`)
-          const plansJson = await plansRes.json()
-          data = Array.isArray(plansJson?.data) ? plansJson.data : []
-          writeCache(interval, data)
-        }
-
-        let allData: any[] | null = readCache('all')
-        if (!allData) {
-          const allRes = await fetch(`/api/pricing?interval=all`)
-          const allJson = await allRes.json()
-          allData = Array.isArray(allJson?.data) ? allJson.data : []
-          writeCache('all', allData)
-        }
-
-        setAllPlans(allData || [])
-        const mapped: DisplayPlan[] = (data || []).map((p: any) => ({
-          id: String(p.id ?? ''),
-          title: p.name ?? p.title ?? 'Plan',
-          subtitle: p.description ?? p.subtitle ?? '',
-          priceId: p.stripe_price_id ?? p.price_id ?? '',
-          paymentType:
-            p.interval && p.interval !== 'one_time'
-              ? 'subscription'
-              : 'payment',
-          price: p.price
-            ? String(p.price)
-            : p.price_cents != null
-              ? `$${(p.price_cents / 100).toFixed(0)}`
-              : '',
-          timeframe: p.interval,
-          isPopular: p.is_popular ?? false,
-          features: Array.isArray(p.plan_features)
-            ? p.plan_features.map((pf: any) => ({
-                feature: pf.feature,
-                description: pf.description
-              }))
-            : []
-        }))
-        setPlans(mapped)
-      } catch (e: any) {
-        setError(e?.message || 'Failed to initialize plan selection')
-      } finally {
-        setLoading(false)
-      }
+      } catch {}
     }
     init()
-  }, [interval])
+  }, [])
+
+  // Transform raw data to DisplayPlan format
+  const plans: DisplayPlan[] = intervalData.map((p: any) => ({
+    id: String(p.id ?? ''),
+    title: p.name ?? p.title ?? 'Plan',
+    subtitle: p.description ?? p.subtitle ?? '',
+    priceId: p.stripe_price_id ?? p.price_id ?? '',
+    paymentType:
+      p.interval && p.interval !== 'one_time' ? 'subscription' : 'payment',
+    price: p.price
+      ? String(p.price)
+      : p.price_cents != null
+        ? `$${(p.price_cents / 100).toFixed(0)}`
+        : '',
+    timeframe: p.interval,
+    isPopular: p.is_popular ?? false,
+    features: Array.isArray(p.plan_features)
+      ? p.plan_features.map((pf: any) => ({
+          feature: pf.feature,
+          description: pf.description
+        }))
+      : []
+  }))
+
+  const allPlans = allData || []
 
   // Allow external trigger to open the modal
   useEffect(() => {
