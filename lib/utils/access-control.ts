@@ -30,7 +30,9 @@ export async function getUserAccess(
         user_subscriptions!inner(
           status,
           current_period_end,
-          plan_id
+          plan_id,
+          trial_end,
+          stripe_subscription_id
         )
       `
       )
@@ -41,15 +43,22 @@ export async function getUserAccess(
       // If no access level found, check if user has any subscription
       const { data: subscriptionData } = await supabase
         .from('user_subscriptions')
-        .select('status, current_period_end, plan_id')
+        .select(
+          'status, current_period_end, plan_id, trial_end, stripe_subscription_id'
+        )
         .eq('user_id', userId)
         .eq('status', 'active')
         .single()
 
       if (subscriptionData) {
-        // User has subscription but no access level - create default
+        // If trial expired and no paid subscription, treat as free
+        const trialEnd = subscriptionData as any
+        const expiredTrial = trialEnd?.trial_end
+          ? Date.now() > new Date(trialEnd.trial_end).getTime()
+          : false
+        const hasPaid = !!(trialEnd as any)?.stripe_subscription_id
         return {
-          level: 'free',
+          level: expiredTrial && !hasPaid ? 'free' : 'basic',
           features: {},
           limits: {},
           subscription: subscriptionData
@@ -59,8 +68,21 @@ export async function getUserAccess(
       return null
     }
 
+    // Evaluate trial expiry for joined subscription
+    const sub: any = accessData.user_subscriptions
+    let effectiveLevel = accessData.access_level as AccessLevel
+    if (sub) {
+      const expiredTrial = sub.trial_end
+        ? Date.now() > new Date(sub.trial_end).getTime()
+        : false
+      const hasPaid = !!sub.stripe_subscription_id
+      if (expiredTrial && !hasPaid) {
+        effectiveLevel = 'free'
+      }
+    }
+
     return {
-      level: accessData.access_level as AccessLevel,
+      level: effectiveLevel,
       features: accessData.features || {},
       limits: accessData.limits || {},
       subscription: accessData.user_subscriptions

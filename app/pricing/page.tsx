@@ -1,26 +1,16 @@
 'use client'
 import HomeCTA from '@/components/_constants/pages/home/homeCTA'
+import EntPricingCard from '@/components/_constants/pages/pricing/entPricingCard'
+import PricingFaqs from '@/components/_constants/pages/pricing/faqs'
+import PricingCard from '@/components/_constants/pages/pricing/pricingCard'
+import PricingHeader from '@/components/_constants/pages/pricing/pricingHeader'
 import { pricingEnterprise } from '@/components/_constants/pricing/pricingData'
 import AuthAwareFooter from '@/components/auth-aware-footer'
 import AuthAwareNavigation from '@/components/auth-aware-navigation'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import SimpleButton from '@/components/ui/buttons/simpleButton'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
-import { Switch } from '@/components/ui/switch'
-import { formatCurrency } from '@/lib/utils/utils'
-import { CheckCircle } from 'lucide-react'
-import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
 type DisplayPlan = {
-  id: number
+  id: string
   priceId: string
   stripe_price_id: string
   paymentType: 'payment' | 'subscription'
@@ -33,6 +23,7 @@ type DisplayPlan = {
   features: { fid: number; feature: string; description?: string }[]
 }
 
+const popular = 'basic'
 const Pricing = () => {
   const [loading, setLoading] = useState<string | null>(null)
   const [plans, setPlans] = useState<DisplayPlan[]>([])
@@ -174,41 +165,10 @@ const Pricing = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full">
       <AuthAwareNavigation />
       {/* Header Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-4">
-            <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-4">
-              Choose Your Plan
-            </h1>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-              Start free and upgrade as your needs grow. All plans include
-              access to our core political intelligence platform.
-            </p>
-          </div>
-          <div className="flex items-center justify-center gap-3 mt-6">
-            <span
-              className={`text-sm ${interval === 'month' ? 'font-semibold text-slate-900' : 'text-slate-600'}`}
-            >
-              Monthly
-            </span>
-            <Switch
-              checked={interval === 'annual'}
-              onCheckedChange={(checked: boolean) =>
-                setInterval(checked ? 'annual' : 'month')
-              }
-              aria-label="Toggle annual billing"
-            />
-            <span
-              className={`text-sm ${interval === 'annual' ? 'font-semibold text-slate-900' : 'text-slate-600'}`}
-            >
-              Annual
-            </span>
-          </div>
-        </div>
-      </section>
+      <PricingHeader interval={interval} setInterval={setInterval} />
 
       {/* Pricing Cards */}
-      <section className="py-20 bg-slate-50">
+      <section className="pt-20 pb-10 bg-slate-50">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {plansLoading && (
@@ -224,201 +184,20 @@ const Pricing = () => {
             {!plansLoading &&
               !plansError &&
               plans.map(plan => (
-                <Card
+                <PricingCard
                   key={plan.id}
-                  className={`border-2 transition-colors duration-300 flex flex-col ${
-                    plan.id === 2
-                      ? 'border-[#203c39] relative'
-                      : 'border-slate-200 hover:border-[#203c39]'
-                  }`}
-                >
-                  {plan.id === 2 && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#203c39] text-white">
-                      Most Popular
-                    </Badge>
-                  )}
-
-                  <CardHeader className="text-center">
-                    <CardTitle className="text-xl">{plan.title}</CardTitle>
-                    <div className="text-3xl font-bold text-[#203c39] mb-2">
-                      {formatCurrency({ value: plan.price })}
-                      {plan.timeframe && (
-                        <span className="text-lg font-normal">
-                          /{plan.timeframe}
-                        </span>
-                      )}
-                    </div>
-                    {plan.subtitle && (
-                      <CardDescription className="text-sm">
-                        {plan.subtitle}
-                      </CardDescription>
-                    )}
-                    {plan.trialButton && (
-                      <Badge
-                        variant="outline"
-                        className="mt-2 text-xs flex justify-center p-2 bg-gray-200"
-                      >
-                        10 Day Free Trial
-                      </Badge>
-                    )}
-                  </CardHeader>
-
-                  <CardContent className="flex flex-col h-full">
-                    <ul className="space-y-3 mb-6">
-                      {plan.features.map(feature => (
-                        <li
-                          key={feature.fid}
-                          className="flex items-start gap-2"
-                        >
-                          <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm">{feature.feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="mt-auto">
-                      <SimpleButton
-                        classes={`w-full ${
-                          plan.id === 2
-                            ? 'bg-[#203c39] hover:bg-[#203c39]/90 text-white'
-                            : 'variant-outline'
-                        }`}
-                        handleClick={() =>
-                          handleCheckout(plan.stripe_price_id, plan.paymentType)
-                        }
-                        label="Start Free Trial"
-                      />
-
-                      {plan.trial && (
-                        <p className="mt-2 text-xs text-center text-slate-500">
-                          Cancel anytime
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                  plan={plan}
+                  popular={`${interval === 'annual' ? popular + ' ' + interval : popular}`}
+                  handleCheckout={handleCheckout}
+                />
               ))}
           </div>
-          {
-            <Card
-              key={pricingEnterprise.id}
-              className={`m-auto p-4 border-2 transition-colors duration-300 max-w-2xl mt-6 justify-center items-center flex border-slate-200 hover:border-[#203c39]`}
-            >
-              {/* Enterprise Pricing */}
-              <CardHeader className="text-center">
-                <CardTitle className="text-xl">
-                  {pricingEnterprise.title}
-                </CardTitle>
-                <div className="text-3xl font-bold text-[#203c39] mb-2">
-                  {pricingEnterprise.price}
-                  {pricingEnterprise.timeframe && (
-                    <span className="text-lg font-normal">
-                      /{pricingEnterprise.timeframe}
-                    </span>
-                  )}
-                </div>
-                {pricingEnterprise.subtitle && (
-                  <CardDescription className="text-sm">
-                    {pricingEnterprise.subtitle}
-                  </CardDescription>
-                )}
-              </CardHeader>
-
-              <CardContent className="pt-4">
-                <ul className="space-y-3 mb-6">
-                  {pricingEnterprise.features.map(feature => (
-                    <li key={feature.fid} className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{feature.feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  asChild
-                  className={`w-full ${
-                    pricingEnterprise.id === 2
-                      ? 'bg-[#203c39] hover:bg-[#203c39]/90 text-white'
-                      : 'variant-outline'
-                  }`}
-                  variant={pricingEnterprise.id === 2 ? 'default' : 'outline'}
-                >
-                  <Link
-                    href={
-                      pricingEnterprise.url === '#'
-                        ? '/contact'
-                        : pricingEnterprise.url
-                    }
-                  >
-                    {pricingEnterprise.trial
-                      ? 'Start Free Trial'
-                      : 'Contact Sales'}
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          }
+          <EntPricingCard pricingEnterprise={pricingEnterprise} />
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-slate-900 mb-4">
-              Frequently Asked Questions
-            </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Everything you need to know about our pricing and plans
-            </p>
-          </div>
-
-          <div className="max-w-3xl mx-auto space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  Can I change plans anytime?
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-slate-600">
-                  Yes, you can upgrade or downgrade your plan at any time.
-                  Changes take effect immediately, and we'll prorate any billing
-                  differences.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  What happens after my free trial?
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-slate-600">
-                  After your 10-day free trial, you'll automatically be charged
-                  for your selected plan. You can cancel anytime during the
-                  trial period with no charges.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Do you offer refunds?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-slate-600">
-                  We offer a 30-day money-back guarantee for all paid plans. If
-                  you're not satisfied with our service, contact us for a full
-                  refund.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+      <PricingFaqs />
 
       {/* CTA Section */}
       <HomeCTA />

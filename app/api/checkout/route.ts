@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { priceId, paymentType } = await req.json()
+    const { priceId, planId, paymentType, redirect } = await req.json()
     const origin = req.headers.get('origin') || req.nextUrl.origin
 
     // Get user ID using the same pattern as other API routes
@@ -59,6 +59,11 @@ export async function POST(req: NextRequest) {
         ? 'subscription'
         : 'payment'
 
+    const successUrl =
+      redirect === 'profile'
+        ? `${origin}/user/profile?upgraded=true&session_id={CHECKOUT_SESSION_ID}`
+        : `${origin}/success?session_id={CHECKOUT_SESSION_ID}`
+
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -67,10 +72,12 @@ export async function POST(req: NextRequest) {
         }
       ],
       mode,
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl,
       cancel_url: `${origin}/pricing?canceled=true`,
       metadata: {
-        user_id: userId || 'anonymous'
+        user_id: userId || 'anonymous',
+        plan_id: planId || '',
+        source: 'post_signup_modal'
       }
     })
 
