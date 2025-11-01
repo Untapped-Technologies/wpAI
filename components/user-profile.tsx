@@ -214,6 +214,9 @@ export default function UserProfile({ userId }: UserProfileProps) {
           invalidateUserProfileCache()
         }
       )
+
+      // Navigate to new prompt screen after successful profile update
+      router.push('/newprompt')
     } catch (error) {
       console.error('Error saving profile:', error)
       toast.error(

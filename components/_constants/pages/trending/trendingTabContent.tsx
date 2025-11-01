@@ -2,7 +2,7 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Globe, MapPin, Users } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 const scopes = [
   { value: 'local', label: 'Local', icon: MapPin },
@@ -27,20 +27,43 @@ export function TrendingTabContent({
   isLoading: boolean
   error: any
 }) {
+  const isLoadingRef = useRef(false)
+  
   useEffect(() => {
+    isLoadingRef.current = isLoading
+  }, [isLoading])
+
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+    
     const onScroll = () => {
-      if (
-        window.innerHeight + window.scrollY >=
-          document.body.offsetHeight - 100 &&
-        !isLoading &&
-        page < totalPages
-      ) {
-        onPageChange(page + 1)
+      // Clear any pending timeout
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+      
+      // Debounce scroll handler
+      timeoutId = setTimeout(() => {
+        if (
+          window.innerHeight + window.scrollY >=
+            document.body.offsetHeight - 100 &&
+          !isLoadingRef.current &&
+          page < totalPages
+        ) {
+          isLoadingRef.current = true
+          onPageChange(page + 1)
+        }
+      }, 150) // Debounce to prevent multiple rapid triggers
+    }
+    
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (timeoutId) {
+        clearTimeout(timeoutId)
       }
     }
-    window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [isLoading, page, totalPages, onPageChange])
+  }, [page, totalPages, onPageChange])
 
   if (isLoading && page === 1) {
     return (

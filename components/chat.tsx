@@ -25,7 +25,7 @@ export function Chat({
   id,
   savedMessages = [],
   query,
-  models
+  models: initialModels
 }: {
   id: string
   savedMessages?: Message[]
@@ -35,6 +35,32 @@ export function Chat({
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [isAtBottom, setIsAtBottom] = useState(true)
   const [open, setOpen] = useState(false)
+  const [models, setModels] = useState<Model[] | undefined>(initialModels)
+  const modelsLoadingRef = useRef(false)
+
+  // Load models on client side if not provided
+  useEffect(() => {
+    if (!initialModels && !models && !modelsLoadingRef.current) {
+      modelsLoadingRef.current = true
+      const loadModels = async () => {
+        try {
+          const response = await fetch('/config/models.json')
+          if (response.ok) {
+            const config = await response.json()
+            if (Array.isArray(config.models)) {
+              setModels(config.models)
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to load models on client side:', error)
+          // Fallback: models will remain undefined
+        } finally {
+          modelsLoadingRef.current = false
+        }
+      }
+      loadModels()
+    }
+  }, [initialModels]) // Only depend on initialModels, not models state
 
   const {
     messages,
@@ -121,19 +147,19 @@ export function Chat({
   }, [])
 
   // Scroll to the section when a new user message is sent
+  const lastUserMessageId = useMemo(() => {
+    const lastMessage = messages[messages.length - 1]
+    return lastMessage && lastMessage.role === 'user' ? lastMessage.id : null
+  }, [messages])
+
   useEffect(() => {
-    if (sections.length > 0) {
-      const lastMessage = messages[messages.length - 1]
-      if (lastMessage && lastMessage.role === 'user') {
-        // If the last message is from user, find the corresponding section
-        const sectionId = lastMessage.id
-        requestAnimationFrame(() => {
-          const sectionElement = document.getElementById(`section-${sectionId}`)
-          sectionElement?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        })
-      }
+    if (lastUserMessageId) {
+      requestAnimationFrame(() => {
+        const sectionElement = document.getElementById(`section-${lastUserMessageId}`)
+        sectionElement?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
     }
-  }, [sections, messages])
+  }, [lastUserMessageId])
 
   useEffect(() => {
     setMessages(savedMessages)

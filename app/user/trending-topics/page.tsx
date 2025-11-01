@@ -70,29 +70,62 @@ export default function UserTrendingTabs() {
     }
   }, [activeTab, loadedTabs])
 
-  // 2️⃣ Effect: Cache trending data only when it changes
+  // 2️⃣ Effect: Accumulate trending data instead of replacing it
   useEffect(() => {
     if (activeTrending.length > 0) {
-      setCachedTrending(prev => ({
-        ...prev,
-        [activeTab]: activeTrending
-      }))
+      setCachedTrending(prev => {
+        const existing = prev[activeTab] || []
+        const currentPage = pageMap[activeTab]
+        
+        // If we're on page 1, replace all data (reset)
+        if (currentPage === 1) {
+          return {
+            ...prev,
+            [activeTab]: activeTrending
+          }
+        }
+        
+        // For subsequent pages, append new data that doesn't already exist
+        const existingIds = new Set(existing.map((item: any) => item.id))
+        const newItems = activeTrending.filter((item: any) => !existingIds.has(item.id))
+        
+        // Only update if we have new items
+        if (newItems.length > 0) {
+          return {
+            ...prev,
+            [activeTab]: [...existing, ...newItems]
+          }
+        }
+        
+        return prev
+      })
       setCachedPages(prev => ({
         ...prev,
         [activeTab]: activeTotalPages
       }))
     }
-  }, [activeTrending, activeTotalPages, activeTab])
+  }, [activeTrending, activeTotalPages, activeTab, pageMap])
 
   const handleTabChange = (value: string) => {
     setActiveTab(value)
   }
 
   const handlePageChange = (newPage: number) => {
-    setPageMap(prev => ({
-      ...prev,
-      [activeTab]: newPage
-    }))
+    // Only update if it's actually a different page
+    if (newPage !== pageMap[activeTab]) {
+      setPageMap(prev => ({
+        ...prev,
+        [activeTab]: newPage
+      }))
+      
+      // If going back to page 1, reset the cached data for that tab
+      if (newPage === 1) {
+        setCachedTrending(prev => ({
+          ...prev,
+          [activeTab]: []
+        }))
+      }
+    }
   }
 
   return (
@@ -137,7 +170,9 @@ export default function UserTrendingTabs() {
                     onPageChange={handlePageChange}
                     trending={
                       scope.value === activeTab
-                        ? activeTrending
+                        ? (pageMap[scope.value] === 1 
+                            ? activeTrending 
+                            : cachedTrending[scope.value] || [])
                         : cachedTrending[scope.value]
                     }
                     totalPages={
