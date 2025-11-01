@@ -9,13 +9,14 @@ import {
   CardTitle
 } from '@/components/ui/card'
 import { Bell, MapPin, Settings, User } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface UserProfileSectionsProps {
   profileData: {
     basic_info: {
       display_name: string
       email: string
-      user_type_id: string
+      user_type_id: string | null
       bio: string
     }
     preferences: {
@@ -32,26 +33,45 @@ interface UserProfileSectionsProps {
   notifications?: any
 }
 
+interface UserType {
+  id: string
+  label: string | null
+  description: string | null
+  country_code?: string | null
+}
+
 export default function UserProfileSections({
   profileData,
   location,
   notifications
 }: UserProfileSectionsProps) {
   const { basic_info, preferences } = profileData
+  const [userTypes, setUserTypes] = useState<UserType[]>([])
 
-  const getUserTypeLabel = (userTypeId: string) => {
-    switch (userTypeId) {
-      case 'Pol':
-        return 'Political Professional'
-      case 'Cit':
-        return 'Citizen'
-      case 'Med':
-        return 'Media Professional'
-      case 'Aca':
-        return 'Academic'
-      default:
-        return 'User'
+  // Fetch user types from API
+  useEffect(() => {
+    const fetchUserTypes = async () => {
+      try {
+        const response = await fetch('/api/usertypes')
+        if (response.ok) {
+          const data = await response.json()
+          setUserTypes(data)
+        } else {
+          console.error('Failed to fetch user types')
+        }
+      } catch (error) {
+        console.error('Error fetching user types:', error)
+      }
     }
+
+    fetchUserTypes()
+  }, [])
+
+  const getUserTypeLabel = (userTypeId: string | null) => {
+    if (!userTypeId) return 'Not specified'
+    
+    const userType = userTypes.find(ut => ut.id === userTypeId)
+    return userType?.label || 'Unknown'
   }
 
   return (

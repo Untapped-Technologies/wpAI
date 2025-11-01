@@ -18,7 +18,7 @@ interface UserProfileHeaderProps {
     basic_info: {
       display_name: string
       email: string
-      user_type_id: string
+      user_type_id: string | null
       bio: string
     }
     preferences: {

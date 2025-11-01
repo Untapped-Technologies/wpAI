@@ -5,9 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Save, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import ImageUpload from './image-upload'
 
@@ -16,7 +23,7 @@ interface UserProfileEditTabsProps {
     basic_info: {
       display_name: string
       email: string
-      user_type_id: string
+      user_type_id: string | null
       bio: string
     }
     preferences: {
@@ -37,6 +44,13 @@ interface UserProfileEditTabsProps {
   isLoading?: boolean
 }
 
+interface UserType {
+  id: string
+  label: string | null
+  description: string | null
+  country_code?: string | null
+}
+
 export default function UserProfileEditTabs({
   profileData,
   locationData,
@@ -45,11 +59,14 @@ export default function UserProfileEditTabs({
   onCancel,
   isLoading = false
 }: UserProfileEditTabsProps) {
+  const [userTypes, setUserTypes] = useState<UserType[]>([])
+  const [loadingUserTypes, setLoadingUserTypes] = useState(true)
+
   const [formData, setFormData] = useState({
     basic_info: {
       display_name: profileData.basic_info.display_name,
       email: profileData.basic_info.email,
-      user_type_id: profileData.basic_info.user_type_id,
+      user_type_id: profileData.basic_info.user_type_id || '',
       bio: profileData.basic_info.bio
     },
     preferences: {
@@ -63,6 +80,27 @@ export default function UserProfileEditTabs({
     },
     profile_picture: profileData.profile_picture
   })
+
+  // Fetch user types from API
+  useEffect(() => {
+    const fetchUserTypes = async () => {
+      try {
+        const response = await fetch('/api/usertypes')
+        if (response.ok) {
+          const data = await response.json()
+          setUserTypes(data)
+        } else {
+          console.error('Failed to fetch user types')
+        }
+      } catch (error) {
+        console.error('Error fetching user types:', error)
+      } finally {
+        setLoadingUserTypes(false)
+      }
+    }
+
+    fetchUserTypes()
+  }, [])
 
   const handleInputChange = (section: string, field: string, value: any) => {
     setFormData(prev => {
@@ -208,11 +246,44 @@ export default function UserProfileEditTabs({
                     id="email"
                     type="email"
                     value={formData.basic_info.email}
-                    onChange={e =>
-                      handleInputChange('basic_info', 'email', e.target.value)
-                    }
-                    placeholder="Enter your email"
+                    disabled
+                    readOnly
+                    className="bg-gray-50 cursor-not-allowed"
+                    placeholder="Email address"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Email address cannot be changed after registration
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="user_type_id">User Type</Label>
+                  <Select
+                    value={
+                      formData.basic_info.user_type_id
+                        ? formData.basic_info.user_type_id
+                        : '__none__'
+                    }
+                    onValueChange={value =>
+                      handleInputChange(
+                        'basic_info',
+                        'user_type_id',
+                        value === '__none__' ? null : value
+                      )
+                    }
+                    disabled={loadingUserTypes || isLoading}
+                  >
+                    <SelectTrigger id="user_type_id">
+                      <SelectValue placeholder="Select a user type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">None</SelectItem>
+                      {userTypes.map(userType => (
+                        <SelectItem key={userType.id} value={userType.id}>
+                          {userType.label || 'Unnamed Type'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div>

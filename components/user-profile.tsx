@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAuthUser } from '@/hooks/useAuthUser'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import {
   extractLocationData,
@@ -22,7 +23,7 @@ interface UserProfileData {
   basic_info: {
     display_name: string
     email: string
-    user_type_id: string
+    user_type_id: string | null
     bio: string
   }
   preferences: {
@@ -75,6 +76,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
     loading: profileLoading,
     error: profileError
   } = useUserProfile()
+  const { data: authUser } = useAuthUser()
 
   useEffect(() => {
     if (userProfile) {
@@ -116,24 +118,68 @@ export default function UserProfile({ userId }: UserProfileProps) {
     }
   }, [userProfile])
 
+  const createDefaultProfileData = (): UserProfileData => {
+    // Use email from userProfile first, then fallback to authUser
+    const email = userProfile?.email || authUser?.email || ''
+
+    return {
+      basic_info: {
+        display_name: '',
+        email: email,
+        user_type_id: userProfile?.user_type_id || null,
+        bio: ''
+      },
+      preferences: {
+        city: '',
+        state: '',
+        country: 'US',
+        postalCode: '',
+        smsNotifs: true,
+        emailNotifs: true,
+        avatar: ''
+      },
+      profile_picture: null
+    }
+  }
+
   const handleEditProfile = () => {
+    // If no profile data exists, create default data structure
+    if (!profileData) {
+      const defaultData = createDefaultProfileData()
+      setProfileData(defaultData)
+    }
     setIsEditing(true)
   }
 
   const handleCancelEdit = () => {
     setIsEditing(false)
+    // If we were editing a new profile and user cancels, reset profileData to null
+    if (!userProfile) {
+      setProfileData(null)
+    }
   }
 
   const handleSaveProfile = async (updatedData: any) => {
     setIsSaving(true)
     try {
       // Transform the nested data structure to match API expectations
-      const apiData = {
+      // Don't include user_type_id if it's an empty string (UUID fields can't be empty strings)
+      const apiData: any = {
         display_name: updatedData.basic_info?.display_name,
-        user_type_id: updatedData.basic_info?.user_type_id,
         bio: updatedData.basic_info?.bio,
         preferences: updatedData.preferences,
         profile_picture: updatedData.profile_picture
+      }
+
+      // Only include user_type_id if it's not empty (UUID fields can't be empty strings)
+      const userTypeId = updatedData.basic_info?.user_type_id
+      if (
+        userTypeId &&
+        userTypeId !== null &&
+        typeof userTypeId === 'string' &&
+        userTypeId.trim() !== ''
+      ) {
+        apiData.user_type_id = userTypeId
       }
 
       console.log('Sending profile data:', apiData)
@@ -194,6 +240,21 @@ export default function UserProfile({ userId }: UserProfileProps) {
     )
   }
 
+  // Render edit mode if editing (even if profileData was just created as default)
+  if (isEditing && profileData) {
+    return (
+      <UserProfileEditTabs
+        profileData={profileData}
+        locationData={locationData}
+        notificationData={notificationData}
+        onSave={handleSaveProfile}
+        onCancel={handleCancelEdit}
+        isLoading={isSaving}
+      />
+    )
+  }
+
+  // Show "no profile" message only if not editing
   if (!profileData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
@@ -210,20 +271,6 @@ export default function UserProfile({ userId }: UserProfileProps) {
           </CardContent>
         </Card>
       </div>
-    )
-  }
-
-  // Render edit mode if editing
-  if (isEditing && profileData) {
-    return (
-      <UserProfileEditTabs
-        profileData={profileData}
-        locationData={locationData}
-        notificationData={notificationData}
-        onSave={handleSaveProfile}
-        onCancel={handleCancelEdit}
-        isLoading={isSaving}
-      />
     )
   }
 

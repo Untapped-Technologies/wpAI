@@ -46,28 +46,48 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json()
+    // Explicitly exclude email from updates - email cannot be changed after registration
     const { display_name, user_type_id, bio, preferences, profile_picture } =
       body
 
+    // Check if profile exists to determine if we need to include email
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('user_id, email')
+      .eq('user_id', userId)
+      .maybeSingle()
+
     const updateData: any = {
+      user_id: userId,
       updated_at: new Date().toISOString()
     }
 
+    // Include email for new profiles (when creating)
+    if (!existingProfile) {
+      const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userId)
+      if (authUser?.user?.email) {
+        updateData.email = authUser.user.email
+      }
+    }
+
     if (display_name !== undefined) updateData.display_name = display_name
-    if (user_type_id !== undefined) updateData.user_type_id = user_type_id
+    // Only include user_type_id if it's provided and not an empty string (UUID fields can't be empty strings)
+    if (user_type_id !== undefined && user_type_id !== null && user_type_id !== '') {
+      updateData.user_type_id = user_type_id
+    }
     if (bio !== undefined) updateData.bio = bio
     if (preferences !== undefined) updateData.preferences = preferences
     if (profile_picture !== undefined)
       updateData.profile_picture = profile_picture
 
+    // Use upsert to create or update the profile
     const { data, error } = await supabaseAdmin
       .from('profiles')
-      .update(updateData)
-      .eq('user_id', userId)
+      .upsert(updateData, { onConflict: 'user_id' })
       .select()
 
     if (error) {
-      console.error('Error updating user profile:', error)
+      console.error('Error upserting user profile:', error)
       return new Response(
         JSON.stringify({
           success: false,
@@ -84,7 +104,7 @@ export async function PATCH(req: NextRequest) {
       return new Response(
         JSON.stringify({
           success: false,
-          message: 'Update failed - no rows affected'
+          message: 'Failed to save profile'
         }),
         {
           status: 500,
