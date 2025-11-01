@@ -48,11 +48,15 @@ export default function UserProfileSections({
   const { basic_info, preferences } = profileData
   const [userTypes, setUserTypes] = useState<UserType[]>([])
 
-  // Fetch user types from API
+  // Fetch user types from API filtered by country code
   useEffect(() => {
     const fetchUserTypes = async () => {
       try {
-        const response = await fetch('/api/usertypes')
+        // Get country code from user's preferences, default to 'US' if not set
+        const countryCode = preferences.country || 'US'
+        const url = `/api/usertypes?country_code=${encodeURIComponent(countryCode)}`
+        
+        const response = await fetch(url)
         if (response.ok) {
           const data = await response.json()
           setUserTypes(data)
@@ -65,7 +69,7 @@ export default function UserProfileSections({
     }
 
     fetchUserTypes()
-  }, [])
+  }, [preferences.country])
 
   const getUserTypeLabel = (userTypeId: string | null) => {
     if (!userTypeId) return 'Not specified'

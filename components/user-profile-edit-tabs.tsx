@@ -81,16 +81,25 @@ export default function UserProfileEditTabs({
     profile_picture: profileData.profile_picture
   })
 
-  // Fetch user types from API
+  // Fetch user types from API filtered by country code
   useEffect(() => {
     const fetchUserTypes = async () => {
       try {
-        const response = await fetch('/api/usertypes')
+        setLoadingUserTypes(true)
+        // Get country code from user's preferences, default to 'US' if not set
+        const countryCode = formData.preferences.country || 'US'
+        const url = `/api/usertypes?country_code=${encodeURIComponent(countryCode)}`
+        
+        console.log('Fetching user types with country:', countryCode)
+        const response = await fetch(url)
+        
         if (response.ok) {
           const data = await response.json()
-          setUserTypes(data)
+          console.log('User types fetched:', data)
+          setUserTypes(data || [])
         } else {
-          console.error('Failed to fetch user types')
+          const errorText = await response.text()
+          console.error('Failed to fetch user types:', response.status, errorText)
         }
       } catch (error) {
         console.error('Error fetching user types:', error)
@@ -100,7 +109,7 @@ export default function UserProfileEditTabs({
     }
 
     fetchUserTypes()
-  }, [])
+  }, [formData.preferences.country])
 
   const handleInputChange = (section: string, field: string, value: any) => {
     setFormData(prev => {
@@ -257,33 +266,50 @@ export default function UserProfileEditTabs({
                 </div>
                 <div>
                   <Label htmlFor="user_type_id">User Type</Label>
-                  <Select
-                    value={
-                      formData.basic_info.user_type_id
-                        ? formData.basic_info.user_type_id
-                        : '__none__'
-                    }
-                    onValueChange={value =>
-                      handleInputChange(
-                        'basic_info',
-                        'user_type_id',
-                        value === '__none__' ? null : value
-                      )
-                    }
-                    disabled={loadingUserTypes || isLoading}
-                  >
-                    <SelectTrigger id="user_type_id">
-                      <SelectValue placeholder="Select a user type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">None</SelectItem>
-                      {userTypes.map(userType => (
-                        <SelectItem key={userType.id} value={userType.id}>
-                          {userType.label || 'Unnamed Type'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {loadingUserTypes ? (
+                    <div className="h-10 w-full rounded-md border border-input bg-gray-50 flex items-center px-3 text-sm text-gray-500">
+                      Loading user types...
+                    </div>
+                  ) : (
+                    <Select
+                      value={
+                        formData.basic_info.user_type_id
+                          ? formData.basic_info.user_type_id
+                          : '__none__'
+                      }
+                      onValueChange={value =>
+                        handleInputChange(
+                          'basic_info',
+                          'user_type_id',
+                          value === '__none__' ? null : value
+                        )
+                      }
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger id="user_type_id">
+                        <SelectValue placeholder="Select a user type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">None</SelectItem>
+                        {userTypes.length > 0 ? (
+                          userTypes.map(userType => (
+                            <SelectItem key={userType.id} value={userType.id}>
+                              {userType.label || 'Unnamed Type'}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="__empty__" disabled>
+                            No user types available
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {!loadingUserTypes && userTypes.length === 0 && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      No user types found for your country. Please check your location settings.
+                    </p>
+                  )}
                 </div>
               </div>
               <div>
