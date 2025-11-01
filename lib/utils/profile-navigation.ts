@@ -15,7 +15,8 @@ export async function getProfileUrl(user: User | null): Promise<string> {
     const { isCandidate } = await getCandidateStatus()
     return isCandidate ? '/candidate-profile' : '/user/profile'
   } catch (error) {
-    console.error('Error checking user candidate status:', error)
+    // Silently fallback to user profile for any errors (expected for non-candidates)
+    // The API should handle all cases gracefully, but this is a safe fallback
     return '/user/profile'
   }
 }
@@ -50,7 +51,8 @@ export async function getCandidateStatusData(user: User | null): Promise<{
       await getCandidateStatus()
     return { isCandidate, approved, onboardingCompleted }
   } catch (error) {
-    console.error('Error checking candidate status:', error)
+    // Silently return default values for any errors (expected for non-candidates)
+    // The API should handle all cases gracefully, but this is a safe fallback
     return { isCandidate: false, approved: null, onboardingCompleted: null }
   }
 }

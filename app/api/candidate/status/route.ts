@@ -23,8 +23,24 @@ export async function GET(req: NextRequest) {
       return new Response(error.message, { status: 500 })
     }
 
+    // If no profile found, return default non-candidate status
     if (!data) {
-      return new Response('Profile not found', { status: 404 })
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            isCandidate: false,
+            onboardingCompleted: false,
+            onboardingCompletedAt: null,
+            approved: null,
+            userTypeId: null
+          }
+        }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     // Check if user is a candidate (ID: 3dad0f25-2b3b-491b-9e82-9f9e71adad6f)
