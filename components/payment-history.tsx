@@ -210,7 +210,11 @@ export default function PaymentHistory({ userId }: PaymentHistoryProps) {
               You haven't made any payments yet. Your payment history will
               appear here once you make a purchase.
             </p>
-            <Button onClick={() => (window.location.href = '/pricing')}>
+            <Button
+              onClick={() => {
+                window.dispatchEvent(new Event('open-upgrade-modal'))
+              }}
+            >
               View Pricing Plans
             </Button>
           </div>

@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     const formattedTransactions =
       transactions?.map(transaction => ({
         id: transaction.id,
-        amount: transaction.amount_cents / 100, // Convert cents to dollars
+        amount: transaction.amount / 100, // Convert cents to dollars
         currency: transaction.currency.toUpperCase(),
         status: transaction.status,
         paymentType: transaction.payment_type,
