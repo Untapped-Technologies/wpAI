@@ -43,19 +43,21 @@ export async function GET(req: NextRequest) {
     }
 
     // Transform the data to include formatted amounts and dates
+    // Note: amount is already stored in dollars (DECIMAL) in payment_history table
     const formattedTransactions =
       transactions?.map(transaction => ({
         id: transaction.id,
-        amount: transaction.amount / 100, // Convert cents to dollars
-        currency: transaction.currency.toUpperCase(),
+        plan_id: transaction.plan_id,
+        amount: typeof transaction.amount === 'number' 
+          ? transaction.amount 
+          : parseFloat(transaction.amount) || 0,
+        currency: (transaction.currency || 'USD').toUpperCase(),
         status: transaction.status,
         paymentType: transaction.payment_type,
-        productName: transaction.product_name,
-        productDescription: transaction.product_description,
         createdAt: transaction.created_at,
-        updatedAt: transaction.updated_at,
-        stripeSessionId: transaction.stripe_session_id,
-        stripePaymentIntentId: transaction.stripe_payment_intent_id
+        updatedAt: transaction.paid_at,
+        stripe_price_id: transaction.stripe_price_id,
+        stripePaymentId: transaction.stripe_payment_id
       })) || []
 
     return NextResponse.json({

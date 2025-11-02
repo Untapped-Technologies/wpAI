@@ -1,10 +1,10 @@
 type CurrencyFormatType = {
-  value: number | string;
-  country?: string;
-  formatType?: 'decimal' | 'currency' | 'percent';
-  currency?: string;
-  digits?: number;
-};
+  value: number | string
+  country?: string
+  formatType?: 'decimal' | 'currency' | 'percent'
+  currency?: string
+  digits?: number
+}
 
 /*
 country: Lookup country code to encode properly. Format en-US, en-GB, etc.
@@ -17,13 +17,13 @@ export function formatCurrency({
   currency = 'USD',
   digits = 2
 }: CurrencyFormatType): string {
-  const parsedValue = typeof value === 'string' ? parseFloat(value) : value;
+  const parsedValue = typeof value === 'string' ? parseFloat(value) : value
 
   return new Intl.NumberFormat(country, {
     style: formatType,
     currency,
-    minimumFractionDigits: digits,
-  }).format(parsedValue);
+    minimumFractionDigits: digits
+  }).format(parsedValue)
 }
 
 /*
@@ -35,10 +35,20 @@ export function formatNumber({
   formatType = 'decimal',
   digits = 2
 }: CurrencyFormatType): string {
-  const parsedValue = typeof value === 'string' ? parseFloat(value) : value;
+  const parsedValue = typeof value === 'string' ? parseFloat(value) : value
 
   return new Intl.NumberFormat(country, {
     style: formatType,
-    minimumFractionDigits: digits,
-  }).format(parsedValue);
+    minimumFractionDigits: digits
+  }).format(parsedValue)
+}
+
+export const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
