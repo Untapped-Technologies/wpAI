@@ -38,10 +38,11 @@ export function Chat({
   const [models, setModels] = useState<Model[] | undefined>(initialModels)
   const modelsLoadingRef = useRef(false)
 
-  // Load models on client side if not provided
+  // Load models on client side if not provided (non-blocking)
   useEffect(() => {
     if (!initialModels && !models && !modelsLoadingRef.current) {
       modelsLoadingRef.current = true
+      // Use requestIdleCallback if available, otherwise setTimeout for non-blocking load
       const loadModels = async () => {
         try {
           const response = await fetch('/config/models.json')
@@ -58,7 +59,13 @@ export function Chat({
           modelsLoadingRef.current = false
         }
       }
-      loadModels()
+      
+      // Defer model loading to avoid blocking initial render
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        requestIdleCallback(loadModels, { timeout: 2000 })
+      } else {
+        setTimeout(loadModels, 0)
+      }
     }
   }, [initialModels]) // Only depend on initialModels, not models state
 
@@ -76,6 +83,7 @@ export function Chat({
     addToolResult,
     reload
   } = useChat({
+    api: '/api/chat',
     initialMessages: savedMessages,
     id: CHAT_ID,
     body: {
@@ -88,7 +96,7 @@ export function Chat({
     onError: error => {
       // setOpen(true)
     },
-    sendExtraMessageFields: false, // Disable extra message fields,
+    sendExtraMessageFields: false, // Disable extra message fields
     experimental_throttle: 100
   })
 
