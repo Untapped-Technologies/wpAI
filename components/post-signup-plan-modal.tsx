@@ -75,9 +75,9 @@ export default function PostSignupPlanModal() {
         })
         const accessJson2: AccessResponse = await accessRes2.json()
 
-        if (!hasActivePaidSub(accessJson2)) {
-          setOpen(true)
-        }
+        // if (!hasActivePaidSub(accessJson2)) {
+        //   setOpen(true)
+        // }
       } catch {}
     }
     init()
