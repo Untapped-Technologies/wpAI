@@ -69,7 +69,8 @@ export async function getUserAccess(
     }
 
     // Evaluate trial expiry for joined subscription
-    const sub: any = accessData.user_subscriptions
+    const rawSub: any = accessData.user_subscriptions
+    const sub: any = Array.isArray(rawSub) ? rawSub[0] : rawSub
     let effectiveLevel = accessData.access_level as AccessLevel
     if (sub) {
       const expiredTrial = sub.trial_end
@@ -80,12 +81,13 @@ export async function getUserAccess(
         effectiveLevel = 'free'
       }
     }
-
     return {
       level: effectiveLevel,
       features: accessData.features || {},
       limits: accessData.limits || {},
-      subscription: accessData.user_subscriptions
+      subscription: Array.isArray(accessData.user_subscriptions)
+        ? accessData.user_subscriptions[0]
+        : accessData.user_subscriptions
     }
   } catch (error) {
     console.error('Error getting user access:', error)

@@ -1,14 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { supabaseAdmin } from '@/lib/supabase/supabaseAdmin'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-09-30.clover'
 })
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
 
 export async function POST(req: Request) {
   const sig = req.headers.get('stripe-signature')
@@ -55,7 +51,7 @@ export async function POST(req: Request) {
         ? invoice.subscription
         : (invoice.subscription?.id ?? null)
 
-    await supabase.from('payment_history').insert({
+    await supabaseAdmin.from('payment_history').insert({
       user_id: invoice.metadata?.user_id ?? null,
       plan_id: invoice.metadata?.plan_id ?? null,
       stripe_payment_id: paymentIntentId,
@@ -85,7 +81,7 @@ export async function POST(req: Request) {
   if (type === 'charge.refunded') {
     const charge = data.object as Stripe.Charge
 
-    await supabase.from('payment_history').insert({
+    await supabaseAdmin.from('payment_history').insert({
       stripe_payment_id: charge.id,
       amount: -charge.amount_refunded / 100,
       currency: charge.currency,
@@ -109,7 +105,7 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
 
     // Create user account in Supabase Auth
     const { data: authData, error: authError } =
-      await supabase.auth.admin.createUser({
+      await supabaseAdmin.auth.admin.createUser({
         email,
         password: password_hash, // Note: In production, you should hash this properly
         email_confirm: true, // Auto-confirm email since payment was successful
@@ -128,7 +124,7 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
     const userId = authData.user.id
 
     // Create user profile
-    const { error: profileError } = await supabase.from('profiles').insert({
+    const { error: profileError } = await supabaseAdmin.from('profiles').insert({
       user_id: userId,
       email: email,
       display_name: email.split('@')[0],
@@ -141,6 +137,36 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
       console.error('Profile creation error:', profileError)
     }
 
+    // Get subscription details if available
+    let currentPeriodStart = new Date().toISOString()
+    let currentPeriodEnd = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000
+    ).toISOString()
+
+    if (session.subscription) {
+      try {
+        const subscriptionId =
+          typeof session.subscription === 'string'
+            ? session.subscription
+            : (session.subscription as { id: string }).id
+
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+
+        // Access properties using bracket notation - Stripe Subscription has current_period_start and current_period_end
+        const periodStart = (subscription as any)['current_period_start'] as number | undefined
+        const periodEnd = (subscription as any)['current_period_end'] as number | undefined
+
+        if (periodStart) {
+          currentPeriodStart = new Date(periodStart * 1000).toISOString()
+        }
+        if (periodEnd) {
+          currentPeriodEnd = new Date(periodEnd * 1000).toISOString()
+        }
+      } catch (error) {
+        console.error('Error fetching subscription details:', error)
+      }
+    }
+
     // Create subscription record
     const subscriptionData = {
       user_id: userId,
@@ -149,21 +175,11 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
       stripe_subscription_id: session.subscription as string,
       stripe_price_id: session.metadata?.stripe_price_id || '',
       status: 'active',
-      current_period_start: session.subscription_details?.billing_cycle_anchor
-        ? new Date(
-            session.subscription_details.billing_cycle_anchor * 1000
-          ).toISOString()
-        : new Date().toISOString(),
-      current_period_end: session.subscription_details?.billing_cycle_anchor
-        ? new Date(
-            (session.subscription_details.billing_cycle_anchor +
-              30 * 24 * 60 * 60) *
-              1000
-          ).toISOString()
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      current_period_start: currentPeriodStart,
+      current_period_end: currentPeriodEnd
     }
 
-    const { error: subscriptionError } = await supabase
+    const { error: subscriptionError } = await supabaseAdmin
       .from('user_subscriptions')
       .insert(subscriptionData)
 
@@ -172,7 +188,7 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
     }
 
     // Record payment transaction
-    const { error: paymentError } = await supabase
+    const { error: paymentError } = await supabaseAdmin
       .from('payment_transactions')
       .insert({
         id: session.id,
@@ -203,15 +219,15 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
 // Helper function to handle subscription updates
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('user_subscriptions')
       .update({
         status: subscription.status,
         current_period_start: new Date(
-          subscription.current_period_start * 1000
+          ((subscription as any)['current_period_start'] as number) * 1000
         ).toISOString(),
         current_period_end: new Date(
-          subscription.current_period_end * 1000
+          ((subscription as any)['current_period_end'] as number) * 1000
         ).toISOString(),
         cancel_at_period_end: subscription.cancel_at_period_end,
         canceled_at: subscription.canceled_at
@@ -236,7 +252,7 @@ async function handleSubscriptionCancellation(
   subscription: Stripe.Subscription
 ) {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('user_subscriptions')
       .update({
         status: 'canceled',

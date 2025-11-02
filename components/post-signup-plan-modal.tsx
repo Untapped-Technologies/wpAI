@@ -290,3 +290,23 @@ export default function PostSignupPlanModal() {
     </Dialog>
   )
 }
+function setError(err: any) {
+  const message =
+    typeof err === 'string'
+      ? err
+      : (err?.message ?? String(err ?? 'An error occurred'))
+  // Log for debugging
+  console.error(message)
+  // Try to show a non-intrusive toast if the app exposes one, otherwise fallback to alert
+  try {
+    // @ts-ignore - some apps provide a global toast/notify helper
+    if (typeof (window as any).toast === 'function') {
+      // @ts-ignore
+      ;(window as any).toast(message, { type: 'error' })
+      return
+    }
+  } catch {}
+  if (typeof window !== 'undefined') {
+    alert(message)
+  }
+}

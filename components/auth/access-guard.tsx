@@ -16,6 +16,22 @@ import {
 
 type AccessLevel = 'free' | 'basic' | 'premium' | 'enterprise'
 
+interface Subscription {
+  status: string
+  current_period_end?: string
+  plan_id?: string
+  trial_end?: string | null
+  stripe_subscription_id?: string | null
+}
+
+interface UserAccessData {
+  access_level?: string
+  level?: string
+  features?: Record<string, boolean>
+  limits?: Record<string, unknown>
+  subscription?: Subscription | null
+}
+
 interface AccessGuardProps {
   children: React.ReactNode
   requiredLevel?: AccessLevel
@@ -33,7 +49,7 @@ export function AccessGuard({
 }: AccessGuardProps) {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
-  const [userAccess, setUserAccess] = useState<any>(null)
+  const [userAccess, setUserAccess] = useState<UserAccessData | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -49,7 +65,8 @@ export function AccessGuard({
         throw new Error(data.error || 'Failed to check access')
       }
 
-      setUserAccess(data)
+      const accessData = data as UserAccessData
+      setUserAccess(accessData)
 
       let access = true
 
@@ -62,14 +79,14 @@ export function AccessGuard({
           enterprise: 3
         }
 
-        const userLevel = data.access_level || 'free'
+        const userLevel = (accessData.access_level ?? accessData.level ?? 'free') as AccessLevel
         access =
           access && levelHierarchy[userLevel] >= levelHierarchy[requiredLevel]
       }
 
       // Check required feature
       if (requiredFeature) {
-        access = access && data.features?.[requiredFeature] === true
+        access = access && (accessData.features?.[requiredFeature] === true)
       }
 
       setHasAccess(access)
@@ -155,7 +172,7 @@ export function AccessGuard({
 
 // Hook for checking access in components
 export function useAccess() {
-  const [access, setAccess] = useState<any>(null)
+  const [access, setAccess] = useState<UserAccessData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -168,7 +185,7 @@ export function useAccess() {
       const data = await response.json()
 
       if (response.ok) {
-        setAccess(data)
+        setAccess(data as UserAccessData)
       }
     } catch (error) {
       console.error('Error fetching access:', error)
@@ -189,7 +206,7 @@ export function useAccess() {
       enterprise: 3
     }
 
-    const userLevel = access?.access_level || 'free'
+    const userLevel = (access?.access_level ?? 'free') as AccessLevel
     return levelHierarchy[userLevel] >= levelHierarchy[level]
   }
 

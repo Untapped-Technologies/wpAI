@@ -74,7 +74,7 @@ export default function UserProfileHeader({
     fetchAccess()
   }, [])
 
-  const getUserTypeLabel = (userTypeId: string) => {
+  const getUserTypeLabel = (userTypeId: string | null | undefined) => {
     switch (userTypeId) {
       case 'Pol':
         return 'Political Professional'

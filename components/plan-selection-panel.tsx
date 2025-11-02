@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { usePricing } from '@/hooks/usePricing'
@@ -96,7 +97,9 @@ export default function PlanSelectionPanel() {
       }
       window.location.href = json.url
     } catch (e: any) {
-      setError(e?.message || 'Checkout failed')
+      const errorMessage = e?.message || 'Checkout failed'
+      console.error('Checkout error:', errorMessage)
+      toast.error(errorMessage)
     } finally {
       setCheckoutLoading(null)
     }
