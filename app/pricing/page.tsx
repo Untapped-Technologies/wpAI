@@ -33,6 +33,8 @@ const Pricing = () => {
     loading: plansLoading,
     error: plansError
   } = usePricing(interval)
+  const { data: monthlyData } = usePricing('month')
+  const { data: annualData } = usePricing('annual')
 
   // Transform raw API data to DisplayPlan format
   const toDisplayPlan = (plan: any, idx: number): DisplayPlan => {
@@ -67,6 +69,44 @@ const Pricing = () => {
 
   const plans = rawData.map((p: any, i: number) => toDisplayPlan(p, i))
 
+  // Calculate savings percentage when annual is selected
+  const calculateSavingsPercentage = (): number | null => {
+    if (interval !== 'annual' || !monthlyData.length || !annualData.length) {
+      return null
+    }
+
+    // Match plans by name (assuming same plan names exist in both intervals)
+    const savings: number[] = []
+    
+    monthlyData.forEach((monthlyPlan: any) => {
+      const annualPlan = annualData.find(
+        (ap: any) => ap.name === monthlyPlan.name || ap.id === monthlyPlan.id
+      )
+      
+      if (annualPlan) {
+        const monthlyPrice = monthlyPlan.price_cents ?? 0
+        const annualPrice = annualPlan.price_cents ?? 0
+        
+        if (monthlyPrice > 0 && annualPrice > 0) {
+          const monthlyYearly = monthlyPrice * 12
+          const savingsAmount = monthlyYearly - annualPrice
+          const savingsPercent = (savingsAmount / monthlyYearly) * 100
+          if (savingsPercent > 0) {
+            savings.push(savingsPercent)
+          }
+        }
+      }
+    })
+
+    if (savings.length === 0) return null
+    
+    // Return average savings percentage
+    const avgSavings = savings.reduce((a, b) => a + b, 0) / savings.length
+    return Math.round(avgSavings)
+  }
+
+  const savingsPercentage = calculateSavingsPercentage()
+
   const handleCheckout = async (priceId: string, paymentType: string) => {
     setLoading(priceId)
     const res = await fetch('/api/checkout', {
@@ -87,7 +127,11 @@ const Pricing = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full">
       <AuthAwareNavigation />
       {/* Header Section */}
-      <PricingHeader interval={interval} setInterval={setInterval} />
+      <PricingHeader 
+        interval={interval} 
+        setInterval={setInterval} 
+        savingsPercentage={savingsPercentage}
+      />
 
       {/* Pricing Cards */}
       <section className="pt-20 pb-10 bg-slate-50">

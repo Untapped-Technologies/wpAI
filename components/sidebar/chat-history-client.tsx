@@ -10,6 +10,8 @@ import {
   SidebarMenu
 } from '@/components/ui/sidebar'
 import { Chat } from '@/lib/types'
+import { createClient } from '@/lib/supabase/client'
+import { User } from '@supabase/supabase-js'
 
 import { ChatHistorySkeleton } from './chat-history-skeleton'
 import { ChatMenuItem } from './chat-menu-item'
@@ -24,10 +26,37 @@ export function ChatHistoryClient() {
   const [chats, setChats] = useState<Chat[]>([])
   const [nextOffset, setNextOffset] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
   const loadMoreRef = useRef<HTMLDivElement>(null)
   const [isPending, startTransition] = useTransition()
 
+  // Check authentication before fetching chats
+  useEffect(() => {
+    const supabase = createClient()
+    const checkAuth = async () => {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser()
+      setUser(user)
+    }
+    checkAuth()
+
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
   const fetchInitialChats = useCallback(async () => {
+    // Don't fetch if user is not authenticated
+    if (!user) {
+      setIsLoading(false)
+      return
+    }
+
     setIsLoading(true)
     try {
       const response = await fetch(`/api/chats?offset=0&limit=20`)
@@ -46,7 +75,7 @@ export function ChatHistoryClient() {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [user])
 
   useEffect(() => {
     fetchInitialChats()

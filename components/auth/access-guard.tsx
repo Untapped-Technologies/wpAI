@@ -16,6 +16,23 @@ import {
 
 type AccessLevel = 'free' | 'basic' | 'premium' | 'enterprise'
 
+const ACCESS_LEVELS: readonly AccessLevel[] = [
+  'free',
+  'basic',
+  'premium',
+  'enterprise'
+] as const
+
+function isValidAccessLevel(value: unknown): value is AccessLevel {
+  return (
+    typeof value === 'string' && ACCESS_LEVELS.includes(value as AccessLevel)
+  )
+}
+
+function getAccessLevel(value: unknown): AccessLevel {
+  return isValidAccessLevel(value) ? value : 'free'
+}
+
 interface AccessGuardProps {
   children: React.ReactNode
   requiredLevel?: AccessLevel
@@ -62,7 +79,7 @@ export function AccessGuard({
           enterprise: 3
         }
 
-        const userLevel = data.access_level || 'free'
+        const userLevel = getAccessLevel(data.access_level ?? data.level)
         access =
           access && levelHierarchy[userLevel] >= levelHierarchy[requiredLevel]
       }
@@ -189,7 +206,7 @@ export function useAccess() {
       enterprise: 3
     }
 
-    const userLevel = access?.access_level || 'free'
+    const userLevel = getAccessLevel(access?.access_level)
     return levelHierarchy[userLevel] >= levelHierarchy[level]
   }
 

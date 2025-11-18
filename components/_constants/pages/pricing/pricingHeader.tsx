@@ -3,9 +3,10 @@ import { Switch } from '@/components/ui/switch'
 type Interval = {
   interval: string
   setInterval: any
+  savingsPercentage?: number | null
 }
 
-const PricingHeader = ({ interval, setInterval }: Interval) => {
+const PricingHeader = ({ interval, setInterval, savingsPercentage }: Interval) => {
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
@@ -31,11 +32,18 @@ const PricingHeader = ({ interval, setInterval }: Interval) => {
             }
             aria-label="Toggle annual billing"
           />
-          <span
-            className={`text-sm ${interval === 'annual' ? 'font-semibold text-slate-900' : 'text-slate-600'}`}
-          >
-            Annual
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-sm ${interval === 'annual' ? 'font-semibold text-slate-900' : 'text-slate-600'}`}
+            >
+              Annual
+            </span>
+            {interval === 'annual' && savingsPercentage !== null && savingsPercentage !== undefined && (
+              <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                Save {savingsPercentage}%
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </section>
