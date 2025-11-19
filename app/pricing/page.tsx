@@ -8,7 +8,9 @@ import { pricingEnterprise } from '@/components/_constants/pricing/pricingData'
 import AuthAwareFooter from '@/components/auth-aware-footer'
 import AuthAwareNavigation from '@/components/auth-aware-navigation'
 import { usePricing } from '@/hooks/usePricing'
-import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 type DisplayPlan = {
   id: string
@@ -28,6 +30,10 @@ const popular = 'basic'
 const Pricing = () => {
   const [loading, setLoading] = useState<string | null>(null)
   const [interval, setInterval] = useState<'month' | 'annual'>('month')
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+  const router = useRouter()
+  const supabase = createClient()
   const {
     data: rawData,
     loading: plansLoading,
@@ -35,6 +41,34 @@ const Pricing = () => {
   } = usePricing(interval)
   const { data: monthlyData } = usePricing('month')
   const { data: annualData } = usePricing('annual')
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const {
+          data: { user }
+        } = await supabase.auth.getUser()
+        setIsAuthenticated(!!user)
+      } catch (error) {
+        console.error('Error checking auth:', error)
+        setIsAuthenticated(false)
+      } finally {
+        setCheckingAuth(false)
+      }
+    }
+
+    checkAuth()
+
+    // Listen for auth changes
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session?.user)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
 
   // Transform raw API data to DisplayPlan format
   const toDisplayPlan = (plan: any, idx: number): DisplayPlan => {
@@ -108,20 +142,68 @@ const Pricing = () => {
   const savingsPercentage = calculateSavingsPercentage()
 
   const handleCheckout = async (priceId: string, paymentType: string) => {
-    setLoading(priceId)
-    const res = await fetch('/api/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ priceId, paymentType })
-    })
-    const data = await res.json()
-    if (res.ok && data.url) {
-      window.location.href = data.url // redirect to Stripe Checkout
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      // Store the selected plan in sessionStorage and redirect to signup
+      sessionStorage.setItem('selectedPlan', JSON.stringify({ priceId, paymentType }))
+      sessionStorage.setItem('redirectAfterAuth', '/pricing')
+      router.push('/auth/sign-up?redirect=pricing')
       return
     }
-    alert(`Checkout failed: ${data?.error || 'Unknown error'}`)
-    setLoading(null)
+
+    setLoading(priceId)
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId, paymentType })
+      })
+      const data = await res.json()
+      if (res.ok && data.url) {
+        window.location.href = data.url // redirect to Stripe Checkout
+        return
+      }
+      // If authentication error, redirect to signup
+      if (res.status === 401) {
+        sessionStorage.setItem('selectedPlan', JSON.stringify({ priceId, paymentType }))
+        sessionStorage.setItem('redirectAfterAuth', '/pricing')
+        router.push('/auth/sign-up?redirect=pricing')
+        return
+      }
+      alert(`Checkout failed: ${data?.error || 'Unknown error'}`)
+    } catch (error) {
+      console.error('Checkout error:', error)
+      alert('An error occurred during checkout. Please try again.')
+    } finally {
+      setLoading(null)
+    }
   }
+
+  // Handle redirect after authentication
+  useEffect(() => {
+    if (isAuthenticated && !checkingAuth) {
+      const selectedPlan = sessionStorage.getItem('selectedPlan')
+      const redirectAfterAuth = sessionStorage.getItem('redirectAfterAuth')
+      
+      if (selectedPlan && redirectAfterAuth === '/pricing') {
+        // Clear the stored data
+        sessionStorage.removeItem('selectedPlan')
+        sessionStorage.removeItem('redirectAfterAuth')
+        
+        // Auto-trigger checkout if plan was selected
+        try {
+          const plan = JSON.parse(selectedPlan)
+          // Use a small delay to ensure state is ready
+          setTimeout(() => {
+            handleCheckout(plan.priceId, plan.paymentType)
+          }, 100)
+        } catch (error) {
+          console.error('Error parsing selected plan:', error)
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, checkingAuth])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-full">

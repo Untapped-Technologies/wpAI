@@ -28,13 +28,17 @@ export async function POST(req: Request) {
 
   const { type, data } = event
 
-  // Handle successful checkout session completion (for registration flow)
+  // Handle successful checkout session completion
   if (type === 'checkout.session.completed') {
     const session = data.object as Stripe.Checkout.Session
 
-    // Check if this is a registration flow
+    // Check if this is a registration flow (new user signup with payment)
     if (session.metadata?.registration_flow === 'true') {
       await handleRegistrationCompletion(session)
+    }
+    // Check if this is an upgrade flow (existing user upgrading)
+    else if (session.metadata?.upgrade_flow === 'true') {
+      await handleUpgradeCompletion(session)
     }
   }
 
@@ -64,9 +68,11 @@ export async function POST(req: Request) {
       currency: invoice.currency,
       status: 'succeeded',
       invoice_url: invoice.hosted_invoice_url ?? null,
-      paid_at: invoice.status_transitions?.paid_at
-        ? new Date(invoice.status_transitions.paid_at * 1000).toISOString()
-        : new Date().toISOString()
+      paid_at:
+        invoice.status_transitions?.paid_at &&
+        typeof invoice.status_transitions.paid_at === 'number'
+          ? new Date(invoice.status_transitions.paid_at * 1000).toISOString()
+          : new Date().toISOString()
     })
   }
 
@@ -127,6 +133,8 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
 
     const userId = authData.user.id
 
+    console.log(`✅ Created Supabase user ${userId} for email ${email}`)
+
     // Create user profile
     const { error: profileError } = await supabase.from('profiles').insert({
       user_id: userId,
@@ -138,29 +146,86 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
     })
 
     if (profileError) {
-      console.error('Profile creation error:', profileError)
+      console.error('❌ Profile creation error:', profileError)
+    } else {
+      console.log(`✅ Created profile for user ${userId}`)
     }
 
-    // Create subscription record
+    // Ensure Stripe customer has user_id in metadata
+    if (session.customer) {
+      const customer = await stripe.customers.retrieve(
+        session.customer as string
+      )
+      if (customer && typeof customer === 'object' && !customer.deleted) {
+        if (
+          !customer.metadata?.user_id ||
+          customer.metadata.user_id !== userId
+        ) {
+          await stripe.customers.update(session.customer as string, {
+            metadata: {
+              ...customer.metadata,
+              user_id: userId,
+              supabase_user_id: userId
+            }
+          })
+          console.log(
+            `✅ Updated Stripe customer metadata with user_id ${userId}`
+          )
+        }
+      }
+    }
+
+    // Get subscription details from Stripe if subscription exists
+    let subscriptionPeriodStart = new Date().toISOString()
+    let subscriptionPeriodEnd = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000
+    ).toISOString()
+    let subscriptionStatus = 'active'
+    let priceId = session.metadata?.stripe_price_id || ''
+
+    if (session.subscription) {
+      try {
+        const subscriptionId =
+          typeof session.subscription === 'string'
+            ? session.subscription
+            : session.subscription.id || ''
+
+        if (subscriptionId) {
+          const subscriptionObj =
+            await stripe.subscriptions.retrieve(subscriptionId)
+          const periodStart = (subscriptionObj as any).current_period_start
+          const periodEnd = (subscriptionObj as any).current_period_end
+
+          if (periodStart && typeof periodStart === 'number') {
+            subscriptionPeriodStart = new Date(periodStart * 1000).toISOString()
+          }
+          if (periodEnd && typeof periodEnd === 'number') {
+            subscriptionPeriodEnd = new Date(periodEnd * 1000).toISOString()
+          }
+          subscriptionStatus = (subscriptionObj as any).status || 'active'
+          priceId =
+            (subscriptionObj as any).items?.data?.[0]?.price?.id || priceId
+        }
+      } catch (subError) {
+        console.error('Error retrieving subscription:', subError)
+        // Use defaults if subscription retrieval fails
+      }
+    }
+
+    // Create subscription record (ALWAYS linked to user_id)
     const subscriptionData = {
-      user_id: userId,
+      user_id: userId, // CRITICAL: Always link subscription to Supabase user
       plan_id: plan_id,
       stripe_customer_id: session.customer as string,
-      stripe_subscription_id: session.subscription as string,
-      stripe_price_id: session.metadata?.stripe_price_id || '',
-      status: 'active',
-      current_period_start: session.subscription_details?.billing_cycle_anchor
-        ? new Date(
-            session.subscription_details.billing_cycle_anchor * 1000
-          ).toISOString()
-        : new Date().toISOString(),
-      current_period_end: session.subscription_details?.billing_cycle_anchor
-        ? new Date(
-            (session.subscription_details.billing_cycle_anchor +
-              30 * 24 * 60 * 60) *
-              1000
-          ).toISOString()
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      stripe_subscription_id: session.subscription
+        ? typeof session.subscription === 'string'
+          ? session.subscription
+          : session.subscription.id || ''
+        : null,
+      stripe_price_id: priceId,
+      status: subscriptionStatus,
+      current_period_start: subscriptionPeriodStart,
+      current_period_end: subscriptionPeriodEnd
     }
 
     const { error: subscriptionError } = await supabase
@@ -168,15 +233,19 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
       .insert(subscriptionData)
 
     if (subscriptionError) {
-      console.error('Subscription creation error:', subscriptionError)
+      console.error('❌ Subscription creation error:', subscriptionError)
+    } else {
+      console.log(
+        `✅ Subscription created for user ${userId} with plan ${plan_id}`
+      )
     }
 
-    // Record payment transaction
+    // Record payment transaction (ALWAYS linked to user_id)
     const { error: paymentError } = await supabase
       .from('payment_transactions')
       .insert({
         id: session.id,
-        user_id: userId,
+        user_id: userId, // CRITICAL: Always link payment to Supabase user
         stripe_session_id: session.id,
         stripe_payment_intent_id: session.payment_intent as string,
         amount_cents: session.amount_total || 0,
@@ -184,12 +253,18 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
         status: 'succeeded',
         payment_type:
           session.mode === 'subscription' ? 'subscription' : 'payment',
-        product_name: session.metadata?.product_name || 'Subscription',
-        product_description: session.metadata?.product_description || ''
+        product_name:
+          session.metadata?.product_name || `Registration - ${plan_id}`,
+        product_description:
+          session.metadata?.product_description ||
+          'Account registration with subscription',
+        plan_id: plan_id // Add plan_id for better tracking
       })
 
     if (paymentError) {
-      console.error('Payment transaction creation error:', paymentError)
+      console.error('❌ Payment transaction creation error:', paymentError)
+    } else {
+      console.log(`✅ Payment transaction recorded for user ${userId}`)
     }
 
     console.log(
@@ -203,20 +278,28 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
 // Helper function to handle subscription updates
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   try {
+    const sub = subscription as any
+    const periodStart = sub.current_period_start
+    const periodEnd = sub.current_period_end
+    const canceledAt = sub.canceled_at
+
     const { error } = await supabase
       .from('user_subscriptions')
       .update({
-        status: subscription.status,
-        current_period_start: new Date(
-          subscription.current_period_start * 1000
-        ).toISOString(),
-        current_period_end: new Date(
-          subscription.current_period_end * 1000
-        ).toISOString(),
-        cancel_at_period_end: subscription.cancel_at_period_end,
-        canceled_at: subscription.canceled_at
-          ? new Date(subscription.canceled_at * 1000).toISOString()
-          : null,
+        status: sub.status || 'active',
+        current_period_start:
+          periodStart && typeof periodStart === 'number'
+            ? new Date(periodStart * 1000).toISOString()
+            : new Date().toISOString(),
+        current_period_end:
+          periodEnd && typeof periodEnd === 'number'
+            ? new Date(periodEnd * 1000).toISOString()
+            : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        cancel_at_period_end: sub.cancel_at_period_end || false,
+        canceled_at:
+          canceledAt && typeof canceledAt === 'number'
+            ? new Date(canceledAt * 1000).toISOString()
+            : null,
         updated_at: new Date().toISOString()
       })
       .eq('stripe_subscription_id', subscription.id)
@@ -228,6 +311,161 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     }
   } catch (error) {
     console.error('Error handling subscription update:', error)
+  }
+}
+
+// Helper function to handle upgrade completion
+async function handleUpgradeCompletion(session: Stripe.Checkout.Session) {
+  try {
+    const userId = session.metadata?.user_id
+    const planId = session.metadata?.plan_id
+
+    if (!userId || !planId) {
+      console.error('❌ Missing user_id or plan_id in upgrade metadata')
+      console.error('Session metadata:', session.metadata)
+      return
+    }
+
+    // CRITICAL: Verify user exists in Supabase before processing payment
+    const { data: user, error: userError } =
+      await supabase.auth.admin.getUserById(userId)
+    if (userError || !user) {
+      console.error(
+        `❌ User ${userId} not found in Supabase. Cannot process payment.`
+      )
+      console.error('User error:', userError)
+      return
+    }
+
+    console.log(
+      `✅ Verified user ${userId} exists in Supabase before processing upgrade`
+    )
+
+    // Get the subscription details from Stripe
+    const subscriptionId = session.subscription as string
+    if (!subscriptionId) {
+      console.error('No subscription ID in checkout session')
+      return
+    }
+
+    const subscriptionObj = await stripe.subscriptions.retrieve(subscriptionId)
+    const sub = subscriptionObj as any
+    const priceId = sub.items?.data?.[0]?.price?.id || ''
+
+    // Safely convert timestamps to dates
+    const periodStart = sub.current_period_start
+    const periodEnd = sub.current_period_end
+    const canceledAt = sub.canceled_at
+
+    // Update or create subscription record
+    const subscriptionData = {
+      user_id: userId,
+      plan_id: planId,
+      stripe_customer_id: session.customer as string,
+      stripe_subscription_id: subscriptionId,
+      stripe_price_id: priceId,
+      status: sub.status || 'active',
+      current_period_start:
+        periodStart && typeof periodStart === 'number'
+          ? new Date(periodStart * 1000).toISOString()
+          : new Date().toISOString(),
+      current_period_end:
+        periodEnd && typeof periodEnd === 'number'
+          ? new Date(periodEnd * 1000).toISOString()
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      cancel_at_period_end: sub.cancel_at_period_end || false,
+      canceled_at:
+        canceledAt && typeof canceledAt === 'number'
+          ? new Date(canceledAt * 1000).toISOString()
+          : null,
+      updated_at: new Date().toISOString()
+    }
+
+    // Check if subscription record exists
+    const { data: existingSubscription } = await supabase
+      .from('user_subscriptions')
+      .select('id')
+      .eq('user_id', userId)
+      .single()
+
+    if (existingSubscription) {
+      // Update existing subscription
+      const { error: updateError } = await supabase
+        .from('user_subscriptions')
+        .update(subscriptionData)
+        .eq('user_id', userId)
+
+      if (updateError) {
+        console.error('Error updating subscription:', updateError)
+      } else {
+        console.log(
+          `✅ Subscription updated for user ${userId} to plan ${planId}`
+        )
+      }
+    } else {
+      // Create new subscription record
+      const { error: insertError } = await supabase
+        .from('user_subscriptions')
+        .insert(subscriptionData)
+
+      if (insertError) {
+        console.error('Error creating subscription:', insertError)
+      } else {
+        console.log(
+          `✅ Subscription created for user ${userId} with plan ${planId}`
+        )
+      }
+    }
+
+    // Record payment transaction (ALWAYS linked to user_id)
+    const { error: paymentError } = await supabase
+      .from('payment_transactions')
+      .insert({
+        id: session.id,
+        user_id: userId, // CRITICAL: Always link payment to Supabase user
+        stripe_session_id: session.id,
+        stripe_payment_intent_id: session.payment_intent as string,
+        amount_cents: session.amount_total || 0,
+        currency: session.currency || 'usd',
+        status: 'succeeded',
+        payment_type:
+          session.mode === 'subscription' ? 'subscription' : 'payment',
+        product_name: `Upgrade to ${planId}`,
+        product_description: `Subscription upgrade`,
+        plan_id: planId // Add plan_id for better tracking
+      })
+
+    if (paymentError) {
+      console.error('❌ Payment transaction creation error:', paymentError)
+    } else {
+      console.log(`✅ Payment transaction recorded for user ${userId}`)
+    }
+
+    // Ensure Stripe customer metadata is up to date
+    if (session.customer) {
+      const customer = await stripe.customers.retrieve(
+        session.customer as string
+      )
+      if (customer && typeof customer === 'object' && !customer.deleted) {
+        if (
+          !customer.metadata?.user_id ||
+          customer.metadata.user_id !== userId
+        ) {
+          await stripe.customers.update(session.customer as string, {
+            metadata: {
+              ...customer.metadata,
+              user_id: userId,
+              supabase_user_id: userId
+            }
+          })
+          console.log(
+            `✅ Updated Stripe customer metadata with user_id ${userId}`
+          )
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error handling upgrade completion:', error)
   }
 }
 

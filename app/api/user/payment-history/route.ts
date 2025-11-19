@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
     // Fetch payment transactions for the user
     const { data: transactions, error } = await supabaseAdmin
-      .from('payment_history')
+      .from('payment_transactions')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -43,21 +43,22 @@ export async function GET(req: NextRequest) {
     }
 
     // Transform the data to include formatted amounts and dates
-    // Note: amount is already stored in dollars (DECIMAL) in payment_history table
+    // Note: amount_cents is stored in cents, convert to dollars
     const formattedTransactions =
       transactions?.map(transaction => ({
         id: transaction.id,
-        plan_id: transaction.plan_id,
-        amount: typeof transaction.amount === 'number' 
-          ? transaction.amount 
-          : parseFloat(transaction.amount) || 0,
+        plan_id: transaction.plan_id || null,
+        amount: transaction.amount_cents ? transaction.amount_cents / 100 : 0,
         currency: (transaction.currency || 'USD').toUpperCase(),
         status: transaction.status,
         paymentType: transaction.payment_type,
         createdAt: transaction.created_at,
-        updatedAt: transaction.paid_at,
-        stripe_price_id: transaction.stripe_price_id,
-        stripePaymentId: transaction.stripe_payment_id
+        updatedAt: transaction.updated_at,
+        stripe_price_id: transaction.stripe_price_id || null,
+        stripePaymentId: transaction.stripe_payment_intent_id,
+        stripeSessionId: transaction.stripe_session_id,
+        productName: transaction.product_name,
+        productDescription: transaction.product_description
       })) || []
 
     return NextResponse.json({

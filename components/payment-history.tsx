@@ -1,9 +1,6 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import PaymentCardHeader from './_constants/pages/user/payment/paymentCardHeader'
 import PaymentLoading from './_constants/pages/user/payment/paymentLoading'
@@ -11,7 +8,8 @@ import PaymentNoTransactions from './_constants/pages/user/payment/paymentNoTran
 import PaymentTransacations from './_constants/pages/user/payment/paymentTransactions'
 import PaymentTryAgain from './_constants/pages/user/payment/paymentTryAgain'
 
-interface PaymentTransaction {
+
+export interface PaymentTransaction {
   id: string
   amount: number
   currency: string
@@ -23,51 +21,23 @@ interface PaymentTransaction {
   updatedAt?: string
   stripePaymentId?: string
   stripePaymentIntentId?: string
+  productName?: string
+  productDescription?: string
 }
 
 interface PaymentHistoryProps {
-  userId: string
+  transactions: PaymentTransaction[]
+  loading: boolean
+  error: string | null
+  onRefresh: () => void
 }
 
-export default function PaymentHistory({ userId }: PaymentHistoryProps) {
-  const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
-
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetchPaymentHistory()
-  }, [userId])
-
-  const fetchPaymentHistory = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch('/api/user/payment-history')
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch payment history')
-      }
-
-      const data = await response.json()
-
-      if (data.success) {
-        setTransactions(data.transactions)
-        if (data.message) {
-          console.log(data.message)
-        }
-      } else {
-        throw new Error(data.error || 'Failed to fetch payment history')
-      }
-    } catch (err) {
-      console.error('Error fetching payment history:', err)
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch payment history'
-      )
-      toast.error('Failed to load payment history')
-    } finally {
-      setLoading(false)
-    }
-  }
+export default function PaymentHistory({
+  transactions,
+  loading,
+  error,
+  onRefresh
+}: PaymentHistoryProps) {
 
   const handleDownloadReceipt = async (transaction: PaymentTransaction) => {
     try {
@@ -79,6 +49,39 @@ export default function PaymentHistory({ userId }: PaymentHistoryProps) {
     }
   }
 
+  const handleSyncStripe = async () => {
+    try {
+      toast.info('Syncing payment data from Stripe...')
+
+      const response = await fetch('/api/user/sync-stripe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast.success(
+          `Sync completed! ${data.subscriptionsSynced} subscriptions, ${data.paymentsSynced} payments synced.`
+        )
+        // Refresh payment history after sync
+        setTimeout(() => {
+          onRefresh()
+          // Dispatch events to refresh other components
+          window.dispatchEvent(new CustomEvent('payment-success'))
+          window.dispatchEvent(new CustomEvent('sync-complete'))
+        }, 1000)
+      } else {
+        throw new Error(data.error || 'Sync failed')
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sync'
+      toast.error(`Sync failed: ${errorMessage}`)
+    }
+  }
+
   if (loading) {
     return <PaymentLoading />
   }
@@ -86,47 +89,24 @@ export default function PaymentHistory({ userId }: PaymentHistoryProps) {
   if (error) {
     return (
       <PaymentTryAgain
-        fetchPaymentHistory={fetchPaymentHistory}
+        fetchPaymentHistory={onRefresh}
         error={error}
       />
-    )
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'succeeded':
-        return <CheckCircle className="w-4 h-4 text-green-600" />
-      case 'failed':
-        return <XCircle className="w-4 h-4 text-red-600" />
-      case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-600" />
-      case 'canceled':
-      case 'refunded':
-        return <AlertCircle className="w-4 h-4 text-gray-600" />
-      default:
-        return <Clock className="w-4 h-4 text-gray-600" />
-    }
-  }
-
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      succeeded: 'default',
-      failed: 'destructive',
-      pending: 'secondary',
-      canceled: 'outline',
-      refunded: 'outline'
-    } as const
-
-    return (
-      <Badge variant={variants[status as keyof typeof variants] || 'outline'}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </Badge>
     )
   }
 
   return (
     <Card className="bg-white border-0 shadow-white">
       <PaymentCardHeader transactions={transactions} />
+      <div className="px-6 pt-4 pb-2 flex justify-end">
+        <button
+          onClick={handleSyncStripe}
+          disabled={loading}
+          className="text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Syncing...' : 'Sync from Stripe'}
+        </button>
+      </div>
       <CardContent>
         {transactions.length === 0 ? (
           <PaymentNoTransactions />

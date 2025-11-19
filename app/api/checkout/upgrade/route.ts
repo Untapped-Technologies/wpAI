@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Get user's current subscription
+    // Get user's current subscription and profile
     const supabase = await createClient()
     const { data: subscription } = await supabase
       .from('user_subscriptions')
@@ -42,16 +42,87 @@ export async function POST(req: NextRequest) {
       .eq('status', 'active')
       .single()
 
-    if (!subscription?.stripe_customer_id) {
+    // Get user email for Stripe customer creation if needed
+    const { data: userData } = await supabase.auth.getUser()
+    const userEmail = userData?.user?.email
+
+    if (!userEmail) {
       return NextResponse.json(
-        { error: 'No active subscription found' },
+        { error: 'User email not found' },
         { status: 400 }
       )
     }
 
+    let stripeCustomerId = subscription?.stripe_customer_id
+
+    // If user doesn't have a Stripe customer ID, create one
+    if (!stripeCustomerId) {
+      // Check if a Stripe customer already exists for this email
+      const existingCustomers = await stripe.customers.list({
+        email: userEmail,
+        limit: 1
+      })
+
+      if (existingCustomers.data.length > 0) {
+        stripeCustomerId = existingCustomers.data[0].id
+        // Update subscription with the Stripe customer ID
+        await supabase
+          .from('user_subscriptions')
+          .update({ stripe_customer_id: stripeCustomerId })
+          .eq('user_id', userId)
+      } else {
+        // Create new Stripe customer with user_id in metadata (REQUIRED for linking)
+        const customer = await stripe.customers.create({
+          email: userEmail,
+          metadata: {
+            user_id: userId, // CRITICAL: Always include user_id to link to Supabase
+            supabase_user_id: userId, // Redundant but explicit
+            plan_id: planId
+          }
+        })
+        stripeCustomerId = customer.id
+
+        // Update or create subscription record with Stripe customer ID
+        if (subscription) {
+          await supabase
+            .from('user_subscriptions')
+            .update({ stripe_customer_id: stripeCustomerId })
+            .eq('user_id', userId)
+        } else {
+          // Create subscription record if it doesn't exist
+          await supabase.from('user_subscriptions').insert({
+            user_id: userId,
+            plan_id: 'free', // Default to free if no subscription exists
+            stripe_customer_id: stripeCustomerId,
+            status: 'active',
+            current_period_start: new Date().toISOString(),
+            current_period_end: new Date(
+              Date.now() + 365 * 24 * 60 * 60 * 1000
+            ).toISOString()
+          })
+        }
+      }
+    } else {
+      // If customer exists, ensure metadata has user_id
+      const customer = await stripe.customers.retrieve(stripeCustomerId)
+      if (customer && typeof customer === 'object' && !customer.deleted) {
+        const needsUpdate = !customer.metadata?.user_id || customer.metadata.user_id !== userId
+        if (needsUpdate) {
+          await stripe.customers.update(stripeCustomerId, {
+            metadata: {
+              ...customer.metadata,
+              user_id: userId,
+              supabase_user_id: userId
+            }
+          })
+          console.log(`✅ Updated Stripe customer ${stripeCustomerId} with user_id ${userId}`)
+        }
+      }
+    }
+
     // Create checkout session for upgrade
     const session = await stripe.checkout.sessions.create({
-      customer: subscription.stripe_customer_id,
+      customer: stripeCustomerId,
       line_items: [
         {
           price: priceId,

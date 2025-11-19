@@ -13,6 +13,13 @@ import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import MembershipInfo from './_constants/pages/user/membershipInfo'
 
+interface PlanInfo {
+  planId?: string
+  stripePriceId?: string
+  productName?: string
+  productDescription?: string
+}
+
 interface UserProfileHeaderProps {
   profileData: {
     basic_info: {
@@ -33,12 +40,15 @@ interface UserProfileHeaderProps {
     profile_picture?: string | null
   }
   onEditProfile: () => void
+  planInfo?: PlanInfo | null
 }
 
 export default function UserProfileHeader({
   profileData,
-  onEditProfile
+  onEditProfile,
+  planInfo
 }: UserProfileHeaderProps) {
+  console.log('🚀 ~ UserProfileHeader ~ planInfo:', planInfo)
   const { basic_info, preferences } = profileData
 
   const [membership, setMembership] = useState<string>('free')
@@ -47,34 +57,63 @@ export default function UserProfileHeader({
   const [features, setFeatures] = useState<Record<string, any>>({})
   const [limits, setLimits] = useState<Record<string, any>>({})
 
-  useEffect(() => {
-    const fetchAccess = async () => {
-      try {
-        const res = await fetch('/api/user/access', { cache: 'no-store' })
-        const data = await res.json()
-        const level = data?.level || data?.access_level || 'free'
-        setMembership(level)
-        setFeatures(data?.features || {})
-        setLimits(data?.limits || {})
-        const sub = data?.subscription
-        const paid = !!sub?.stripe_subscription_id
-        setHasPaidSub(paid)
-        if (sub?.trial_end && !paid) {
-          const end = new Date(sub.trial_end).getTime()
-          const msLeft = end - Date.now()
-          const days = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)))
-          setTrialDaysLeft(days)
-        } else {
-          setTrialDaysLeft(null)
-        }
-      } catch {
-        // noop
+  const fetchAccess = async () => {
+    try {
+      const res = await fetch('/api/user/access', { cache: 'no-store' })
+      const data = await res.json()
+      const level = data?.level || data?.access_level || 'free'
+      setMembership(level)
+      setFeatures(data?.features || {})
+      setLimits(data?.limits || {})
+      const sub = data?.subscription
+      const paid = !!sub?.stripe_subscription_id
+      setHasPaidSub(paid)
+      if (sub?.trial_end && !paid) {
+        const end = new Date(sub.trial_end).getTime()
+        const msLeft = end - Date.now()
+        const days = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)))
+        setTrialDaysLeft(days)
+      } else {
+        setTrialDaysLeft(null)
       }
+    } catch {
+      // noop
     }
+  }
+
+  useEffect(() => {
     fetchAccess()
   }, [])
 
-  const getUserTypeLabel = (userTypeId: string) => {
+  // Listen for payment success event to refresh membership
+  useEffect(() => {
+    const handlePaymentSuccess = () => {
+      // Refresh access data after successful payment or sync
+      setTimeout(() => {
+        fetchAccess()
+      }, 2000) // Wait a bit for sync/webhook to process
+    }
+
+    window.addEventListener('payment-success', handlePaymentSuccess)
+
+    // Also listen for sync completion
+    const handleSyncComplete = () => {
+      setTimeout(() => {
+        fetchAccess()
+      }, 2000)
+    }
+
+    window.addEventListener('sync-complete', handleSyncComplete)
+
+    return () => {
+      window.removeEventListener('payment-success', handlePaymentSuccess)
+      window.removeEventListener('sync-complete', handleSyncComplete)
+    }
+  }, [])
+
+  const getUserTypeLabel = (userTypeId: string | null) => {
+    if (!userTypeId) return 'Not specified'
+    
     switch (userTypeId) {
       case 'Pol':
         return 'Political Professional'
@@ -136,6 +175,7 @@ export default function UserProfileHeader({
                 trialDaysLeft={trialDaysLeft}
                 features={features}
                 limits={limits}
+                planInfo={planInfo}
               />
             </div>
           </div>

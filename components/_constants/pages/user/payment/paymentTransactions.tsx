@@ -69,7 +69,7 @@ const PaymentTransacations = ({
               </TableCell>
               <TableCell>
                 <span className="font-semibold">
-                  {formatCurrency({ value: transaction.amount / 100 })}
+                  {formatCurrency({ value: transaction.amount })}
                 </span>
                 <span className="text-xs text-muted-foreground ml-1">
                   {transaction.currency}

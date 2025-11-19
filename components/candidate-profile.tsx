@@ -16,7 +16,9 @@ import CandidateProfileHeader from './candidate-profile-header'
 import CandidateProfileLocked from './candidate-profile-locked'
 import CandidateProfileSections from './candidate-profile-sections'
 import CandidatePublicProfile from './candidate-public-profile'
-import PaymentHistory from './payment-history'
+import PaymentHistory, {
+  PaymentTransaction
+} from './payment-history'
 import PlanSelectionPanel from './plan-selection-panel'
 
 interface CandidateProfileData {
@@ -60,6 +62,9 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
   const [isPublicView, setIsPublicView] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
+  const [paymentLoading, setPaymentLoading] = useState(false)
+  const [paymentError, setPaymentError] = useState<string | null>(null)
   const router = useRouter()
 
   const TABS = [
@@ -86,6 +91,80 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
   useEffect(() => {
     fetchCandidateProfile()
   }, [userId])
+
+  // Fetch payment history
+  useEffect(() => {
+    fetchPaymentHistory()
+  }, [userId])
+
+  // Listen for payment success event to refresh
+  useEffect(() => {
+    const handlePaymentSuccess = () => {
+      // Refresh payment history after successful payment or sync
+      setTimeout(() => {
+        fetchPaymentHistory()
+      }, 2000) // Wait a bit for webhook/sync to process
+    }
+
+    window.addEventListener('payment-success', handlePaymentSuccess)
+    return () => {
+      window.removeEventListener('payment-success', handlePaymentSuccess)
+    }
+  }, [])
+
+  const fetchPaymentHistory = async () => {
+    try {
+      setPaymentLoading(true)
+      setPaymentError(null)
+      const response = await fetch('/api/user/payment-history')
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch payment history')
+      }
+
+      const data = await response.json()
+
+      if (data.success) {
+        setTransactions(data.transactions || [])
+        if (data.message) {
+          console.log(data.message)
+        }
+      } else {
+        throw new Error(data.error || 'Failed to fetch payment history')
+      }
+    } catch (err) {
+      console.error('Error fetching payment history:', err)
+      setPaymentError(
+        err instanceof Error ? err.message : 'Failed to fetch payment history'
+      )
+      toast.error('Failed to load payment history')
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
+  // Extract current plan info from transactions
+  const getCurrentPlanInfo = () => {
+    // Find the most recent successful subscription transaction
+    const subscriptionTransaction = transactions
+      .filter(
+        t =>
+          t.paymentType === 'subscription' &&
+          t.status === 'succeeded' &&
+          t.plan_id
+      )
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
+
+    if (subscriptionTransaction) {
+      return {
+        planId: subscriptionTransaction.plan_id,
+        stripePriceId: subscriptionTransaction.stripe_price_id,
+        productName: subscriptionTransaction.productName,
+        productDescription: subscriptionTransaction.productDescription
+      }
+    }
+    return null
+  }
 
   const fetchCandidateProfile = async () => {
     try {
@@ -434,6 +513,7 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
           onEditProfile={handleEditProfile}
           onTogglePublicView={handleTogglePublicView}
           isPublicView={isPublicView}
+          planInfo={getCurrentPlanInfo()}
         />
 
         <div className="flex gap-8 mt-6">
@@ -486,7 +566,14 @@ export default function CandidateProfile({ userId }: CandidateProfileProps) {
                 </CardContent>
               </Card>
             )}
-            {activeTab === 'payments' && <PaymentHistory userId={userId} />}
+            {activeTab === 'payments' && (
+              <PaymentHistory
+                transactions={transactions}
+                loading={paymentLoading}
+                error={paymentError}
+                onRefresh={fetchPaymentHistory}
+              />
+            )}
             {activeTab === 'upgrade' && (
               <Card className="bg-white border-0 shadow-none">
                 <CardHeader>

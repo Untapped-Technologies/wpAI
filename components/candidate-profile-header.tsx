@@ -16,6 +16,13 @@ import {
   Share2
 } from 'lucide-react'
 
+interface PlanInfo {
+  planId?: string
+  stripePriceId?: string
+  productName?: string
+  productDescription?: string
+}
+
 interface CandidateProfileHeaderProps {
   profileData: {
     basic_info: {
@@ -34,13 +41,15 @@ interface CandidateProfileHeaderProps {
   onEditProfile: () => void
   onTogglePublicView: () => void
   isPublicView: boolean
+  planInfo?: PlanInfo | null
 }
 
 export default function CandidateProfileHeader({
   profileData,
   onEditProfile,
   onTogglePublicView,
-  isPublicView
+  isPublicView,
+  planInfo
 }: CandidateProfileHeaderProps) {
   const getStatusBadge = () => {
     if (!profileData.onboarding_completed) {
