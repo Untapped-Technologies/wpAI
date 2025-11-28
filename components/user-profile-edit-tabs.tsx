@@ -13,13 +13,10 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { formatPhoneNumberAsTyping, stripPhoneNumber } from '@/lib/utils/phone'
 import { Save, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import {
-  formatPhoneNumberAsTyping,
-  stripPhoneNumber
-} from '@/lib/utils/phone'
 import ImageUpload from './image-upload'
 
 interface UserProfileEditTabsProps {
@@ -101,17 +98,21 @@ export default function UserProfileEditTabs({
         // Get country code from user's preferences, default to 'US' if not set
         const countryCode = formData.preferences.country || 'US'
         const url = `/api/usertypes?country_code=${encodeURIComponent(countryCode)}`
-        
+
         console.log('Fetching user types with country:', countryCode)
         const response = await fetch(url)
-        
+
         if (response.ok) {
           const data = await response.json()
           console.log('User types fetched:', data)
           setUserTypes(data || [])
         } else {
           const errorText = await response.text()
-          console.error('Failed to fetch user types:', response.status, errorText)
+          console.error(
+            'Failed to fetch user types:',
+            response.status,
+            errorText
+          )
         }
       } catch (error) {
         console.error('Error fetching user types:', error)
@@ -199,7 +200,7 @@ export default function UserProfileEditTabs({
     // Format the display value as user types
     const formatted = formatPhoneNumberAsTyping(value)
     setPhoneDisplayValue(formatted)
-    
+
     // Store only digits in formData
     const digitsOnly = stripPhoneNumber(value)
     handleInputChange('basic_info', 'phone_number', digitsOnly)
@@ -348,7 +349,8 @@ export default function UserProfileEditTabs({
                   )}
                   {!loadingUserTypes && userTypes.length === 0 && (
                     <p className="text-xs text-amber-600 mt-1">
-                      No user types found for your country. Please check your location settings.
+                      No user types found for your country. Please check your
+                      location settings.
                     </p>
                   )}
                 </div>

@@ -251,7 +251,9 @@ export default function UserProfile({ userId }: UserProfileProps) {
       // Strip phone number formatting - store only digits
       const apiData: any = {
         display_name: updatedData.basic_info?.display_name,
-        phone_number: stripPhoneNumber(updatedData.basic_info?.phone_number || ''),
+        phone_number: stripPhoneNumber(
+          updatedData.basic_info?.phone_number || ''
+        ),
         bio: updatedData.basic_info?.bio,
         preferences: updatedData.preferences,
         profile_picture: updatedData.profile_picture
@@ -290,7 +292,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
         throw new Error(result.message || 'Failed to save profile')
       }
 
-      toast.success('Profile updated successfully!')
+      toast.success('Profile saved successfully!')
       setProfileData(updatedData)
       setIsEditing(false)
 
@@ -300,9 +302,6 @@ export default function UserProfile({ userId }: UserProfileProps) {
           invalidateUserProfileCache()
         }
       )
-
-      // Navigate to new prompt screen after successful profile update
-      router.push('/newprompt')
     } catch (error) {
       console.error('Error saving profile:', error)
       toast.error(

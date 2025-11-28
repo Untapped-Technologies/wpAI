@@ -8,9 +8,9 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
+import { formatPhoneNumberForDisplay } from '@/lib/utils/phone'
 import { Bell, MapPin, Settings, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { formatPhoneNumberForDisplay } from '@/lib/utils/phone'
 
 interface UserProfileSectionsProps {
   profileData: {
@@ -57,7 +57,7 @@ export default function UserProfileSections({
         // Get country code from user's preferences, default to 'US' if not set
         const countryCode = preferences.country || 'US'
         const url = `/api/usertypes?country_code=${encodeURIComponent(countryCode)}`
-        
+
         const response = await fetch(url)
         if (response.ok) {
           const data = await response.json()
@@ -75,7 +75,7 @@ export default function UserProfileSections({
 
   const getUserTypeLabel = (userTypeId: string | null) => {
     if (!userTypeId) return 'Not specified'
-    
+
     const userType = userTypes.find(ut => ut.id === userTypeId)
     return userType?.label || 'Unknown'
   }
