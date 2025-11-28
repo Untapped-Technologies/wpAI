@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { usePricing } from '@/hooks/usePricing'
+import { toast } from 'sonner'
 
 type DisplayPlan = {
   id: string
@@ -96,7 +97,7 @@ export default function PlanSelectionPanel() {
       }
       window.location.href = json.url
     } catch (e: any) {
-      setError(e?.message || 'Checkout failed')
+      toast.error(e?.message || 'Checkout failed')
     } finally {
       setCheckoutLoading(null)
     }

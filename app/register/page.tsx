@@ -1,6 +1,6 @@
 import AuthAwareFooter from '@/components/auth-aware-footer'
 import AuthAwareNavigation from '@/components/auth-aware-navigation'
-import RegistrationFlow from '@/components/auth/registration-flow'
+import { RegistrationFlow } from '@/components/auth/registration-flow'
 
 export default function RegisterPage() {
   return (

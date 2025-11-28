@@ -12,6 +12,7 @@ import {
   extractLocationData,
   extractNotificationData
 } from '@/lib/utils/debugPreferences'
+import { stripPhoneNumber } from '@/lib/utils/phone'
 import { Clock, CreditCard, User } from 'lucide-react'
 import PaymentHistory, { PaymentTransaction } from './payment-history'
 import PlanSelectionPanel from './plan-selection-panel'
@@ -23,6 +24,7 @@ interface UserProfileData {
   basic_info: {
     display_name: string
     email: string
+    phone_number: string
     user_type_id: string | null
     bio: string
   }
@@ -88,6 +90,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
         basic_info: {
           display_name: userProfile.display_name || '',
           email: userProfile.email || '',
+          phone_number: userProfile.phone_number || '',
           user_type_id: userProfile.user_type_id || '',
           bio: userProfile.bio || ''
         },
@@ -206,6 +209,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
       basic_info: {
         display_name: '',
         email: email,
+        phone_number: '',
         user_type_id: userProfile?.user_type_id || null,
         bio: ''
       },
@@ -244,8 +248,10 @@ export default function UserProfile({ userId }: UserProfileProps) {
     try {
       // Transform the nested data structure to match API expectations
       // Don't include user_type_id if it's an empty string (UUID fields can't be empty strings)
+      // Strip phone number formatting - store only digits
       const apiData: any = {
         display_name: updatedData.basic_info?.display_name,
+        phone_number: stripPhoneNumber(updatedData.basic_info?.phone_number || ''),
         bio: updatedData.basic_info?.bio,
         preferences: updatedData.preferences,
         profile_picture: updatedData.profile_picture

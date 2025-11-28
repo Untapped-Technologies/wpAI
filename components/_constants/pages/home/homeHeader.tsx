@@ -17,9 +17,8 @@ const HomeHeader = () => {
           />
 
           <p className="text-xl lg:text-2xl text-slate-600 mb-8 leading-relaxed max-w-3xl mx-auto">
-            Navigate the complex world of global politics with AI-powered
-            insights, real-time analysis, and comprehensive coverage of
-            political events worldwide.
+            Factual, transparent, and unbiased — delivering only the verified
+            truth about political events and leaders worldwide.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">

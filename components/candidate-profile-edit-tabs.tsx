@@ -49,6 +49,7 @@ interface CandidateProfileEditTabsProps {
     postalCode: string
     phone: string
     email: string
+    country?: string
   }
   notificationData?: {
     emailNotifs: boolean
@@ -126,7 +127,8 @@ export default function CandidateProfileEditTabs({
       state: locationData?.state || '',
       postalCode: locationData?.postalCode || '',
       phone: locationData?.phone || '',
-      email: locationData?.email || ''
+      email: locationData?.email || '',
+      country: locationData?.country || ''
     },
     notifications: {
       emailNotifs: notificationData?.emailNotifs ?? true,

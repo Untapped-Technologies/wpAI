@@ -10,12 +10,14 @@ import {
 } from '@/components/ui/card'
 import { Bell, MapPin, Settings, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { formatPhoneNumberForDisplay } from '@/lib/utils/phone'
 
 interface UserProfileSectionsProps {
   profileData: {
     basic_info: {
       display_name: string
       email: string
+      phone_number: string
       user_type_id: string | null
       bio: string
     }
@@ -97,6 +99,16 @@ export default function UserProfileSections({
               Display Name
             </label>
             <p className="text-gray-900">{basic_info.display_name}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              Phone Number
+            </label>
+            <p className="text-gray-900">
+              {basic_info.phone_number
+                ? formatPhoneNumberForDisplay(basic_info.phone_number)
+                : 'Not specified'}
+            </p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Email</label>

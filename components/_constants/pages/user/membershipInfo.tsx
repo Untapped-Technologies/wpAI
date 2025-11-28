@@ -18,7 +18,7 @@ const MembershipInfo = ({
   return (
     <div className="flex items-center gap-2 mt-2">
       <Badge variant="default" className="text-xs uppercase">
-        {planInfo.planId} member
+        {planInfo?.planId || membership || 'free'} member
       </Badge>
       {!hasPaidSub && trialDaysLeft !== null && (
         <Badge className="text-xs" variant="default">

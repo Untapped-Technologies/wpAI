@@ -1,16 +1,29 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-09-30.clover'
-})
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is required')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-09-30.clover'
+  })
+}
+
+function getSupabase() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Supabase configuration is required')
+  }
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  )
+}
 
 export async function POST(req: Request) {
+  const stripe = getStripe()
+  const supabase = getSupabase()
   const sig = req.headers.get('stripe-signature')
   const body = await req.text() // must use raw body
   let event: Stripe.Event
@@ -34,11 +47,11 @@ export async function POST(req: Request) {
 
     // Check if this is a registration flow (new user signup with payment)
     if (session.metadata?.registration_flow === 'true') {
-      await handleRegistrationCompletion(session)
+      await handleRegistrationCompletion(session, stripe, supabase)
     }
     // Check if this is an upgrade flow (existing user upgrading)
     else if (session.metadata?.upgrade_flow === 'true') {
-      await handleUpgradeCompletion(session)
+      await handleUpgradeCompletion(session, stripe, supabase)
     }
   }
 
@@ -79,13 +92,13 @@ export async function POST(req: Request) {
   // Handle subscription updates
   if (type === 'customer.subscription.updated') {
     const subscription = data.object as Stripe.Subscription
-    await handleSubscriptionUpdate(subscription)
+    await handleSubscriptionUpdate(subscription, supabase)
   }
 
   // Handle subscription cancellation
   if (type === 'customer.subscription.deleted') {
     const subscription = data.object as Stripe.Subscription
-    await handleSubscriptionCancellation(subscription)
+    await handleSubscriptionCancellation(subscription, supabase)
   }
 
   if (type === 'charge.refunded') {
@@ -104,7 +117,11 @@ export async function POST(req: Request) {
 }
 
 // Helper function to handle registration completion
-async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
+async function handleRegistrationCompletion(
+  session: Stripe.Checkout.Session,
+  stripe: Stripe,
+  supabase: SupabaseClient
+) {
   try {
     const { email, password_hash, user_type, plan_id } = session.metadata || {}
 
@@ -276,7 +293,10 @@ async function handleRegistrationCompletion(session: Stripe.Checkout.Session) {
 }
 
 // Helper function to handle subscription updates
-async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+async function handleSubscriptionUpdate(
+  subscription: Stripe.Subscription,
+  supabase: SupabaseClient
+) {
   try {
     const sub = subscription as any
     const periodStart = sub.current_period_start
@@ -315,7 +335,11 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 }
 
 // Helper function to handle upgrade completion
-async function handleUpgradeCompletion(session: Stripe.Checkout.Session) {
+async function handleUpgradeCompletion(
+  session: Stripe.Checkout.Session,
+  stripe: Stripe,
+  supabase: SupabaseClient
+) {
   try {
     const userId = session.metadata?.user_id
     const planId = session.metadata?.plan_id
@@ -471,7 +495,8 @@ async function handleUpgradeCompletion(session: Stripe.Checkout.Session) {
 
 // Helper function to handle subscription cancellation
 async function handleSubscriptionCancellation(
-  subscription: Stripe.Subscription
+  subscription: Stripe.Subscription,
+  supabase: SupabaseClient
 ) {
   try {
     const { error } = await supabase
