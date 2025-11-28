@@ -49,7 +49,7 @@ interface CandidateProfileEditTabsProps {
     postalCode: string
     phone: string
     email: string
-    country: string
+    country?: string
   }
   notificationData?: {
     emailNotifs: boolean

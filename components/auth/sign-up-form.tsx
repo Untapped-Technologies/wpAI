@@ -97,13 +97,19 @@ export function SignUpForm({
       const { needsEmailConfirmation, needsOnboarding, redirectPath } =
         result.data
 
+      // Check if there's a redirect in sessionStorage (from pricing page)
+      const redirectAfterAuth = sessionStorage.getItem('redirectAfterAuth')
+      
       // Show success message or redirect
       if (needsEmailConfirmation) {
         setError('Please check your email for a confirmation link.')
       } else if (needsOnboarding) {
         router.push('/candidate-onboarding')
+      } else if (redirectAfterAuth === '/pricing') {
+        // Redirect back to pricing page - it will auto-trigger checkout
+        router.push('/pricing')
       } else {
-        router.push('/user/profile')
+        router.push(redirectPath || '/user/profile')
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')

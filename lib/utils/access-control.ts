@@ -19,75 +19,75 @@ export async function getUserAccess(
   try {
     const supabase = await createClient()
 
-    // Get user's current subscription and access level
-    const { data: accessData, error: accessError } = await supabase
-      .from('user_access_levels')
+    // First, check if user has a subscription (don't filter by status - check all)
+    const { data: subscriptionData } = await supabase
+      .from('user_subscriptions')
       .select(
-        `
-        access_level,
-        features,
-        limits,
-        user_subscriptions!inner(
-          status,
-          current_period_end,
-          plan_id,
-          trial_end,
-          stripe_subscription_id
-        )
-      `
+        'status, current_period_end, plan_id, trial_end, stripe_subscription_id'
       )
       .eq('user_id', userId)
-      .single()
+      .order('created_at', { ascending: false })
+      .maybeSingle()
 
-    if (accessError || !accessData) {
-      // If no access level found, check if user has any subscription
-      const { data: subscriptionData } = await supabase
-        .from('user_subscriptions')
-        .select(
-          'status, current_period_end, plan_id, trial_end, stripe_subscription_id'
-        )
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .single()
-
-      if (subscriptionData) {
-        // If trial expired and no paid subscription, treat as free
-        const trialEnd = subscriptionData as any
-        const expiredTrial = trialEnd?.trial_end
-          ? Date.now() > new Date(trialEnd.trial_end).getTime()
-          : false
-        const hasPaid = !!(trialEnd as any)?.stripe_subscription_id
-        return {
-          level: expiredTrial && !hasPaid ? 'free' : 'basic',
-          features: {},
-          limits: {},
-          subscription: subscriptionData
-        }
-      }
-
-      return null
+    // Get plan details to determine access level
+    let planData = null
+    if (subscriptionData?.plan_id) {
+      const { data } = await supabase
+        .from('plans')
+        .select('id, price_cents, features, limits')
+        .eq('id', subscriptionData.plan_id)
+        .maybeSingle()
+      planData = data
     }
 
-    // Evaluate trial expiry for joined subscription
-    const rawSub: any = accessData.user_subscriptions
-    const sub: any = Array.isArray(rawSub) ? rawSub[0] : rawSub
-    let effectiveLevel = accessData.access_level as AccessLevel
-    if (sub) {
-      const expiredTrial = sub.trial_end
-        ? Date.now() > new Date(sub.trial_end).getTime()
+    // Check if user has an access level record
+    const { data: accessData } = await supabase
+      .from('user_access_levels')
+      .select('access_level, features, limits')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    // Determine access level
+    let accessLevel: AccessLevel = 'free'
+
+    // If we have plan data, use it to determine access level
+    if (planData) {
+      if (planData.price_cents === 0) {
+        accessLevel = 'free'
+      } else if (planData.price_cents < 2000) {
+        accessLevel = 'basic'
+      } else if (planData.price_cents < 5000) {
+        accessLevel = 'premium'
+      } else {
+        accessLevel = 'enterprise'
+      }
+    } else if (accessData) {
+      // Use access level from database if plan not found
+      accessLevel = accessData.access_level as AccessLevel
+    } else if (subscriptionData) {
+      // If plan not found and no access level, check if it's a paid subscription
+      const hasPaid = !!subscriptionData.stripe_subscription_id
+      const expiredTrial = subscriptionData.trial_end
+        ? Date.now() > new Date(subscriptionData.trial_end).getTime()
         : false
-      const hasPaid = !!sub.stripe_subscription_id
+      accessLevel = expiredTrial && !hasPaid ? 'free' : 'basic'
+    }
+
+    // Evaluate trial expiry
+    if (subscriptionData) {
+      const expiredTrial = subscriptionData.trial_end
+        ? Date.now() > new Date(subscriptionData.trial_end).getTime()
+        : false
+      const hasPaid = !!subscriptionData.stripe_subscription_id
       if (expiredTrial && !hasPaid) {
-        effectiveLevel = 'free'
+        accessLevel = 'free'
       }
     }
     return {
-      level: effectiveLevel,
-      features: accessData.features || {},
-      limits: accessData.limits || {},
-      subscription: Array.isArray(accessData.user_subscriptions)
-        ? accessData.user_subscriptions[0]
-        : accessData.user_subscriptions
+      level: accessLevel,
+      features: planData?.features || accessData?.features || {},
+      limits: planData?.limits || accessData?.limits || {},
+      subscription: subscriptionData
     }
   } catch (error) {
     console.error('Error getting user access:', error)

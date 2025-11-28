@@ -12,12 +12,13 @@ const MembershipInfo = ({
   hasPaidSub,
   trialDaysLeft,
   features,
-  limits
+  limits,
+  planInfo
 }: any) => {
   return (
     <div className="flex items-center gap-2 mt-2">
-      <Badge variant="default" className="text-xs capitalize">
-        {membership} member
+      <Badge variant="default" className="text-xs uppercase">
+        {planInfo?.planId || membership || 'free'} member
       </Badge>
       {!hasPaidSub && trialDaysLeft !== null && (
         <Badge className="text-xs" variant="default">

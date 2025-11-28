@@ -6,6 +6,7 @@ type UserProfile = {
   display_name?: string
   user_type_id?: string
   email?: string
+  phone_number?: string
   bio?: string
   preferences?: any
   profile_picture?: string

@@ -13,6 +13,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { usePricing } from '@/hooks/usePricing'
+import { toast } from 'sonner'
 
 type DisplayPlan = {
   id: string
@@ -135,7 +136,7 @@ export default function PostSignupPlanModal() {
       }
       window.location.href = json.url
     } catch (e: any) {
-      setError(e?.message || 'Checkout failed')
+      toast.error(e?.message || 'Checkout failed')
     } finally {
       setCheckoutLoading(null)
     }

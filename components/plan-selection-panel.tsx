@@ -97,9 +97,7 @@ export default function PlanSelectionPanel() {
       }
       window.location.href = json.url
     } catch (e: any) {
-      const errorMessage = e?.message || 'Checkout failed'
-      console.error('Checkout error:', errorMessage)
-      toast.error(errorMessage)
+      toast.error(e?.message || 'Checkout failed')
     } finally {
       setCheckoutLoading(null)
     }

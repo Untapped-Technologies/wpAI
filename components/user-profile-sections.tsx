@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
+import { formatPhoneNumberForDisplay } from '@/lib/utils/phone'
 import { Bell, MapPin, Settings, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -16,6 +17,7 @@ interface UserProfileSectionsProps {
     basic_info: {
       display_name: string
       email: string
+      phone_number: string
       user_type_id: string | null
       bio: string
     }
@@ -55,7 +57,7 @@ export default function UserProfileSections({
         // Get country code from user's preferences, default to 'US' if not set
         const countryCode = preferences.country || 'US'
         const url = `/api/usertypes?country_code=${encodeURIComponent(countryCode)}`
-        
+
         const response = await fetch(url)
         if (response.ok) {
           const data = await response.json()
@@ -73,7 +75,7 @@ export default function UserProfileSections({
 
   const getUserTypeLabel = (userTypeId: string | null) => {
     if (!userTypeId) return 'Not specified'
-    
+
     const userType = userTypes.find(ut => ut.id === userTypeId)
     return userType?.label || 'Unknown'
   }
@@ -97,6 +99,16 @@ export default function UserProfileSections({
               Display Name
             </label>
             <p className="text-gray-900">{basic_info.display_name}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              Phone Number
+            </label>
+            <p className="text-gray-900">
+              {basic_info.phone_number
+                ? formatPhoneNumberForDisplay(basic_info.phone_number)
+                : 'Not specified'}
+            </p>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Email</label>

@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/card'
 
 type AccessLevel = 'free' | 'basic' | 'premium' | 'enterprise'
-
 interface Subscription {
   status: string
   current_period_end?: string
@@ -30,6 +29,23 @@ interface UserAccessData {
   features?: Record<string, boolean>
   limits?: Record<string, unknown>
   subscription?: Subscription | null
+}
+
+const ACCESS_LEVELS: readonly AccessLevel[] = [
+  'free',
+  'basic',
+  'premium',
+  'enterprise'
+] as const
+
+function isValidAccessLevel(value: unknown): value is AccessLevel {
+  return (
+    typeof value === 'string' && ACCESS_LEVELS.includes(value as AccessLevel)
+  )
+}
+
+function getAccessLevel(value: unknown): AccessLevel {
+  return isValidAccessLevel(value) ? value : 'free'
 }
 
 interface AccessGuardProps {
@@ -79,14 +95,14 @@ export function AccessGuard({
           enterprise: 3
         }
 
-        const userLevel = (accessData.access_level ?? accessData.level ?? 'free') as AccessLevel
+        const userLevel = getAccessLevel(data.access_level ?? data.level)
         access =
           access && levelHierarchy[userLevel] >= levelHierarchy[requiredLevel]
       }
 
       // Check required feature
       if (requiredFeature) {
-        access = access && (accessData.features?.[requiredFeature] === true)
+        access = access && accessData.features?.[requiredFeature] === true
       }
 
       setHasAccess(access)
@@ -206,7 +222,7 @@ export function useAccess() {
       enterprise: 3
     }
 
-    const userLevel = (access?.access_level ?? 'free') as AccessLevel
+    const userLevel = getAccessLevel(access?.access_level)
     return levelHierarchy[userLevel] >= levelHierarchy[level]
   }
 

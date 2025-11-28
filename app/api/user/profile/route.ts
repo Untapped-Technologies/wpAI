@@ -47,7 +47,7 @@ export async function PATCH(req: NextRequest) {
 
     const body = await req.json()
     // Explicitly exclude email from updates - email cannot be changed after registration
-    const { display_name, user_type_id, bio, preferences, profile_picture } =
+    const { display_name, phone_number, user_type_id, bio, preferences, profile_picture } =
       body
 
     // Check if profile exists to determine if we need to include email
@@ -71,6 +71,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (display_name !== undefined) updateData.display_name = display_name
+    if (phone_number !== undefined) updateData.phone_number = phone_number
     // Only include user_type_id if it's provided and not an empty string (UUID fields can't be empty strings)
     if (user_type_id !== undefined && user_type_id !== null && user_type_id !== '') {
       updateData.user_type_id = user_type_id

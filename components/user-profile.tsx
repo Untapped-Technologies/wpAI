@@ -12,8 +12,9 @@ import {
   extractLocationData,
   extractNotificationData
 } from '@/lib/utils/debugPreferences'
+import { stripPhoneNumber } from '@/lib/utils/phone'
 import { Clock, CreditCard, User } from 'lucide-react'
-import PaymentHistory from './payment-history'
+import PaymentHistory, { PaymentTransaction } from './payment-history'
 import PlanSelectionPanel from './plan-selection-panel'
 import UserProfileEditTabs from './user-profile-edit-tabs'
 import UserProfileHeader from './user-profile-header'
@@ -23,6 +24,7 @@ interface UserProfileData {
   basic_info: {
     display_name: string
     email: string
+    phone_number: string
     user_type_id: string | null
     bio: string
   }
@@ -70,6 +72,9 @@ export default function UserProfile({ userId }: UserProfileProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
+  const [transactions, setTransactions] = useState<PaymentTransaction[]>([])
+  const [paymentLoading, setPaymentLoading] = useState(false)
+  const [paymentError, setPaymentError] = useState<string | null>(null)
   const router = useRouter()
   const {
     data: userProfile,
@@ -85,6 +90,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
         basic_info: {
           display_name: userProfile.display_name || '',
           email: userProfile.email || '',
+          phone_number: userProfile.phone_number || '',
           user_type_id: userProfile.user_type_id || '',
           bio: userProfile.bio || ''
         },
@@ -118,6 +124,83 @@ export default function UserProfile({ userId }: UserProfileProps) {
     }
   }, [userProfile])
 
+  // Fetch payment history
+  useEffect(() => {
+    fetchPaymentHistory()
+  }, [userId])
+
+  // Listen for payment success event to refresh
+  useEffect(() => {
+    const handlePaymentSuccess = () => {
+      // Refresh payment history after successful payment or sync
+      setTimeout(() => {
+        fetchPaymentHistory()
+      }, 2000) // Wait a bit for webhook/sync to process
+    }
+
+    window.addEventListener('payment-success', handlePaymentSuccess)
+    return () => {
+      window.removeEventListener('payment-success', handlePaymentSuccess)
+    }
+  }, [])
+
+  const fetchPaymentHistory = async () => {
+    try {
+      setPaymentLoading(true)
+      setPaymentError(null)
+      const response = await fetch('/api/user/payment-history')
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch payment history')
+      }
+
+      const data = await response.json()
+
+      if (data.success) {
+        setTransactions(data.transactions || [])
+        if (data.message) {
+          console.log(data.message)
+        }
+      } else {
+        throw new Error(data.error || 'Failed to fetch payment history')
+      }
+    } catch (err) {
+      console.error('Error fetching payment history:', err)
+      setPaymentError(
+        err instanceof Error ? err.message : 'Failed to fetch payment history'
+      )
+      toast.error('Failed to load payment history')
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
+  // Extract current plan info from transactions
+  const getCurrentPlanInfo = () => {
+    // Find the most recent successful subscription transaction
+    const subscriptionTransaction = transactions
+      .filter(
+        t =>
+          t.paymentType === 'subscription' &&
+          t.status === 'succeeded' &&
+          t.plan_id
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0]
+
+    if (subscriptionTransaction) {
+      return {
+        planId: subscriptionTransaction.plan_id,
+        stripePriceId: subscriptionTransaction.stripe_price_id,
+        productName: subscriptionTransaction.productName,
+        productDescription: subscriptionTransaction.productDescription
+      }
+    }
+    return null
+  }
+
   const createDefaultProfileData = (): UserProfileData => {
     // Use email from userProfile first, then fallback to authUser
     const email = userProfile?.email || authUser?.email || ''
@@ -126,6 +209,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
       basic_info: {
         display_name: '',
         email: email,
+        phone_number: '',
         user_type_id: userProfile?.user_type_id || null,
         bio: ''
       },
@@ -164,8 +248,12 @@ export default function UserProfile({ userId }: UserProfileProps) {
     try {
       // Transform the nested data structure to match API expectations
       // Don't include user_type_id if it's an empty string (UUID fields can't be empty strings)
+      // Strip phone number formatting - store only digits
       const apiData: any = {
         display_name: updatedData.basic_info?.display_name,
+        phone_number: stripPhoneNumber(
+          updatedData.basic_info?.phone_number || ''
+        ),
         bio: updatedData.basic_info?.bio,
         preferences: updatedData.preferences,
         profile_picture: updatedData.profile_picture
@@ -204,7 +292,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
         throw new Error(result.message || 'Failed to save profile')
       }
 
-      toast.success('Profile updated successfully!')
+      toast.success('Profile saved successfully!')
       setProfileData(updatedData)
       setIsEditing(false)
 
@@ -214,9 +302,6 @@ export default function UserProfile({ userId }: UserProfileProps) {
           invalidateUserProfileCache()
         }
       )
-
-      // Navigate to new prompt screen after successful profile update
-      router.push('/newprompt')
     } catch (error) {
       console.error('Error saving profile:', error)
       toast.error(
@@ -283,6 +368,7 @@ export default function UserProfile({ userId }: UserProfileProps) {
         <UserProfileHeader
           profileData={profileData}
           onEditProfile={handleEditProfile}
+          planInfo={getCurrentPlanInfo()}
         />
 
         <div className="flex gap-8">
@@ -335,7 +421,14 @@ export default function UserProfile({ userId }: UserProfileProps) {
                 </CardContent>
               </Card>
             )}
-            {activeTab === 'payments' && <PaymentHistory userId={userId} />}
+            {activeTab === 'payments' && (
+              <PaymentHistory
+                transactions={transactions}
+                loading={paymentLoading}
+                error={paymentError}
+                onRefresh={fetchPaymentHistory}
+              />
+            )}
             {activeTab === 'upgrade' && (
               <Card className="bg-white border-0 shadow-none">
                 <CardHeader>

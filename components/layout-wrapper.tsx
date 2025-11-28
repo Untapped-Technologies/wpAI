@@ -13,7 +13,23 @@ interface LayoutWrapperProps {
 
 export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const pathname = usePathname()
-  const [hideSidebar, setHideSidebar] = useState(false)
+  const marketingPages = [
+    '/',
+    '/about',
+    '/auth/login',
+    '/auth/sign-up',
+    '/contact',
+    '/faqs',
+    '/pricing',
+    '/privacy',
+    '/terms',
+    '/trending-topics',
+    '/success'
+  ]
+  // Initialize hideSidebar based on pathname to prevent sidebar from rendering on marketing pages
+  const [hideSidebar, setHideSidebar] = useState(() =>
+    marketingPages.includes(pathname)
+  )
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
@@ -43,19 +59,6 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
 
   useEffect(() => {
     // Hide sidebar on marketing/static pages OR when user is not authenticated
-    const marketingPages = [
-      '/',
-      '/about',
-      '/auth/login',
-      '/auth/sign-up',
-      '/contact',
-      '/faqs',
-      '/pricing',
-      '/privacy',
-      '/terms',
-      '/trending-topics',
-      '/success'
-    ]
     const shouldHideSidebar = marketingPages.includes(pathname) || !user
     setHideSidebar(shouldHideSidebar)
   }, [pathname, user])

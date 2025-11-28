@@ -58,6 +58,27 @@ export function LoginForm({
 
       const { needsOnboarding, redirectPath } = result.data
 
+      // Sync Stripe data with Supabase after successful login
+      // Don't await - let it run in background
+      fetch('/api/user/sync-stripe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log('✅ Stripe sync completed:', data)
+          } else {
+            console.error('❌ Stripe sync failed:', data.error)
+          }
+        })
+        .catch(syncError => {
+          // Log but don't block login if sync fails
+          console.error('Stripe sync error (non-blocking):', syncError)
+        })
+
       if (needsOnboarding) {
         // Candidate needs to complete onboarding
         router.push('/candidate-onboarding')

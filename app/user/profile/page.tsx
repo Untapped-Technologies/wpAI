@@ -22,9 +22,89 @@ export default function UserProfilePage() {
     }
   }, [userLoading, userError, router])
 
+  // Check for payment success and refresh data
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const upgraded = params.get('upgraded')
+    const sessionId = params.get('session_id')
+    
+    if (upgraded === 'true' || sessionId) {
+      // Refresh access data after payment
+      const refreshData = async () => {
+        try {
+          const res = await fetch('/api/user/access', { cache: 'no-store' })
+          const data = await res.json()
+          const sub = data?.subscription
+          const paid = !!sub?.stripe_subscription_id
+          setHasPaidSub(paid)
+          if (sub?.trial_end && !paid) {
+            const end = new Date(sub.trial_end).getTime()
+            const msLeft = end - Date.now()
+            const days = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)))
+            setTrialDaysLeft(days)
+          } else {
+            setTrialDaysLeft(null)
+          }
+          
+          // Dispatch event to refresh payment history and other components
+          window.dispatchEvent(new CustomEvent('payment-success', { detail: { sessionId } }))
+          
+          // Clean up URL parameters
+          if (upgraded || sessionId) {
+            router.replace('/user/profile', { scroll: false })
+          }
+        } catch {
+          setTrialDaysLeft(null)
+        }
+      }
+      
+      // Small delay to ensure webhook has processed
+      setTimeout(refreshData, 2000)
+    }
+  }, [router])
+
   useEffect(() => {
     const fetchAccess = async () => {
       try {
+        // Sync Stripe data on profile load (runs once per session)
+        const syncKey = `stripe_sync_${user?.id}`
+        const lastSync = sessionStorage.getItem(syncKey)
+        const now = Date.now()
+        
+        // Only sync once per session or if last sync was more than 5 minutes ago
+        if (!lastSync || now - parseInt(lastSync) > 5 * 60 * 1000) {
+          fetch('/api/user/sync-stripe', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                console.log('✅ Stripe sync completed on profile load:', data)
+                sessionStorage.setItem(syncKey, now.toString())
+                // Refresh access data after sync
+                setTimeout(() => {
+                  fetch('/api/user/access', { cache: 'no-store' })
+                    .then(res => res.json())
+                    .then(accessData => {
+                      const sub = accessData?.subscription
+                      const paid = !!sub?.stripe_subscription_id
+                      setHasPaidSub(paid)
+                      // Dispatch event to refresh components
+                      window.dispatchEvent(new CustomEvent('payment-success'))
+                    })
+                }, 1000)
+              } else {
+                console.error('❌ Stripe sync failed:', data.error)
+              }
+            })
+            .catch(syncError => {
+              console.error('Stripe sync error (non-blocking):', syncError)
+            })
+        }
+
         const res = await fetch('/api/user/access', { cache: 'no-store' })
         const data = await res.json()
         const sub = data?.subscription

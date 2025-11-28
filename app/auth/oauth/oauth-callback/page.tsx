@@ -76,6 +76,27 @@ export default function OAuthCallbackPage() {
       // Clean up localStorage after profile creation
       localStorage.removeItem('selectedUserType')
 
+      // Sync Stripe data with Supabase after OAuth login
+      // Don't await - let it run in background
+      fetch('/api/user/sync-stripe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log('✅ Stripe sync completed:', data)
+          } else {
+            console.error('❌ Stripe sync failed:', data.error)
+          }
+        })
+        .catch(syncError => {
+          // Log but don't block login if sync fails
+          console.error('Stripe sync error (non-blocking):', syncError)
+        })
+
       // Check if user is a candidate and redirect to onboarding if needed
       const candidateTypeId = '3dad0f25-2b3b-491b-9e82-9f9e71adad6f'
       if (selectedUserType === candidateTypeId) {

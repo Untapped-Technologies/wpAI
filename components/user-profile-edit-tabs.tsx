@@ -13,6 +13,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { formatPhoneNumberAsTyping, stripPhoneNumber } from '@/lib/utils/phone'
 import { Save, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -23,6 +24,7 @@ interface UserProfileEditTabsProps {
     basic_info: {
       display_name: string
       email: string
+      phone_number: string
       user_type_id: string | null
       bio: string
     }
@@ -62,10 +64,17 @@ export default function UserProfileEditTabs({
   const [userTypes, setUserTypes] = useState<UserType[]>([])
   const [loadingUserTypes, setLoadingUserTypes] = useState(true)
 
+  // Store phone number as digits only in formData, but display formatted version
+  const [phoneDisplayValue, setPhoneDisplayValue] = useState(() => {
+    const phone = profileData.basic_info.phone_number || ''
+    return formatPhoneNumberAsTyping(phone)
+  })
+
   const [formData, setFormData] = useState({
     basic_info: {
       display_name: profileData.basic_info.display_name,
       email: profileData.basic_info.email,
+      phone_number: stripPhoneNumber(profileData.basic_info.phone_number || ''),
       user_type_id: profileData.basic_info.user_type_id || '',
       bio: profileData.basic_info.bio
     },
@@ -89,17 +98,21 @@ export default function UserProfileEditTabs({
         // Get country code from user's preferences, default to 'US' if not set
         const countryCode = formData.preferences.country || 'US'
         const url = `/api/usertypes?country_code=${encodeURIComponent(countryCode)}`
-        
+
         console.log('Fetching user types with country:', countryCode)
         const response = await fetch(url)
-        
+
         if (response.ok) {
           const data = await response.json()
           console.log('User types fetched:', data)
           setUserTypes(data || [])
         } else {
           const errorText = await response.text()
-          console.error('Failed to fetch user types:', response.status, errorText)
+          console.error(
+            'Failed to fetch user types:',
+            response.status,
+            errorText
+          )
         }
       } catch (error) {
         console.error('Error fetching user types:', error)
@@ -183,8 +196,26 @@ export default function UserProfileEditTabs({
     }
   }
 
+  const handlePhoneNumberChange = (value: string) => {
+    // Format the display value as user types
+    const formatted = formatPhoneNumberAsTyping(value)
+    setPhoneDisplayValue(formatted)
+
+    // Store only digits in formData
+    const digitsOnly = stripPhoneNumber(value)
+    handleInputChange('basic_info', 'phone_number', digitsOnly)
+  }
+
   const handleSave = async () => {
-    await onSave(formData)
+    // Ensure phone_number is stored as digits only before saving
+    const dataToSave = {
+      ...formData,
+      basic_info: {
+        ...formData.basic_info,
+        phone_number: stripPhoneNumber(formData.basic_info.phone_number)
+      }
+    }
+    await onSave(dataToSave)
   }
 
   return (
@@ -250,6 +281,17 @@ export default function UserProfileEditTabs({
                   />
                 </div>
                 <div>
+                  <Label htmlFor="phone_number">Phone Number</Label>
+                  <Input
+                    id="phone_number"
+                    type="tel"
+                    value={phoneDisplayValue}
+                    onChange={e => handlePhoneNumberChange(e.target.value)}
+                    placeholder="(555) 123-4567"
+                    maxLength={14}
+                  />
+                </div>
+                <div>
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -307,7 +349,8 @@ export default function UserProfileEditTabs({
                   )}
                   {!loadingUserTypes && userTypes.length === 0 && (
                     <p className="text-xs text-amber-600 mt-1">
-                      No user types found for your country. Please check your location settings.
+                      No user types found for your country. Please check your
+                      location settings.
                     </p>
                   )}
                 </div>
