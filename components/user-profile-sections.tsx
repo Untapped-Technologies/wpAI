@@ -184,14 +184,14 @@ export default function UserProfileSections({
               {preferences.emailNotifs ? 'Enabled' : 'Disabled'}
             </Badge>
           </div>
-          <div className="flex items-center justify-between">
+          {/* <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">
               SMS Notifications
             </span>
             <Badge variant={preferences.smsNotifs ? 'default' : 'secondary'}>
               {preferences.smsNotifs ? 'Enabled' : 'Disabled'}
             </Badge>
-          </div>
+          </div> */}
         </CardContent>
       </Card>
 

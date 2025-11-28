@@ -78,7 +78,7 @@ export default function NotificationsTab({
         <label htmlFor="emailNotifs">Email Notifications</label>
       </div>
 
-      <div className="flex items-center gap-3 text-[#254541]">
+      {/* <div className="flex items-center gap-3 text-[#254541]">
         <input
           type="checkbox"
           id="smsNotifs"
@@ -87,7 +87,7 @@ export default function NotificationsTab({
           onChange={handleChange}
         />
         <label htmlFor="smsNotifs text-[#254541]">SMS Notifications</label>
-      </div>
+      </div> */}
 
       <button
         className="flex justify-start rounded border border-[#254541] bg-[#254541] px-4 py-2 text-white hover:text-[#254541] hover:border-[#254541] hover:bg-white"

@@ -443,7 +443,7 @@ export default function UserProfileEditTabs({
                   />
                   <Label htmlFor="emailNotifs">Email Notifications</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                {/* <div className="flex items-center space-x-2">
                   <Checkbox
                     id="smsNotifs"
                     checked={formData.preferences.smsNotifs}
@@ -452,7 +452,7 @@ export default function UserProfileEditTabs({
                     }
                   />
                   <Label htmlFor="smsNotifs">SMS Notifications</Label>
-                </div>
+                </div> */}
               </div>
             </div>
           </CardContent>

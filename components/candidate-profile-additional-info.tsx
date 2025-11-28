@@ -150,7 +150,7 @@ export default function CandidateProfileAdditionalInfo({
                 </div>
               )}
 
-              {notifications.smsNotifications !== undefined && (
+              {/* {notifications.smsNotifications !== undefined && (
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium">SMS Notifications</span>
                   {notifications.smsNotifications ? (
@@ -159,7 +159,7 @@ export default function CandidateProfileAdditionalInfo({
                     <XCircle className="w-5 h-5 text-red-600" />
                   )}
                 </div>
-              )}
+              )} */}
 
               {notifications.campaignUpdates !== undefined && (
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">

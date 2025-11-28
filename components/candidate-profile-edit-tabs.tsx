@@ -11,7 +11,6 @@ import {
   FileText,
   Mail,
   MapPin,
-  Phone,
   Save,
   Target,
   User,
@@ -568,7 +567,7 @@ export default function CandidateProfileEditTabs({
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              {/* <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-3">
                   <Phone className="w-5 h-5 text-green-600" />
                   <div>
@@ -590,7 +589,7 @@ export default function CandidateProfileEditTabs({
                     )
                   }
                 />
-              </div>
+              </div> */}
             </div>
           </div>
         )
