@@ -122,9 +122,25 @@ export async function getEnabledRssSources(): Promise<RssSource[]> {
 }
 
 /**
- * Exported constant that can be used to get sources (fetches from DB)
+ * Exported function that can be used to get sources (fetches from DB)
  * For convenience, this is an async function that returns sources
  */
-export async function SOURCES(): Promise<RssSource[]> {
+export async function getSources(): Promise<RssSource[]> {
   return getEnabledRssSources()
 }
+
+/**
+ * Curated list of political RSS sources
+ */
+export const SOURCES: { name: string; url: string }[] = [
+  { name: 'AP News Politics', url: 'https://apnews.com/rss/politics' },
+  { name: 'Reuters Politics', url: 'http://feeds.reuters.com/Reuters/PoliticsNews' },
+  { name: 'Politico', url: 'https://www.politico.com/rss/politics.xml' },
+  { name: 'The Hill', url: 'https://thehill.com/rss/syndicator/19110' },
+  { name: 'NPR Politics', url: 'https://feeds.npr.org/1014/rss.xml' },
+  { name: 'BBC World', url: 'http://feeds.bbci.co.uk/news/world/rss.xml' },
+  { name: 'Al Jazeera English', url: 'https://www.aljazeera.com/xml/rss/all.xml' },
+  { name: 'Foreign Affairs', url: 'https://www.foreignaffairs.com/rss.xml' },
+  { name: 'DW World', url: 'https://rss.dw.com/rdf/rss-en-all' },
+  { name: 'Euronews', url: 'https://www.euronews.com/rss?level=theme&name=politics' },
+]
