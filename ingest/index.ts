@@ -56,25 +56,22 @@ async function updateArticleImagePath(
 async function processSource(source: RssSource): Promise<{
   fetched: number
   inserted: number
+  duplicates: number
   errors: number
 }> {
   const stats = {
     fetched: 0,
     inserted: 0,
+    duplicates: 0,
     errors: 0,
   }
 
-  console.log(`\n📡 Processing source: ${source.name} (${source.url})`)
-
   try {
     // Step 1: Fetch RSS feed
-    console.log(`  → Fetching RSS feed...`)
     const rawItems = await fetchRssFeed(source.url)
     stats.fetched = rawItems.length
-    console.log(`  ✓ Fetched ${rawItems.length} items`)
 
     if (rawItems.length === 0) {
-      console.log(`  ⚠ No items found in feed`)
       return stats
     }
 
@@ -84,20 +81,17 @@ async function processSource(source: RssSource): Promise<{
       try {
         // Normalize the item
         const normalizedArticle = normalizeRssItem(rawItem, source.name)
-        console.log(`  → Processing item ${i + 1}/${rawItems.length}: "${normalizedArticle.title.substring(0, 60)}..."`)
 
         // Save article to Supabase (with deduplication)
         const result = await saveArticle(normalizedArticle)
 
         if (!result.id) {
-          console.log(`    ✗ Failed to save article`)
           stats.errors++
           continue
         }
 
         // If article was newly inserted and has an image URL, download and upload image
         if (result.inserted && normalizedArticle.mainImageUrl) {
-          console.log(`    → Downloading and uploading image...`)
           const storagePath = await downloadAndUploadImage(
             normalizedArticle.mainImageUrl,
             result.id
@@ -105,33 +99,24 @@ async function processSource(source: RssSource): Promise<{
 
           if (storagePath) {
             // Update article with storage path
-            const updated = await updateArticleImagePath(result.id, storagePath)
-            if (updated) {
-              console.log(`    ✓ Image uploaded: ${storagePath}`)
-            } else {
-              console.log(`    ⚠ Image uploaded but failed to update article record`)
-            }
-          } else {
-            console.log(`    ⚠ Failed to download/upload image`)
+            await updateArticleImagePath(result.id, storagePath)
           }
-        } else if (result.inserted) {
-          console.log(`    ✓ Article inserted (no image URL)`)
-        } else {
-          console.log(`    ✓ Article already exists (skipped)`)
         }
 
         if (result.inserted) {
           stats.inserted++
+        } else {
+          stats.duplicates++
         }
       } catch (error) {
-        console.error(`    ✗ Error processing item ${i + 1}:`, error)
+        console.error(`Error processing item ${i + 1} from ${source.name}:`, error)
         stats.errors++
       }
     }
 
     return stats
   } catch (error) {
-    console.error(`  ✗ Error processing source ${source.name}:`, error)
+    console.error(`Error processing source ${source.name}:`, error)
     stats.errors++
     return stats
   }
@@ -169,6 +154,7 @@ async function runIngestion() {
   const overallStats = {
     totalFetched: 0,
     totalInserted: 0,
+    totalDuplicates: 0,
     totalErrors: 0,
     sourceErrors: 0,
   }
@@ -177,7 +163,11 @@ async function runIngestion() {
     const stats = await processSource(source)
     overallStats.totalFetched += stats.fetched
     overallStats.totalInserted += stats.inserted
+    overallStats.totalDuplicates += stats.duplicates
     overallStats.totalErrors += stats.errors
+
+    // Output summary for each source
+    console.log(`Source: ${source.name} — fetched: ${stats.fetched}, inserted: ${stats.inserted}, duplicates: ${stats.duplicates}`)
 
     if (stats.errors > 0 && stats.errors === stats.fetched) {
       // All items failed for this source
@@ -185,12 +175,13 @@ async function runIngestion() {
     }
   }
 
-  // Print summary
+  // Print overall summary
   console.log('\n' + '='.repeat(60))
-  console.log('📊 Ingestion Summary')
+  console.log('📊 Overall Ingestion Summary')
   console.log('='.repeat(60))
   console.log(`Total items fetched:     ${overallStats.totalFetched}`)
   console.log(`Total items inserted:     ${overallStats.totalInserted}`)
+  console.log(`Total duplicates:         ${overallStats.totalDuplicates}`)
   console.log(`Total errors:             ${overallStats.totalErrors}`)
   console.log(`Sources with errors:      ${overallStats.sourceErrors}`)
   console.log('='.repeat(60))

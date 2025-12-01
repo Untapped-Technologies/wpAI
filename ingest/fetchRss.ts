@@ -15,7 +15,7 @@ export async function fetchRssFeed(url: string): Promise<RawRssItem[]> {
       return []
     }
 
-    return feed.items
+    const rawItems = feed.items
       .map((item) => {
         // Extract image URL from enclosure or media:content
         let imageUrl: string | undefined
@@ -58,6 +58,8 @@ export async function fetchRssFeed(url: string): Promise<RawRssItem[]> {
         return rawItem
       })
       .filter((item): item is RawRssItem => item !== null)
+
+    return rawItems
   } catch (error) {
     console.error(`Error fetching RSS feed from ${url}:`, error)
     throw new Error(`Failed to fetch RSS feed from ${url}: ${error instanceof Error ? error.message : 'Unknown error'}`)

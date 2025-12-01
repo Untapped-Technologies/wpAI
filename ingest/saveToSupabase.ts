@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 import type { NormalizedArticle, SaveToSupabaseOptions } from './types.js'
 import { sha256 } from './utils/hash.js'
 
