@@ -7,7 +7,11 @@ export interface RssSource {
 }
 
 export interface RawRssItem {
-  title?: string
+  title: string
+  url: string
+  summary?: string
+  publishedAt?: string
+  imageUrl?: string
   link?: string
   description?: string
   content?: string
@@ -15,7 +19,6 @@ export interface RawRssItem {
   guid?: string
   author?: string
   category?: string | string[]
-  imageUrl?: string
   [key: string]: unknown
 }
 
