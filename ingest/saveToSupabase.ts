@@ -6,18 +6,18 @@ import { sha256 } from './utils/hash.js'
 /**
  * Saves an article to Supabase with de-duplication based on URL hash
  * @param article - The normalized article to save
- * @returns The article ID if successful, null otherwise
+ * @returns The article ID if successful, null otherwise, and whether it was newly inserted
  */
 export async function saveArticle(
   article: NormalizedArticle
-): Promise<{ id: string | null }> {
+): Promise<{ id: string | null; inserted: boolean }> {
   // Create Supabase client with service role key
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error('Missing Supabase configuration')
-    return { id: null }
+    return { id: null, inserted: false }
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -36,12 +36,12 @@ export async function saveArticle(
     if (checkError && checkError.code !== 'PGRST116') {
       // PGRST116 is "not found" which is expected, other errors are real issues
       console.error('Error checking for existing article:', checkError)
-      return { id: null }
+      return { id: null, inserted: false }
     }
 
     // If article exists, return existing ID
     if (existingArticle) {
-      return { id: existingArticle.id }
+      return { id: existingArticle.id, inserted: false }
     }
 
     // Step 3: Lookup source_id from sources table
@@ -82,14 +82,14 @@ export async function saveArticle(
 
     if (insertError) {
       console.error('Error inserting article:', insertError)
-      return { id: null }
+      return { id: null, inserted: false }
     }
 
     // Step 5: Return inserted article ID
-    return { id: insertedArticle.id }
+    return { id: insertedArticle.id, inserted: true }
   } catch (error) {
     console.error('Unexpected error saving article:', error)
-    return { id: null }
+    return { id: null, inserted: false }
   }
 }
 

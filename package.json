@@ -10,7 +10,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "ingest": "bun run ingest/index.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.10",
