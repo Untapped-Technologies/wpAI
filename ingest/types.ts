@@ -23,17 +23,14 @@ export interface RawRssItem {
 }
 
 export interface NormalizedArticle {
-  id: string
+  sourceName: string
+  externalId: string | null
   title: string
   url: string
-  content: string
-  publishedAt: Date
-  author?: string
-  category?: string
-  imageUrl?: string
-  sourceId: string
-  sourceName: string
-  hash: string
+  summary: string | null
+  author: string | null
+  publishedAt: Date | null
+  mainImageUrl: string | null
 }
 
 export interface FetchRssOptions {
