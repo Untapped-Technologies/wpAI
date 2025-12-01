@@ -140,7 +140,7 @@ async function processSource(source: RssSource): Promise<{
 /**
  * Main ingestion pipeline
  */
-async function main() {
+async function runIngestion() {
   console.log('🚀 Starting RSS ingestion pipeline...\n')
 
   // Check environment variables
@@ -204,26 +204,9 @@ async function main() {
   }
 }
 
-// Run the pipeline if this file is executed directly
-// Works with Bun, ts-node, and Node.js
-const isMainModule = (() => {
-  // Bun
-  if (typeof import.meta.main !== 'undefined' && import.meta.main) {
-    return true
-  }
-  // Node.js/ts-node - check if this file is being executed directly
-  if (typeof process !== 'undefined' && process.argv[1]) {
-    const scriptPath = process.argv[1].replace(/\\/g, '/')
-    const currentPath = import.meta.url.replace('file://', '').replace(/\\/g, '/')
-    return currentPath.endsWith(scriptPath) || scriptPath.endsWith('ingest/index.ts')
-  }
-  return false
-})()
-
-if (isMainModule) {
-  main().catch((error) => {
-    console.error('❌ Fatal error in ingestion pipeline:', error)
-    process.exit(1)
-  })
-}
+// Execute the ingestion pipeline
+runIngestion().catch((error) => {
+  console.error('❌ Fatal error in ingestion pipeline:', error)
+  process.exit(1)
+})
 
