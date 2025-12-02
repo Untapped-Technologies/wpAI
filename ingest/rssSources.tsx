@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import type { RssSource } from './types.js'
+import { getSourceIcon } from './sourceIcons.js'
 
 /**
  * Fetches all RSS sources from the database
@@ -32,6 +33,7 @@ export async function getRssSources(): Promise<RssSource[]> {
       url: source.url,
       enabled: source.enabled ?? true,
       category: source.category || undefined,
+      icon: source.icon || getSourceIcon(source.name, source.url),
     }))
   } catch (error) {
     console.error('Unexpected error fetching RSS sources:', error)
@@ -75,6 +77,7 @@ export async function getRssSourceById(id: string): Promise<RssSource | undefine
       url: data.url,
       enabled: data.enabled ?? true,
       category: data.category || undefined,
+      icon: data.icon || getSourceIcon(data.name, data.url),
     }
   } catch (error) {
     console.error('Unexpected error fetching RSS source:', error)
@@ -114,6 +117,7 @@ export async function getEnabledRssSources(): Promise<RssSource[]> {
       url: source.url,
       enabled: source.enabled ?? true,
       category: source.category || undefined,
+      icon: source.icon || getSourceIcon(source.name, source.url),
     }))
   } catch (error) {
     console.error('Unexpected error fetching enabled RSS sources:', error)
@@ -132,15 +136,15 @@ export async function getSources(): Promise<RssSource[]> {
 /**
  * Curated list of political RSS sources
  */
-export const SOURCES: { name: string; url: string }[] = [
-  { name: 'AP News Politics', url: 'https://apnews.com/rss/politics' },
-  { name: 'Reuters Politics', url: 'http://feeds.reuters.com/Reuters/PoliticsNews' },
-  { name: 'Politico', url: 'https://www.politico.com/rss/politics.xml' },
-  { name: 'The Hill', url: 'https://thehill.com/rss/syndicator/19110' },
-  { name: 'NPR Politics', url: 'https://feeds.npr.org/1014/rss.xml' },
-  { name: 'BBC World', url: 'http://feeds.bbci.co.uk/news/world/rss.xml' },
-  { name: 'Al Jazeera English', url: 'https://www.aljazeera.com/xml/rss/all.xml' },
-  { name: 'Foreign Affairs', url: 'https://www.foreignaffairs.com/rss.xml' },
-  { name: 'DW World', url: 'https://rss.dw.com/rdf/rss-en-all' },
-  { name: 'Euronews', url: 'https://www.euronews.com/rss?level=theme&name=politics' },
+export const SOURCES: { name: string; url: string; icon?: string }[] = [
+  { name: 'AP News Politics', url: 'https://apnews.com/rss/politics', icon: getSourceIcon('AP News Politics', 'https://apnews.com/rss/politics') },
+  { name: 'Reuters Politics', url: 'http://feeds.reuters.com/Reuters/PoliticsNews', icon: getSourceIcon('Reuters Politics', 'http://feeds.reuters.com/Reuters/PoliticsNews') },
+  { name: 'Politico', url: 'https://www.politico.com/rss/politics.xml', icon: getSourceIcon('Politico', 'https://www.politico.com/rss/politics.xml') },
+  { name: 'The Hill', url: 'https://thehill.com/rss/syndicator/19110', icon: getSourceIcon('The Hill', 'https://thehill.com/rss/syndicator/19110') },
+  { name: 'NPR Politics', url: 'https://feeds.npr.org/1014/rss.xml', icon: getSourceIcon('NPR Politics', 'https://feeds.npr.org/1014/rss.xml') },
+  { name: 'BBC World', url: 'http://feeds.bbci.co.uk/news/world/rss.xml', icon: getSourceIcon('BBC World', 'http://feeds.bbci.co.uk/news/world/rss.xml') },
+  { name: 'Al Jazeera English', url: 'https://www.aljazeera.com/xml/rss/all.xml', icon: getSourceIcon('Al Jazeera English', 'https://www.aljazeera.com/xml/rss/all.xml') },
+  { name: 'Foreign Affairs', url: 'https://www.foreignaffairs.com/rss.xml', icon: getSourceIcon('Foreign Affairs', 'https://www.foreignaffairs.com/rss.xml') },
+  { name: 'DW World', url: 'https://rss.dw.com/rdf/rss-en-all', icon: getSourceIcon('DW World', 'https://rss.dw.com/rdf/rss-en-all') },
+  { name: 'Euronews', url: 'https://www.euronews.com/rss?level=theme&name=politics', icon: getSourceIcon('Euronews', 'https://www.euronews.com/rss?level=theme&name=politics') },
 ]

@@ -2,7 +2,7 @@ import Image from 'next/image'
 
 type MainType = {
   title: string
-  subTitle: string
+  subTitle?: string
 }
 
 const MainHeader = ({ title, subTitle }: MainType) => {

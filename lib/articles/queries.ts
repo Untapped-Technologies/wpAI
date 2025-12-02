@@ -12,7 +12,6 @@ export type ArticleWithRelations = {
   publishedAt: string | null
   sourceName: string | null
   url: string | null
-  main_image_storage_path: string | null
 }
 
 export type ArticleFilters = {
@@ -63,7 +62,7 @@ export async function fetchArticlesWithRelations(
         published_at,
         source_id,
         article_topics ( topic ),
-        sources ( name )
+        sources ( name, url )
       `,
       { count: 'exact' }
     )

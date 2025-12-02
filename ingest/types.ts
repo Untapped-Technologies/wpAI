@@ -4,6 +4,7 @@ export interface RssSource {
   url: string
   enabled: boolean
   category?: string
+  icon?: string
 }
 
 export interface RawRssItem {
