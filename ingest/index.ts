@@ -1,20 +1,20 @@
 // Main entry point for the ingestion engine
-export * from './fetchRss'
-export * from './normalize'
-export * from './rssSources'
-export * from './saveToSupabase'
-export * from './types'
-export * from './uploadImage'
-export * from './utils/hash'
+export * from './fetchRss.js'
+export * from './normalize.js'
+export * from './rssSources.js'
+export * from './saveToSupabase.js'
+export * from './types.js'
+export * from './uploadImage.js'
+export * from './utils/hash.js'
 
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
-import { fetchRssFeed } from './fetchRss'
-import { normalizeRssItem } from './normalize'
-import { getEnabledRssSources } from './rssSources'
-import { saveArticle } from './saveToSupabase'
-import type { RssSource } from './types'
-import { downloadAndUploadImage } from './uploadImage'
+import { fetchRssFeed } from './fetchRss.js'
+import { normalizeRssItem } from './normalize.js'
+import { getEnabledRssSources } from './rssSources.js'
+import { saveArticle } from './saveToSupabase.js'
+import type { RssSource } from './types.js'
+import { downloadAndUploadImage } from './uploadImage.js'
 dotenv.config({ path: '.env.local' })
 /**
  * Updates the main_image_storage_path for an article
@@ -23,7 +23,8 @@ async function updateArticleImagePath(
   articleId: string,
   storagePath: string
 ): Promise<boolean> {
-  const supabaseUrl = process.env.SUPABASE_URL
+  // Check both SUPABASE_URL and NEXT_PUBLIC_SUPABASE_URL for compatibility
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !supabaseServiceKey) {
@@ -143,12 +144,13 @@ async function runIngestion() {
   console.log('🚀 Starting RSS ingestion pipeline...\n')
 
   // Check environment variables
-  const supabaseUrl = process.env.SUPABASE_URL
+  // Check both SUPABASE_URL and NEXT_PUBLIC_SUPABASE_URL for compatibility
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl) {
     console.error('❌ Missing required environment variables:')
-    console.error('   - SUPABASE_URL')
+    console.error('   - SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL')
   }
 
   if (!supabaseServiceKey) {

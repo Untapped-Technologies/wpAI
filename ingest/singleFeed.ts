@@ -1,7 +1,7 @@
 // ingest/singleFeed.ts
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
-import { runSingleSource } from './index.ts' // note: no .ts extension
+import { runSingleSource } from './index.js'
 
 dotenv.config({ path: '.env.local' })
 
@@ -13,12 +13,13 @@ async function main() {
     process.exit(1)
   }
 
-  const supabaseUrl = process.env.SUPABASE_URL
+  // Check both SUPABASE_URL and NEXT_PUBLIC_SUPABASE_URL for compatibility
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error(
-      '❌ Missing required environment variables (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)'
+      '❌ Missing required environment variables (SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)'
     )
     process.exit(1)
   }

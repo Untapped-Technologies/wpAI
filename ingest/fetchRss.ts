@@ -4,6 +4,7 @@ import type { RawRssItem } from './types.js'
 const parser = new Parser({
   customFields: {
     item: ['enclosure'],
+    feed: ['image'],
   },
 })
 
@@ -13,6 +14,42 @@ export async function fetchRssFeed(url: string): Promise<RawRssItem[]> {
 
     if (!feed.items || feed.items.length === 0) {
       return []
+    }
+
+    // Extract channel-level image as fallback
+    // RSS 2.0 spec: <image><url>...</url><title>...</title><link>...</link></image>
+    // This format is used by feeds like Al Jazeera and BBC World News
+    let channelImageUrl: string | undefined
+    const feedAny = feed as unknown as Record<string, unknown>
+    
+    // Try to extract image URL from feed.image
+    if (feed.image) {
+      const image = feed.image as { url?: string } | string | undefined
+      if (typeof image === 'string') {
+        channelImageUrl = image
+      } else if (image && typeof image === 'object') {
+        // RSS 2.0 image element has url, title, and link properties
+        if ('url' in image && typeof image.url === 'string') {
+          channelImageUrl = image.url
+        }
+      }
+    }
+    
+    // Also check feedAny in case image is in custom fields or parsed differently
+    if (!channelImageUrl && feedAny.image) {
+      const image = feedAny.image as { url?: string } | string | undefined
+      if (typeof image === 'string') {
+        channelImageUrl = image
+      } else if (image && typeof image === 'object') {
+        // Handle various possible structures
+        if ('url' in image && typeof image.url === 'string') {
+          channelImageUrl = image.url
+        } else if ('$' in image) {
+          // Some parsers wrap attributes in $ object
+          const attrs = (image as { $?: { url?: string } }).$
+          channelImageUrl = attrs?.url
+        }
+      }
     }
 
     const rawItems = feed.items
@@ -39,6 +76,11 @@ export async function fetchRssFeed(url: string): Promise<RawRssItem[]> {
             }
             imageUrl = itunesImage?.$?.href
           }
+        }
+
+        // Fallback to channel-level image if no item-level image found
+        if (!imageUrl && channelImageUrl) {
+          imageUrl = channelImageUrl
         }
 
         // Map RSS item to RawRssItem format
