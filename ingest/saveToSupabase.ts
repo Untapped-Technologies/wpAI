@@ -1,7 +1,7 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
-import { createClient } from '@supabase/supabase-js'
-import type { NormalizedArticle, SaveToSupabaseOptions } from './types.js'
-import { sha256 } from './utils/hash.js'
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
+import type { NormalizedArticle, SaveToSupabaseOptions } from './types.js';
+import { sha256 } from './utils/hash.js';
 
 /**
  * Saves an article to Supabase with de-duplication based on URL hash
@@ -75,7 +75,9 @@ export async function saveArticle(
         author: article.author,
         published_at: article.publishedAt?.toISOString() || null,
         main_image_source_url: article.mainImageUrl,
-        main_image_storage_path: null // Placeholder for now, will be updated later
+        main_image_storage_path: null, // Placeholder for now, will be updated later
+        country: article.country || null,
+        state: article.state || null
       })
       .select('id')
       .single()

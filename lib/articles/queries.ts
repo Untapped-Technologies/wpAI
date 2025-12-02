@@ -1,3 +1,4 @@
+import { getImageUrl } from '@/lib/getImageUrl'
 import { createClient } from '@/lib/supabase/server'
 
 export type ArticleWithRelations = {
@@ -11,6 +12,7 @@ export type ArticleWithRelations = {
   publishedAt: string | null
   sourceName: string | null
   url: string | null
+  main_image_storage_path: string | null
 }
 
 export type ArticleFilters = {
@@ -36,20 +38,6 @@ export type PaginatedArticlesResult = {
 }
 
 const DEFAULT_PAGE_SIZE = 20
-
-function buildArticleImageUrl(mainImagePath: string | null): string | undefined {
-  if (!mainImagePath) return undefined
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!supabaseUrl) return undefined
-
-  try {
-    const url = new URL(supabaseUrl)
-    return `${url.origin}/storage/v1/object/public/article-media/${mainImagePath}`
-  } catch {
-    return undefined
-  }
-}
 
 export async function fetchArticlesWithRelations(
   filters: ArticleFilters = {}
@@ -118,7 +106,7 @@ export async function fetchArticlesWithRelations(
       id: row.id,
       title: row.title,
       summary: row.summary ?? null,
-      imageUrl: buildArticleImageUrl(row.main_image_storage_path ?? null),
+      imageUrl: getImageUrl(row.main_image_storage_path ?? null) ?? undefined,
       topics,
       country: row.country ?? null,
       state: row.state ?? null,

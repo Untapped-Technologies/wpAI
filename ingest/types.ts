@@ -31,6 +31,8 @@ export interface NormalizedArticle {
   author: string | null
   publishedAt: Date | null
   mainImageUrl: string | null
+  country: string | null
+  state: string | null
 }
 
 export interface FetchRssOptions {

@@ -1,4 +1,3 @@
-import { ArticleWithRelations } from '@/lib/articles/queries'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -8,6 +7,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
+import { ArticleWithRelations } from '@/lib/articles/queries'
 import { Globe2, MapPin, Newspaper } from 'lucide-react'
 
 type ArticleCardProps = {
@@ -28,13 +28,14 @@ export function ArticleCard({ article }: ArticleCardProps) {
         day: 'numeric'
       })
     : null
+  const imgUrl = article.imageUrl;
 
   return (
     <Card className="flex flex-col overflow-hidden bg-white/80 backdrop-blur border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-      {article.imageUrl ? (
+      {imgUrl ? (
         <div className="relative w-full aspect-video overflow-hidden">
           <img
-            src={article.imageUrl}
+            src={imgUrl}
             alt={article.title}
             className="h-full w-full object-cover"
             loading="lazy"

@@ -24,6 +24,30 @@ function getExtensionFromContentType(contentType: string): string {
 }
 
 /**
+ * Extracts file extension from URL
+ */
+function getExtensionFromUrl(url: string): string {
+  try {
+    const urlObj = new URL(url)
+    const pathname = urlObj.pathname
+    const lastDot = pathname.lastIndexOf('.')
+    if (lastDot !== -1 && lastDot < pathname.length - 1) {
+      const ext = pathname.substring(lastDot + 1).toLowerCase()
+      // Remove query params if any
+      const cleanExt = ext.split('?')[0].split('#')[0]
+      // Validate extension (common image extensions)
+      const validExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'ico']
+      if (validExts.includes(cleanExt)) {
+        return cleanExt === 'jpeg' ? 'jpg' : cleanExt
+      }
+    }
+  } catch {
+    // Invalid URL, fall through to default
+  }
+  return 'jpg' // Default extension
+}
+
+/**
  * Downloads an image from a URL and uploads it to Supabase Storage
  * @param url - The URL of the image to download
  * @param articleId - The article ID to use in the storage path
@@ -42,7 +66,12 @@ export async function downloadAndUploadImage(
 
     // Get content type and determine extension
     const contentType = response.headers.get('content-type') || 'image/jpeg'
-    const extension = getExtensionFromContentType(contentType)
+    // Try to get extension from URL first, fallback to content-type
+    const extensionFromUrl = getExtensionFromUrl(url)
+    const extensionFromContentType = getExtensionFromContentType(contentType)
+    const extension = extensionFromUrl !== 'jpg' || contentType.includes('image/') 
+      ? extensionFromUrl 
+      : extensionFromContentType
 
     // Get image data as buffer
     const arrayBuffer = await response.arrayBuffer()
@@ -59,8 +88,8 @@ export async function downloadAndUploadImage(
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Upload to Supabase Storage
-    const storagePath = `articles/${articleId}/main.${extension}`
+    // Upload to Supabase Storage: articles/<articleId>/image.<ext>
+    const storagePath = `articles/${articleId}/image.${extension}`
     const { error } = await supabase.storage
       .from('article-media')
       .upload(storagePath, buffer, {
@@ -73,6 +102,7 @@ export async function downloadAndUploadImage(
       return null
     }
 
+    // Return storagePath (not full URL)
     return storagePath
   } catch (error) {
     console.error('Error downloading/uploading image:', error)

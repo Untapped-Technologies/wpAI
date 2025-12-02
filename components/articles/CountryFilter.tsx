@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useMemo } from 'react'
 
 import {
   Select,
@@ -58,7 +58,7 @@ export function CountryFilter({
   }
 
   const handleCountryChange = (value: string) => {
-    if (!value) {
+    if (!value || value === '__all__') {
       updateParams({ country: null, state: null })
     } else {
       updateParams({ country: value, state: null })
@@ -66,7 +66,7 @@ export function CountryFilter({
   }
 
   const handleStateChange = (value: string) => {
-    if (!value) {
+    if (!value || value === '__all__') {
       updateParams({ state: null })
     } else {
       updateParams({ state: value })
@@ -80,14 +80,14 @@ export function CountryFilter({
       <div className="space-y-2">
         <div className="text-sm font-medium text-slate-800">Country</div>
         <Select
-          value={selectedCountry ?? ''}
+          value={selectedCountry ?? '__all__'}
           onValueChange={handleCountryChange}
         >
           <SelectTrigger>
             <SelectValue placeholder="All countries" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All countries</SelectItem>
+            <SelectItem value="__all__">All countries</SelectItem>
             {countries.map(country => (
               <SelectItem key={country} value={country}>
                 {country}
@@ -100,7 +100,7 @@ export function CountryFilter({
       <div className="space-y-2">
         <div className="text-sm font-medium text-slate-800">State / Region</div>
         <Select
-          value={selectedState ?? ''}
+          value={selectedState ?? '__all__'}
           onValueChange={handleStateChange}
           disabled={!selectedCountry || statesForSelectedCountry.length === 0}
         >
@@ -116,7 +116,7 @@ export function CountryFilter({
             />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All states / regions</SelectItem>
+            <SelectItem value="__all__">All states / regions</SelectItem>
             {statesForSelectedCountry.map(state => (
               <SelectItem key={state} value={state}>
                 {state}

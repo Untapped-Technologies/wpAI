@@ -1,4 +1,5 @@
 import type { NormalizedArticle, RawRssItem, RssSource } from './types.js'
+import { extractState } from './utils/extractState.js'
 
 /**
  * Normalizes a raw RSS item into a standardized article format
@@ -70,6 +71,17 @@ export function normalizeRssItem(
     }
   }
 
+  // Infer country = 'US' for now
+  const country = 'US'
+
+  // Extract state from title + summary + content
+  const contentText = [
+    item.title || '',
+    summary || '',
+    item.content || ''
+  ].join(' ')
+  const state = extractState(contentText)
+
   return {
     sourceName,
     externalId,
@@ -79,6 +91,8 @@ export function normalizeRssItem(
     author: item.author || null,
     publishedAt,
     mainImageUrl,
+    country,
+    state,
   }
 }
 
