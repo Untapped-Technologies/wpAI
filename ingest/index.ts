@@ -1,20 +1,21 @@
 // Main entry point for the ingestion engine
-export * from './types.js'
-export * from './rssSources.js'
-export * from './fetchRss.js'
-export * from './normalize.js'
-export * from './uploadImage.js'
-export * from './saveToSupabase.js'
-export * from './utils/hash.js'
+export * from './fetchRss'
+export * from './normalize'
+export * from './rssSources'
+export * from './saveToSupabase'
+export * from './types'
+export * from './uploadImage'
+export * from './utils/hash'
 
-import { fetchRssFeed } from './fetchRss.js'
-import { normalizeRssItem } from './normalize.js'
-import { downloadAndUploadImage } from './uploadImage.js'
-import { saveArticle } from './saveToSupabase.js'
-import { getEnabledRssSources } from './rssSources.js'
 import { createClient } from '@supabase/supabase-js'
-import type { RssSource, NormalizedArticle } from './types.js'
-
+import * as dotenv from 'dotenv'
+import { fetchRssFeed } from './fetchRss'
+import { normalizeRssItem } from './normalize'
+import { getEnabledRssSources } from './rssSources'
+import { saveArticle } from './saveToSupabase'
+import type { RssSource } from './types'
+import { downloadAndUploadImage } from './uploadImage'
+dotenv.config({ path: '.env.local' })
 /**
  * Updates the main_image_storage_path for an article
  */
@@ -22,7 +23,7 @@ async function updateArticleImagePath(
   articleId: string,
   storagePath: string
 ): Promise<boolean> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !supabaseServiceKey) {
@@ -39,7 +40,10 @@ async function updateArticleImagePath(
       .eq('id', articleId)
 
     if (error) {
-      console.error(`Error updating article image path for ${articleId}:`, error)
+      console.error(
+        `Error updating article image path for ${articleId}:`,
+        error
+      )
       return false
     }
 
@@ -63,7 +67,7 @@ async function processSource(source: RssSource): Promise<{
     fetched: 0,
     inserted: 0,
     duplicates: 0,
-    errors: 0,
+    errors: 0
   }
 
   try {
@@ -109,7 +113,10 @@ async function processSource(source: RssSource): Promise<{
           stats.duplicates++
         }
       } catch (error) {
-        console.error(`Error processing item ${i + 1} from ${source.name}:`, error)
+        console.error(
+          `Error processing item ${i + 1} from ${source.name}:`,
+          error
+        )
         stats.errors++
       }
     }
@@ -123,20 +130,30 @@ async function processSource(source: RssSource): Promise<{
 }
 
 /**
+ * Public wrapper to process a single source from other scripts
+ */
+export async function runSingleSource(source: RssSource) {
+  return processSource(source)
+}
+
+/**
  * Main ingestion pipeline
  */
 async function runIngestion() {
   console.log('🚀 Starting RSS ingestion pipeline...\n')
 
   // Check environment variables
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseUrl = process.env.SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+  if (!supabaseUrl) {
     console.error('❌ Missing required environment variables:')
-    console.error('   - NEXT_PUBLIC_SUPABASE_URL')
+    console.error('   - SUPABASE_URL')
+  }
+
+  if (!supabaseServiceKey) {
+    console.error('❌ Missing required environment variables:')
     console.error('   - SUPABASE_SERVICE_ROLE_KEY')
-    process.exit(1)
   }
 
   // Fetch enabled RSS sources
@@ -156,7 +173,7 @@ async function runIngestion() {
     totalInserted: 0,
     totalDuplicates: 0,
     totalErrors: 0,
-    sourceErrors: 0,
+    sourceErrors: 0
   }
 
   for (const source of sources) {
@@ -167,7 +184,9 @@ async function runIngestion() {
     overallStats.totalErrors += stats.errors
 
     // Output summary for each source
-    console.log(`Source: ${source.name} — fetched: ${stats.fetched}, inserted: ${stats.inserted}, duplicates: ${stats.duplicates}`)
+    console.log(
+      `Source: ${source.name} — fetched: ${stats.fetched}, inserted: ${stats.inserted}, duplicates: ${stats.duplicates}`
+    )
 
     if (stats.errors > 0 && stats.errors === stats.fetched) {
       // All items failed for this source
@@ -196,8 +215,7 @@ async function runIngestion() {
 }
 
 // Execute the ingestion pipeline
-runIngestion().catch((error) => {
+runIngestion().catch(error => {
   console.error('❌ Fatal error in ingestion pipeline:', error)
   process.exit(1)
 })
-

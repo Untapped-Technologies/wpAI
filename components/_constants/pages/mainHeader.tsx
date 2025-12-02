@@ -2,9 +2,10 @@ import Image from 'next/image'
 
 type MainType = {
   title: string
+  subTitle: string
 }
 
-const MainHeader = ({ title }: MainType) => {
+const MainHeader = ({ title, subTitle }: MainType) => {
   return (
     <section className="relative overflow-hidden">
       <div className="container mx-auto px-0 py-10 lg:py-10">
@@ -19,6 +20,9 @@ const MainHeader = ({ title }: MainType) => {
 
           <p className="text-xl lg:text-2xl text-slate-600 leading-relaxed uppercase">
             {title}
+          </p>
+          <p className="text-xl lg:text-xl text-slate-600 leading-relaxed">
+            {subTitle}
           </p>
         </div>
       </div>
